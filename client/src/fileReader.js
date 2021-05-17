@@ -1,9 +1,9 @@
-class FileLoader {
+class FileReader {
   /**
    * @param {string} fileLocation
    * @returns {string} - raw string
    */
-  loadTextFile = async (fileLocation) => {
+  readTextFile = async (fileLocation) => {
     try {
       const response = await fetch(fileLocation);
       return await response.text();
@@ -13,4 +13,4 @@ class FileLoader {
   };
 }
 
-export default FileLoader;
+export default FileReader;

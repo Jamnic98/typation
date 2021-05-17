@@ -2,6 +2,8 @@ import React from 'react';
 import Character from './character.js';
 import './typing-widget-text.css';
 
+const ID = 'typing-widget-text';
+
 function TypingWidgetText(props) {
   const { displayText } = props;
 
@@ -14,7 +16,7 @@ function TypingWidgetText(props) {
       .indexOf(' ', Object.values(displayText).length / 2) + 1;
 
   return (
-    <>
+    <div id={ID} data-testid={ID}>
       {displayText.slice(0, spaceIndex).map((charObj, index) => (
         <Character key={index} charObj={charObj} />
       ))}
@@ -24,7 +26,7 @@ function TypingWidgetText(props) {
         .map((charObj, index) => (
           <Character key={index} charObj={charObj} />
         ))}
-    </>
+    </div>
   );
 }
 

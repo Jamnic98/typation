@@ -1,6 +1,8 @@
 import React from 'react';
 import './character.css';
 
+const ID = 'character';
+
 const Character = (props) => {
   const { charObj } = props;
 
@@ -8,11 +10,12 @@ const Character = (props) => {
     const { character, typedStatus, highlighted } = charObj;
     return (
       <span
-        id='character'
-        data-testid='character'
+        id={ID}
+        data-testid={ID}
         className={`${typedStatus} ${highlighted ? 'flash' : ''}`}
       >
-        {character === ' ' ? <>&#95;</> : character}
+        {/* {character === ' ' ? '_' : character} */}
+        {character === ' ' ? '⎵' : character}
       </span>
     );
   };

@@ -3,54 +3,80 @@ import TypingWidgetText from './typing-widget-text.js';
 import StringGenerator from '../../stringGenerator.js';
 import './typing-widget.css';
 
-const WORD_COUNT = 5;
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+const CHAR_ARRAY = (' ' + ALPHABET).split('');
+// create an array of all possible char pair combinations from CHAR_ARRAY
+const CHAR_ARRAY_PAIRS = CHAR_ARRAY.map((char1) => {
+  return CHAR_ARRAY.map((char2) => {
+    const charPair = char1 + char2;
+    return { charPair: charPair, score: 0 };
+  });
+});
+
+const WORD_COUNT = 2;
 const TYPED_STATUS = {
   HIT: 'hit',
   MISS: 'miss',
   NONE: 'none',
 };
 
-function TypingWidget(props) {
-  const { wordsArray } = props;
+const stringGenerator = new StringGenerator();
 
+function TypingWidget() {
   const [charObjArray, setCharObjArray] = useState([]);
+  const [charArrayPairScores, setCharArrayPairScores] = useState([]);
 
-  const handleKeyPressed = (e) => {
+  const handleKeyPressed = async (e) => {
     const stringArray = charObjArray.map((charObj) => charObj.character);
     const cursorPosition = getCursorPosition();
-    if (e.key === stringArray[cursorPosition]) {
-      setCharObjArray(updateCharObjArray(TYPED_STATUS.HIT, cursorPosition));
-    } else {
-      setCharObjArray(updateCharObjArray(TYPED_STATUS.MISS, cursorPosition));
+    const key = e.key;
+    if (CHAR_ARRAY.indexOf(key) !== -1) {
+      // correct key hit
+      if (key === stringArray[cursorPosition]) {
+        setCharObjArray(
+          await updateCharObjArray(TYPED_STATUS.HIT, cursorPosition)
+        );
+      } else {
+        // incorrect key hit
+        setCharObjArray(
+          await updateCharObjArray(TYPED_STATUS.MISS, cursorPosition)
+        );
+      }
     }
   };
 
-  const updateCharObjArray = (typedStatus, cursorPosition) => {
-    return charObjArray.map((charObj, index) => {
-      if (typedStatus === TYPED_STATUS.HIT) {
-        charObj.highlighted = index === cursorPosition + 1;
-      }
-      if (charObj.typedStatus !== TYPED_STATUS.MISS) {
-        if (index === cursorPosition) {
-          charObj.typedStatus = typedStatus;
+  const updateCharObjArray = async (typedStatus, cursorPosition) => {
+    // if cursor is at the end, create new string
+    if (cursorPosition === Object.values(charObjArray).length - 1) {
+      return strToCharObjArray(await getNewString(WORD_COUNT));
+    } else {
+      return charObjArray.map((charObj, index) => {
+        if (typedStatus === TYPED_STATUS.HIT) {
+          charObj.highlighted = index === cursorPosition + 1;
         }
-      }
-      return charObj;
-    });
+        if (charObj.typedStatus !== TYPED_STATUS.MISS) {
+          if (index === cursorPosition) {
+            charObj.typedStatus = typedStatus;
+          }
+        }
+        return charObj;
+      });
+    }
   };
 
-  const newCharObjArray = useCallback(() => {
-    const stringToType = new StringGenerator(wordsArray).generateString(
-      WORD_COUNT
-    );
-    return stringToType.split('').map((character, index) => {
+  const getNewString = async (wordCount) => {
+    return await stringGenerator.generateString(wordCount);
+  };
+
+  const strToCharObjArray = useCallback((string) => {
+    return string.split('').map((character, index) => {
       return {
         character,
         typedStatus: TYPED_STATUS.NONE,
         highlighted: index === 0,
       };
     });
-  }, [wordsArray]);
+  }, []);
 
   const getCursorPosition = useCallback(() => {
     return charObjArray
@@ -61,10 +87,15 @@ function TypingWidget(props) {
   }, [charObjArray]);
 
   useEffect(() => {
-    if (getCursorPosition() === -1) {
-      setCharObjArray(newCharObjArray());
+    try {
+      (async () => {
+        const string = await getNewString(WORD_COUNT);
+        setCharObjArray(strToCharObjArray(string));
+      })();
+    } catch (error) {
+      console.error(error);
     }
-  }, [charObjArray, getCursorPosition, newCharObjArray]);
+  }, [strToCharObjArray]);
 
   return (
     <div id='typing-widget' tabIndex='0' onKeyDown={(e) => handleKeyPressed(e)}>
