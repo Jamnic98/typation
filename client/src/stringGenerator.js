@@ -19,13 +19,28 @@ class StringGenerator {
    * @param {integer} wordCount - the number of words in the string
    * @returns {string} - space separated string of words drawn from an array of words
    */
+
+  getRandom(arr, n) {
+    var result = new Array(n),
+      len = arr.length,
+      taken = new Array(len);
+    if (n > len)
+      throw new RangeError('getRandom: more elements taken than available');
+    while (n--) {
+      var x = Math.floor(Math.random() * len);
+      result[n] = arr[x in taken ? taken[x] : x];
+      taken[x] = --len in taken ? taken[len] : len;
+    }
+    return result;
+  }
+
   async generateString(wordCount) {
     try {
       const wordsArray = await getWords;
       const randomInt = Math.ceil(
-        Math.random() * (wordsArray.length - wordCount)
+        Math.random() * (wordsArray.length - wordCount - 1)
       );
-      return await wordsArray.slice(randomInt, randomInt + wordCount).join(' ');
+      return await this.getRandom(wordsArray, wordCount).join(' ');
     } catch (error) {
       console.error(error);
     }
