@@ -41,35 +41,60 @@ function TypingWidget() {
       ) {
         updateStats(typedStatus);
       }
+
       setCharObjArray(await updateCharObjArray(charObjArray, typedStatus));
     }
   };
 
-  const updateStats = () => {};
+  const updateStats = (typedStatus) => {
+    console.log(typedStatus);
+  };
 
   const updateCharObjArray = async (charObjArray, typedStatus) => {
     const cursorPosition = getCursorPosition(charObjArray);
     const stringArray = charObjArray.map((obj) => obj.character);
+    const currentTypedStatus = charObjArray[cursorPosition].typedStatus;
     // update the array of character objects
     if (cursorPosition === stringArray.length - 1) {
       if (typedStatus === TYPED_STATUS.HIT) {
         return strToCharObjArray(await getNewString(WORD_COUNT));
-      } else {
-        return charObjArray;
+      } else if (typedStatus === TYPED_STATUS.MISS) {
+        if (currentTypedStatus === TYPED_STATUS.MISS) {
+          return charObjArray;
+        } else {
+          return charObjArray.map((obj, index) => {
+            if (index === cursorPosition) {
+              obj.typedStatus = TYPED_STATUS.MISS;
+            }
+            return obj;
+          });
+        }
       }
     } else {
-      return charObjArray.map((charObj, index) => {
-        if (typedStatus === TYPED_STATUS.HIT) {
-          charObj.highlighted = index === cursorPosition + 1;
-        }
-        if (charObj.typedStatus !== TYPED_STATUS.MISS) {
+      if (typedStatus === TYPED_STATUS.HIT) {
+        return charObjArray.map((obj, index) => {
           if (index === cursorPosition) {
-            charObj.typedStatus = typedStatus;
+            if (obj.typedStatus === TYPED_STATUS.NONE) {
+              obj.typedStatus = TYPED_STATUS.HIT;
+            }
           }
+          obj.highlighted = index === cursorPosition + 1;
+          return obj;
+        });
+      } else if (typedStatus === TYPED_STATUS.MISS) {
+        if (currentTypedStatus === TYPED_STATUS.MISS) {
+          return charObjArray;
+        } else {
+          return charObjArray.map((obj, index) => {
+            if (index === cursorPosition) {
+              obj.typedStatus = TYPED_STATUS.MISS;
+            }
+            return obj;
+          });
         }
-        return charObj;
-      });
+      }
     }
+    return charObjArray;
   };
 
   const getNewString = async (wordCount) => {
@@ -105,11 +130,20 @@ function TypingWidget() {
     }
   }, [strToCharObjArray]);
 
-  return (
-    <div id='typing-widget' tabIndex='0' onKeyDown={(e) => handleKeyPressed(e)}>
-      <TypingWidgetText displayText={charObjArray} />
-    </div>
-  );
+  const setOutput = () => {
+    //console.log('object');
+    return (
+      <div
+        id='typing-widget'
+        tabIndex='0'
+        onKeyDown={(e) => handleKeyPressed(e)}
+      >
+        <TypingWidgetText displayText={charObjArray} />
+      </div>
+    );
+  };
+
+  return setOutput();
 }
 
 export default TypingWidget;
