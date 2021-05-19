@@ -26,72 +26,56 @@ function TypingWidget() {
   const [charArrayPairs, setCharArrayPairs] = useState(CHAR_ARRAY_PAIRS);
 
   const handleKeyPressed = async (e) => {
-    const { key } = e;
-    if (CHAR_ARRAY.indexOf(key) !== -1) {
-      const cursorPosition = getCursorPosition(charObjArray);
-      const stringArray = charObjArray.map((charObj) => charObj.character);
-      // was the correct key hit?
-      const typedStatus =
-        key === stringArray[cursorPosition]
-          ? TYPED_STATUS.HIT
-          : TYPED_STATUS.MISS;
-      if (
-        charObjArray.map((obj) => obj.typedStatus)[cursorPosition] ===
-        TYPED_STATUS.NONE
-      ) {
-        updateStats(typedStatus);
-      }
-
-      setCharObjArray(await updateCharObjArray(charObjArray, typedStatus));
+    const { key: keyPressed } = e;
+    if (CHAR_ARRAY.indexOf(keyPressed) !== -1) {
+      setCharObjArray(await updateCharObjArray(keyPressed));
     }
   };
 
   const updateStats = (typedStatus) => {
-    console.log(typedStatus);
+    // console.log(typedStatus);
   };
 
-  const updateCharObjArray = async (charObjArray, typedStatus) => {
+  const updateCharObjArray = async (keyPressed) => {
     const cursorPosition = getCursorPosition(charObjArray);
-    const stringArray = charObjArray.map((obj) => obj.character);
+    const charArray = charObjArray.map((obj) => obj.character);
+    const typedStatus =
+      keyPressed === charArray[cursorPosition]
+        ? TYPED_STATUS.HIT
+        : TYPED_STATUS.MISS;
     const currentTypedStatus = charObjArray[cursorPosition].typedStatus;
-    // update the array of character objects
-    if (cursorPosition === stringArray.length - 1) {
+
+    if (currentTypedStatus === TYPED_STATUS.NONE) {
+      updateStats(typedStatus);
       if (typedStatus === TYPED_STATUS.HIT) {
-        return strToCharObjArray(await getNewString(WORD_COUNT));
-      } else if (typedStatus === TYPED_STATUS.MISS) {
-        if (currentTypedStatus === TYPED_STATUS.MISS) {
-          return charObjArray;
+        if (cursorPosition === charArray.length - 1) {
+          return strToCharObjArray(await getNewString(WORD_COUNT));
         } else {
           return charObjArray.map((obj, index) => {
+            obj.highlighted = index === cursorPosition + 1;
             if (index === cursorPosition) {
-              obj.typedStatus = TYPED_STATUS.MISS;
-            }
-            return obj;
-          });
-        }
-      }
-    } else {
-      if (typedStatus === TYPED_STATUS.HIT) {
-        return charObjArray.map((obj, index) => {
-          if (index === cursorPosition) {
-            if (obj.typedStatus === TYPED_STATUS.NONE) {
               obj.typedStatus = TYPED_STATUS.HIT;
             }
-          }
-          obj.highlighted = index === cursorPosition + 1;
-          return obj;
-        });
-      } else if (typedStatus === TYPED_STATUS.MISS) {
-        if (currentTypedStatus === TYPED_STATUS.MISS) {
-          return charObjArray;
-        } else {
-          return charObjArray.map((obj, index) => {
-            if (index === cursorPosition) {
-              obj.typedStatus = TYPED_STATUS.MISS;
-            }
             return obj;
           });
         }
+      } else if (typedStatus === TYPED_STATUS.MISS) {
+        return charObjArray.map((obj, index) => {
+          if (index === cursorPosition) {
+            obj.typedStatus = TYPED_STATUS.MISS;
+          }
+          return obj;
+        });
+      }
+    } else if (currentTypedStatus === TYPED_STATUS.MISS) {
+      if (typedStatus === TYPED_STATUS.HIT) {
+        return charObjArray.map((obj, index) => {
+          obj.highlighted = index === cursorPosition + 1;
+          if (index === cursorPosition) {
+            obj.typedStatus = TYPED_STATUS.MISS;
+          }
+          return obj;
+        });
       }
     }
     return charObjArray;
@@ -131,7 +115,7 @@ function TypingWidget() {
   }, [strToCharObjArray]);
 
   const setOutput = () => {
-    //console.log('object');
+    console.log(charObjArray);
     return (
       <div
         id='typing-widget'
