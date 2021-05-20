@@ -3,7 +3,7 @@ import TypingWidgetText from './typing-widget-text.js';
 import StringGenerator from '../../stringGenerator.js';
 import './typing-widget.css';
 
-const stringGenerator = new StringGenerator();
+const stringGenerator = new StringGenerator('text.txt');
 
 const WORD_COUNT = 2;
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
@@ -12,7 +12,7 @@ const CHAR_ARRAY = (' ' + ALPHABET).split('');
 const CHAR_ARRAY_PAIRS = CHAR_ARRAY.map((char1) => {
   return CHAR_ARRAY.map((char2) => {
     const charPair = char1 + char2;
-    return { charPair: charPair, score: 0 };
+    return { charPair, hit: 0, miss: 0 };
   });
 });
 const TYPED_STATUS = {
@@ -25,18 +25,13 @@ function TypingWidget() {
   const [charObjArray, setCharObjArray] = useState([]);
   const [charArrayPairs, setCharArrayPairs] = useState(CHAR_ARRAY_PAIRS);
 
-  const handleKeyPressed = async (e) => {
-    const { key: keyPressed } = e;
-    if (CHAR_ARRAY.indexOf(keyPressed) !== -1) {
-      setCharObjArray(await updateCharObjArray(keyPressed));
+  const updateStats = (charObjArray, cursorPosition, typedStatus) => {
+    if (typedStatus === TYPED_STATUS.HIT) {
+    } else if (typedStatus === TYPED_STATUS.MISS) {
     }
   };
 
-  const updateStats = (typedStatus) => {
-    // console.log(typedStatus);
-  };
-
-  const updateCharObjArray = async (keyPressed) => {
+  const updateCharObjArray = (charObjArray, keyPressed) => {
     const cursorPosition = getCursorPosition(charObjArray);
     const charArray = charObjArray.map((obj) => obj.character);
     const typedStatus =
@@ -45,20 +40,11 @@ function TypingWidget() {
         : TYPED_STATUS.MISS;
     const currentTypedStatus = charObjArray[cursorPosition].typedStatus;
 
+    // if the highlighted character has not been typed
     if (currentTypedStatus === TYPED_STATUS.NONE) {
       updateStats(typedStatus);
       if (typedStatus === TYPED_STATUS.HIT) {
-        if (cursorPosition === charArray.length - 1) {
-          return strToCharObjArray(await getNewString(WORD_COUNT));
-        } else {
-          return charObjArray.map((obj, index) => {
-            obj.highlighted = index === cursorPosition + 1;
-            if (index === cursorPosition) {
-              obj.typedStatus = TYPED_STATUS.HIT;
-            }
-            return obj;
-          });
-        }
+        return updateCharObj(charObjArray, cursorPosition, TYPED_STATUS.HIT);
       } else if (typedStatus === TYPED_STATUS.MISS) {
         return charObjArray.map((obj, index) => {
           if (index === cursorPosition) {
@@ -69,16 +55,24 @@ function TypingWidget() {
       }
     } else if (currentTypedStatus === TYPED_STATUS.MISS) {
       if (typedStatus === TYPED_STATUS.HIT) {
-        return charObjArray.map((obj, index) => {
-          obj.highlighted = index === cursorPosition + 1;
-          if (index === cursorPosition) {
-            obj.typedStatus = TYPED_STATUS.MISS;
-          }
-          return obj;
-        });
+        return updateCharObj(charObjArray, cursorPosition, TYPED_STATUS.MISS);
       }
     }
     return charObjArray;
+  };
+
+  const updateCharObj = async (charObjArray, cursorPosition, typedStatus) => {
+    if (cursorPosition === charObjArray.length - 1) {
+      return strToCharObjArray(await getNewString(WORD_COUNT));
+    } else {
+      return charObjArray.map((obj, index) => {
+        obj.highlighted = index === cursorPosition + 1;
+        if (index === cursorPosition) {
+          obj.typedStatus = typedStatus;
+        }
+        return obj;
+      });
+    }
   };
 
   const getNewString = async (wordCount) => {
@@ -103,6 +97,13 @@ function TypingWidget() {
       .indexOf(true);
   }, []);
 
+  const handleKeyPressed = async (e) => {
+    const { key: keyPressed } = e;
+    if (CHAR_ARRAY.indexOf(keyPressed) !== -1) {
+      setCharObjArray(await updateCharObjArray(charObjArray, keyPressed));
+    }
+  };
+
   useEffect(() => {
     try {
       (async () => {
@@ -115,7 +116,6 @@ function TypingWidget() {
   }, [strToCharObjArray]);
 
   const setOutput = () => {
-    console.log(charObjArray);
     return (
       <div
         id='typing-widget'
@@ -128,6 +128,16 @@ function TypingWidget() {
   };
 
   return setOutput();
+
+  /* return (
+    <div
+      id='typing-widget'
+      tabIndex='0'
+      onKeyDown={(e) => handleKeyPressed(e)}
+    >
+      <TypingWidgetText displayText={charObjArray} />
+    </div>
+  ); */
 }
 
 export default TypingWidget;

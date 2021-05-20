@@ -2,23 +2,21 @@ import FileReader from './fileReader.js';
 
 const fileReader = new FileReader();
 
-const getWords = (async () => {
+const getWords = async (fileName) => {
   try {
-    const text = await fileReader.readTextFile('./text.txt');
+    const text = await fileReader.readTextFile(`./${fileName}`);
     return text.split('\r\n').map((word) => {
       return word.trim();
     });
   } catch (error) {
     console.error(error);
   }
-})();
+};
 
 class StringGenerator {
-  /**
-   * Generates a string of space separated words
-   * @param {integer} wordCount - the number of words in the string
-   * @returns {string} - space separated string of words drawn from an array of words
-   */
+  constructor(fileName) {
+    this.words = getWords(fileName);
+  }
 
   getRandom(arr, n) {
     var result = new Array(n),
@@ -34,13 +32,14 @@ class StringGenerator {
     return result;
   }
 
+  /**
+   * Generates a string of space separated words
+   * @param {integer} wordCount - the number of words in the string
+   * @returns {string} - space separated string of words drawn from an array of words
+   */
   async generateString(wordCount) {
     try {
-      const wordsArray = await getWords;
-      const randomInt = Math.ceil(
-        Math.random() * (wordsArray.length - wordCount - 1)
-      );
-      return await this.getRandom(wordsArray, wordCount).join(' ');
+      return this.getRandom(await this.words, wordCount).join(' ');
     } catch (error) {
       console.error(error);
     }

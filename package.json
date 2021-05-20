@@ -4,7 +4,9 @@
   "description": "A program to help the user learn to type faster.",
   "main": "index.js",
   "scripts": {
-    "client": "cd client && npm start"
+    "client": "cd client && npm start",
+    "server": "cd server && npm start",
+    "dev": "concurrently -k --kill-others-on-fail \"cd client && npm start\" \"cd server && npm run dev\""
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/Jamnic98/touch-typing/issues"
   },
-  "homepage": "https://github.com/Jamnic98/touch-typing#readme"
+  "homepage": "https://github.com/Jamnic98/touch-typing#readme",
+  "devDependencies": {
+    "concurrently": "^6.1.0"
+  }
 }
