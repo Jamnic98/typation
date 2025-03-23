@@ -1,0 +1,8 @@
+# Format code using Prettier and lint using ESLint only on staged files
+npx lint-staged
+
+# Run tests to ensure functionality
+npm test
+
+# Build to verify everything compiles correctly
+npm run build
