@@ -1,0 +1,7 @@
+{
+  "name": "Touch Typing",
+  "description": "A program designed to help the user learn to type.",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone"
+}
