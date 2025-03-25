@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
-import { Character } from '../components'
-import { TypedStatus } from '../types'
+import { Character } from 'components'
+import { SpaceSymbol, TypedStatus } from 'types'
 
 const meta = {
   title: 'Character',
@@ -17,7 +17,7 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Missed: Story = {
+export const Miss: Story = {
   args: {
     char: 'M',
     highlighted: false,
@@ -37,6 +37,13 @@ export const Space: Story = {
   args: {
     char: ' ',
     highlighted: false,
-    typedStatus: TypedStatus.NONE,
+    spaceSymbol: SpaceSymbol.UNDERSCORE,
+  },
+}
+
+export const Highlighted: Story = {
+  args: {
+    char: 'H',
+    highlighted: true,
   },
 }

@@ -1,29 +1,16 @@
-#character.none {
-  color: black;
-}
-
-#character.hit {
-  /* color: gray; */
-  color: green;
-}
-
-#character.miss {
-  color: red;
-}
-
-#character.flash {
-  -webkit-animation-name: flash;
-  -webkit-animation-duration: 0.6s;
+.animate-flash {
+  -webkit-animation-name: animate-flash;
+  -webkit-animation-duration: 1s;
   -webkit-animation-iteration-count: infinite;
   -webkit-animation-timing-function: ease;
 
-  animation-name: flash;
-  animation-duration: 0.6s;
+  animation-name: animate-flash;
+  animation-duration: 1s;
   animation-iteration-count: infinite;
   animation-timing-function: ease;
 }
 
-@-webkit-keyframes flash {
+@keyframes animate-flash {
   0% {
     background-color: white;
     color: black;
@@ -38,7 +25,7 @@
   }
 }
 
-@keyframes flash {
+@-webkit-keyframes animate-flash {
   0% {
     background-color: white;
     color: black;

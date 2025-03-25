@@ -16,6 +16,14 @@ export default defineConfig({
     tsconfigRaw: '{}',
   },
   plugins: [react(), tsconfigPaths()],
+  resolve: {
+    alias: {
+      src: "/src",
+      components: "/src/components",
+      assets: "/src/assets",
+      lib: "/src/lib",
+    },
+  },
   test: {
     globals: true,
     environment: "jsdom",
