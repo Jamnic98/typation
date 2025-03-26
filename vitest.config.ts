@@ -1,8 +1,9 @@
 import { defineConfig } from 'vitest/config';
-import tsconfigPaths from "vite-tsconfig-paths";
 import react from '@vitejs/plugin-react';
-import { fileURLToPath } from 'node:url'
+import tsconfigPaths from "vite-tsconfig-paths";
+import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { storybookTest } from '@storybook/experimental-addon-test/vitest-plugin'
 
@@ -15,15 +16,7 @@ export default defineConfig({
   esbuild: {
     tsconfigRaw: '{}',
   },
-  plugins: [react(), tsconfigPaths()],
-  resolve: {
-    alias: {
-      src: "/src",
-      components: "/src/components",
-      assets: "/src/assets",
-      lib: "/src/lib",
-    },
-  },
+  plugins: [react(), tsconfigPaths(), tailwindcss()],
   test: {
     globals: true,
     environment: "jsdom",

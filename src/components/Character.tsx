@@ -1,5 +1,4 @@
 import { TypedStatus, type SpaceSymbol } from 'types'
-import './character.css'
 
 export interface CharacterProps {
   char: string
@@ -18,7 +17,7 @@ export const Character = ({ char, highlighted, typedStatus, spaceSymbol }: Chara
 
   return (
     <span
-      className={`${statusClass} ${highlighted ? 'animate-flash' : ''}`}
+      className={`inline-flex w-[0.4em] h-[1.5em] justify-center items-center leading-none px-[0.4em] ${highlighted ? 'animate-flash ' : ''} ${statusClass}`}
       data-testid="character"
     >
       {char === ' ' && spaceSymbol ? spaceSymbol : char}

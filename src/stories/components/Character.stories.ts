@@ -37,7 +37,7 @@ export const Space: Story = {
   args: {
     char: ' ',
     highlighted: false,
-    spaceSymbol: SpaceSymbol.UNDERSCORE,
+    spaceSymbol: SpaceSymbol.MIDDLE_DOT,
   },
 }
 
