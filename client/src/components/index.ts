@@ -1,1 +1,2 @@
-export * from './character'
+export * from './Character'
+export * from './TypingWidgetText'

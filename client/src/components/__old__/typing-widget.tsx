@@ -1,6 +1,5 @@
 // import { useState } from 'react'
-import TypingWidgetText from './typing-widget-text.js'
-import './typing-widget.css'
+// import TypingWidgetText from './typing-widget-text.js'
 
 // const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 // const CHAR_ARRAY = (' ' + ALPHABET).split('')
@@ -102,11 +101,7 @@ const TypingWidget = () => {
   //   }
   // }
 
-  return (
-    <div id="typing-widget" tabIndex={0} /*  onKeyDown={(e) => handleKeyPressed(e)} */>
-      <TypingWidgetText /* displayText={charObjArray} */ />
-    </div>
-  )
+  return <div id="typing-widget" tabIndex={0} /*  onKeyDown={(e) => handleKeyPressed(e)} */></div>
 }
 
 export default TypingWidget

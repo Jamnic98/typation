@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import './main.css'
+import './styles/main.css'
 
 import App from './App.tsx'
 
