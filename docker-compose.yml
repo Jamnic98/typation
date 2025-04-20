@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - app-network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - text-service
+    networks:
+      - app-network
+
+  text-service:
+    build:
+      context: ./text-service
+      dockerfile: Dockerfile
+    container_name: text-service
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
