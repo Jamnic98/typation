@@ -1,25 +1,27 @@
-import redis
 import time
 
-# Configure the connection to Redis
-redis_host = 'redis'  # Assuming Redis service is named 'redis' in your docker-compose.yml
-redis_port = 6379  # Default Redis port
-queue_name = 'task_queue'  # Name of the Redis queue to pull tasks from
+from rq.queue import Queue
 
-# Connect to the Redis server
-r = redis.Redis(host=redis_host, port=redis_port, db=0)
+from worker.factories.redis import create_redis_client
+from worker.settings import settings
+
+
+redis_client = create_redis_client()
+redis_queue = Queue(connection=redis_client)
+
 
 def process_task(task):
     """This function processes a single task"""
     # For simplicity, we'll just print the task; this could be more complex
     print(f"Processing task: {task}")
+    redis_queue.enqueue(task)
 
 def worker():
     """Worker function to continually pull tasks from the Redis queue"""
     while True:
         try:
             # Pull a task from the Redis queue
-            task = r.lpop(queue_name)  # lpop pops the first item from the list
+            task = redis_client.lpop(settings.QUEUE_NAME)  # lpop pops the first item from the list
 
             if task:
                 # If a task is available, process it

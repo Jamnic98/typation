@@ -33,7 +33,7 @@ services:
   text-service:
     build:
       context: ./text-service/api
-      dockerfile: Dockerfile.api
+      dockerfile: api.Dockerfile
     depends_on:
       - redis
     networks:
@@ -42,7 +42,7 @@ services:
   text-worker:
     build:
       context: ./text-service/worker
-      dockerfile: Dockerfile.worker
+      dockerfile: worker.Dockerfile
     depends_on:
       - redis
     networks:
@@ -54,6 +54,24 @@ services:
     networks:
       - app-network
 
+  db:
+    image: postgres:17.0-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    # ports:
+    #   - "5050:5050"
+
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  postgres_data:
