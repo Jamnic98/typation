@@ -32,8 +32,25 @@ services:
 
   text-service:
     build:
-      context: ./text-service
-      dockerfile: Dockerfile
+      context: ./text-service/api
+      dockerfile: Dockerfile.api
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  text-worker:
+    build:
+      context: ./text-service/worker
+      dockerfile: Dockerfile.worker
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
     networks:
       - app-network
 
