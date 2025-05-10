@@ -2,8 +2,8 @@ import time
 
 from rq.queue import Queue
 
-from worker.factories.redis import create_redis_client
-from worker.settings import settings
+from app.factories.redis import create_redis_client
+from app.settings import settings
 
 
 redis_client = create_redis_client()

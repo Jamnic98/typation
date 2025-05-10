@@ -2,3 +2,5 @@ numpy
 pandas
 redis
 rq
+
+pydantic_settings

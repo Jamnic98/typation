@@ -1,7 +1,5 @@
 import { Character, type CharacterProps } from 'components'
 
-// const id = 'typing-widget-text'
-
 interface TypingWidgetTextProps {
   displayText: CharacterProps[]
 }
@@ -26,8 +24,12 @@ export const TypingWidgetText = ({ displayText }: TypingWidgetTextProps) => {
   // )
 
   return (
-    displayText
-      // .slice(spaceIndex, Object.values(displayText).length)
-      .map((characterProps, index) => <Character {...characterProps} key={index} />)
+    <div className="w-fit" data-testid="typing-widget-text">
+      {displayText
+        // .slice(spaceIndex, Object.values(displayText).length)
+        .map((characterProps, index) => (
+          <Character {...characterProps} key={index} />
+        ))}
+    </div>
   )
 }

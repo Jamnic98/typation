@@ -4,7 +4,7 @@ WORKDIR /app
 ENV PYTHONPATH=/app
 
 # Install dependencies
-COPY requirements.txt .
+COPY requirements.txt requirements.txt 
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
@@ -12,4 +12,4 @@ COPY . .
 EXPOSE 5000
 
 
-CMD ["python", "-m", "api.main"]
+CMD ["python", "main.py"]

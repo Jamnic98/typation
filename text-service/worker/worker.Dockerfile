@@ -4,7 +4,7 @@ WORKDIR /app
 ENV PYTHONPATH=/app
 
 # Install dependencies
-COPY requirements.txt .
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
@@ -12,4 +12,4 @@ COPY . .
 EXPOSE 6379
 
 
-CMD ["python", "-m", "worker.main"]
+CMD ["python", "main.py"]
