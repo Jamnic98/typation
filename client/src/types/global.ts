@@ -1,6 +1,7 @@
 export enum TypedStatus {
-  MISS,
-  HIT,
+  HIT = 'hit',
+  MISS = 'miss',
+  NONE = 'none',
 }
 
 export enum SpaceSymbol {

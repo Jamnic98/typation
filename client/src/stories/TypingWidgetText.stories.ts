@@ -85,8 +85,8 @@ const displayText = [
     spaceSymbol: SpaceSymbol.MIDDLE_DOT,
   },
   { char: 'd', highlighted: false, typedStatus: TypedStatus.MISS },
-  { char: 'o', highlighted: true },
-  { char: 'g', highlighted: false },
+  { char: 'o', highlighted: true, typedStatus: TypedStatus.NONE },
+  { char: 'g', highlighted: false, typedStatus: TypedStatus.NONE },
 ]
 
 const meta = {

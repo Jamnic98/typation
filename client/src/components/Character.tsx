@@ -3,13 +3,14 @@ import { TypedStatus, type SpaceSymbol } from 'types'
 export interface CharacterProps {
   char: string
   highlighted: boolean
-  typedStatus?: TypedStatus
+  typedStatus: TypedStatus
   spaceSymbol?: SpaceSymbol
 }
 
 const statusStyles: Record<TypedStatus, string> = {
   [TypedStatus.MISS]: 'text-red-500',
   [TypedStatus.HIT]: 'text-green-500',
+  [TypedStatus.NONE]: 'text-black',
 }
 
 export const Character = ({ char, highlighted, typedStatus, spaceSymbol }: CharacterProps) => {
@@ -17,7 +18,7 @@ export const Character = ({ char, highlighted, typedStatus, spaceSymbol }: Chara
 
   return (
     <span
-      className={`inline-flex w-[0.4em] h-[1.5em] justify-center items-center leading-none px-[0.4em] ${highlighted ? 'animate-flash ' : ''} ${statusClass}`}
+      className={`inline-flex w-[0.1em] h-[0.5em] justify-center items-center leading-none px-[0.4em] ${highlighted ? 'animate-flash ' : ''} ${statusClass ? statusClass : ''}`}
       data-testid="character"
     >
       {char === ' ' && spaceSymbol ? spaceSymbol : char}

@@ -38,6 +38,7 @@ export const Space: Story = {
     char: ' ',
     highlighted: false,
     spaceSymbol: SpaceSymbol.MIDDLE_DOT,
+    typedStatus: TypedStatus.NONE,
   },
 }
 
@@ -45,5 +46,6 @@ export const Highlighted: Story = {
   args: {
     char: 'H',
     highlighted: true,
+    typedStatus: TypedStatus.NONE,
   },
 }
