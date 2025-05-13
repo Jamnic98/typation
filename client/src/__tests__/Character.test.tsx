@@ -8,6 +8,7 @@ const dataTestId = 'character'
 const defaultProps: CharacterProps = {
   char: 'a',
   highlighted: false,
+  typedStatus: TypedStatus.NONE,
 }
 
 const getTestCharacter = (props: Partial<CharacterProps> = {}) => (

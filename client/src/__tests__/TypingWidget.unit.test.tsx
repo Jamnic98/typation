@@ -15,18 +15,22 @@ describe('Test Typing Widget Functionality', () => {
     const textToType = 'hello world'
     renderTypingWidget({ textToType })
 
-    const text = screen.getByText('h')
-    expect(text).toBeInTheDocument()
-
+    const text = screen.getAllByTestId('character')
     const typingWidget = screen.getByTestId('typing-widget')
+
+    expect(typingWidget).not.toHaveFocus()
     await user.click(typingWidget)
 
+    const firstChar = text[0]
+
     expect(typingWidget).toHaveFocus()
+    expect(firstChar).toHaveClass('text-black')
 
-    await user.type(text, 'h')
-    expect(text).toHaveClass('text-green-500')
+    await user.keyboard('h')
+    expect(firstChar).toHaveClass('text-green-500')
 
-    // await user.keyboard('a')
-    // expect(screen.getByText('e')).toHaveClass('text-red-500')
+    const secondChar = text[1]
+    await user.keyboard('a')
+    expect(secondChar).toHaveClass('text-red-500')
   })
 })
