@@ -45,20 +45,21 @@ export const Character = ({
         .join(' ')
     }, [])
 
-  const setCursorStyle = (cursorStyle: CursorStyles | undefined) => {
+  const setHighlightedStyle = (cursorStyle: CursorStyles | undefined): string => {
+    // return 'animate-flash-block'
     switch (cursorStyle) {
-      case CursorStyles.UNDERSCORE:
-        return 'animate-flash-underscore'
+      // case CursorStyles.UNDERSCORE:
+      //   return 'animate-flash-underscore'
       case CursorStyles.BLOCK:
         return 'animate-flash-block'
       default:
-        return 'animate-flash-underscore'
+        return 'animate-flash-block'
     }
   }
 
   const fontSettingsClass = fontSettings ? parseFontSettings(fontSettings) : ''
 
-  const highlightedClass = highlighted ? setCursorStyle(fontSettings?.cursorStyle) : ''
+  const highlightedClass = highlighted ? setHighlightedStyle(fontSettings?.cursorStyle) : ''
   const typedStatusClass = typedStatusStyles[typedStatus]
 
   const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbol.UNDERSCORE]

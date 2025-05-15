@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { /*useEffect, useRef, */ useState } from 'react'
 
 import { Character, type CharacterProps } from 'components'
 import { defaultFontSettings } from 'utils/constants'
@@ -23,6 +23,12 @@ export const TypingWidgetText = ({
   fontSettings = defaultFontSettings,
 }: TypingWidgetTextProps) => {
   if (!textToType) return null
+
+  // const containerRef = useRef<HTMLDivElement>(null)
+
+  // useEffect(() => {
+  //   containerRef.current?.focus()
+  // }, [])
 
   const [charObjArray, setCharObjArray] = useState<CharacterProps[]>(strToCharObjArray(textToType))
 
@@ -137,6 +143,7 @@ export const TypingWidgetText = ({
 
   return (
     <div
+      // ref={containerRef}
       className="w-fit focus:outline outline-black whitespace-pre-wrap"
       onKeyDown={(e) => handleKeyDown(e)}
       id="typing-widget-text"

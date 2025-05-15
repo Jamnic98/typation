@@ -70,28 +70,28 @@ describe('Test Rendering', () => {
     // check initial state
     const firstChar = characters[0]
     expect(firstChar).toHaveClass('text-black')
-    expect(characterCursors[0]).toHaveClass('animate-flash-underscore')
+    expect(characterCursors[0]).toHaveClass('animate-flash-block')
 
     // 1st hit
     await user.keyboard(textToType[0])
     expect(firstChar).toHaveClass('text-green-500')
-    expect(characterCursors[1]).toHaveClass('animate-flash-underscore')
+    expect(characterCursors[1]).toHaveClass('animate-flash-block')
 
     // 2nd hit
     await user.keyboard(textToType[1])
     expect(characters[1]).toHaveClass('text-green-500')
-    expect(characterCursors[2]).toHaveClass('animate-flash-underscore')
+    expect(characterCursors[2]).toHaveClass('animate-flash-block')
 
     // 1st miss
     await user.keyboard('z')
     expect(characters[2]).toHaveClass('text-red-500')
     // no cursor shift
-    expect(characterCursors[2]).toHaveClass('animate-flash-underscore')
+    expect(characterCursors[2]).toHaveClass('animate-flash-block')
 
     // subsequent hit after miss
     await user.keyboard(textToType[2])
     expect(characters[2]).toHaveClass('text-red-500')
-    expect(characterCursors[3]).toHaveClass('animate-flash-underscore')
+    expect(characterCursors[3]).toHaveClass('animate-flash-block')
   })
 
   test('Calls fetchNewString on complete', async () => {

@@ -9,6 +9,32 @@ const meta = {
   parameters: {
     layout: 'centered',
   },
+  argTypes: {
+    char: {
+      control: 'text',
+      description: 'The character to display',
+      defaultValue: 'a',
+    },
+    highlighted: {
+      control: 'boolean',
+      description: 'Whether the character is highlighted',
+      defaultValue: false,
+    },
+    typedStatus: {
+      control: 'select',
+      options: Object.values(TypedStatus),
+      description: 'The status of the character (miss, hit, none)',
+      defaultValue: TypedStatus.NONE,
+    },
+    fontSettings: {
+      control: 'object',
+      description: 'Font settings for the character',
+      defaultValue: {
+        cursorStyle: CursorStyles.BLOCK,
+        fontSize: FontSizes.MD,
+      },
+    },
+  },
 
   tags: ['autodocs'],
 } satisfies Meta<typeof Character>
@@ -19,7 +45,7 @@ type Story = StoryObj<typeof meta>
 
 export const Miss: Story = {
   args: {
-    char: 'M',
+    char: 'm',
     highlighted: false,
     typedStatus: TypedStatus.MISS,
   },
@@ -27,7 +53,7 @@ export const Miss: Story = {
 
 export const Hit: Story = {
   args: {
-    char: 'H',
+    char: 'h',
     highlighted: false,
     typedStatus: TypedStatus.HIT,
   },
@@ -47,7 +73,7 @@ export const Highlighted: Story = {
     highlighted: true,
     typedStatus: TypedStatus.NONE,
     fontSettings: {
-      cursorStyle: CursorStyles.BLOCK,
+      // cursorStyle: CursorStyles.BLOCK,
       fontSize: FontSizes.MD,
     },
   },
