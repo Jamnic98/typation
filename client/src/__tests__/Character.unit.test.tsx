@@ -2,13 +2,19 @@ import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 import { Character, type CharacterProps } from 'components'
-import { SpaceSymbol, TypedStatus } from 'types'
+import { CursorStyles, FontSizes, SpaceSymbol, spaceSymbolMap, TypedStatus } from 'types'
 
 const dataTestId = 'character'
 const defaultProps: CharacterProps = {
   char: 'a',
   highlighted: false,
   typedStatus: TypedStatus.NONE,
+  fontSettings: {
+    textColor: 'black',
+    fontSize: FontSizes.XL,
+    spaceSymbol: SpaceSymbol.MIDDLE_DOT,
+    cursorStyle: CursorStyles.BLOCK,
+  },
 }
 
 const getTestCharacter = (props: Partial<CharacterProps> = {}) => (
@@ -29,11 +35,20 @@ describe('Character render tests', () => {
   test('should display spaces correctly', () => {
     const { rerender } = renderCharacter({ char: ' ' })
     const character = screen.getByTestId(dataTestId)
-    expect(character.innerHTML).toBe(' ')
+    expect(character.innerHTML).toBe(
+      spaceSymbolMap[defaultProps.fontSettings?.spaceSymbol || SpaceSymbol.MIDDLE_DOT]
+    )
 
     // Re-render with spaceSymbol
-    rerender(getTestCharacter({ char: ' ', spaceSymbol: SpaceSymbol.MIDDLE_DOT }))
-    expect(character).toHaveTextContent(SpaceSymbol.MIDDLE_DOT)
+    rerender(
+      getTestCharacter({
+        char: ' ',
+        fontSettings: {
+          spaceSymbol: SpaceSymbol.MIDDLE_DOT,
+        },
+      })
+    )
+    expect(character).toHaveTextContent(spaceSymbolMap[SpaceSymbol.MIDDLE_DOT])
   })
 })
 
@@ -58,7 +73,7 @@ describe('Character displays correct styles', () => {
 
   test('should display highlighted style', () => {
     renderCharacter({ highlighted: true })
-    const character = screen.getByTestId(dataTestId)
-    expect(character).toHaveClass('animate-flash')
+    const characterCursor = screen.getByTestId('character-cursor')
+    expect(characterCursor).toHaveClass('animate-flash-block')
   })
 })

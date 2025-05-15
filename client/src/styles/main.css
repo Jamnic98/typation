@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
-@theme {
-  --animate-flash: flash 0.8s ease-in-out infinite;
+/* @theme {
+  --animate-flash: flash 0.8s ease-out infinite;
 
   @keyframes flash {
     0%,
@@ -11,6 +11,38 @@
     }
     50% {
       background-color: #000;
+      color: #fff;
+    }
+  }
+} */
+
+@theme {
+  --animate-flash-block: flash 0.8s ease-out infinite;
+  @keyframes flash {
+    0%,
+    100% {
+      background-color: #fff;
+      /* border-bottom: 2px solid #fff; */
+      color: #000;
+    }
+    50% {
+      background-color: #000;
+      /* border-bottom: 2px solid #000; */
+      color: #fff;
+    }
+  }
+
+  --animate-flash-underscore: flash 0.8s ease-out infinite;
+  @keyframes flash {
+    0%,
+    100% {
+      /* background-color: #fff; */
+      border-bottom: 2px solid #fff;
+      color: #000;
+    }
+    50% {
+      /* background-color: #000; */
+      border-bottom: 2px solid #000;
       color: #fff;
     }
   }

@@ -7,11 +7,12 @@ export const fetchNewString = async (): Promise<string> => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
-    const data: { text: string } = await response.json()
-    console.log('Fetched new string:', data)
-    return data.text
+    const { text }: { text: string } = await response.json()
+    return text
   } catch (error) {
-    console.error('Error fetching new string:', error)
-    return 'Error fetching new string'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error(errorMessage)
+    alert(errorMessage)
+    throw new Error(errorMessage)
   }
 }

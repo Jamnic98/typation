@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { Character } from 'components'
-import { SpaceSymbol, TypedStatus } from 'types'
+import { CursorStyles, FontSizes, TypedStatus } from 'types'
 
 const meta = {
   title: 'Character',
@@ -37,7 +37,6 @@ export const Space: Story = {
   args: {
     char: ' ',
     highlighted: false,
-    spaceSymbol: SpaceSymbol.MIDDLE_DOT,
     typedStatus: TypedStatus.NONE,
   },
 }
@@ -47,5 +46,9 @@ export const Highlighted: Story = {
     char: 'H',
     highlighted: true,
     typedStatus: TypedStatus.NONE,
+    fontSettings: {
+      cursorStyle: CursorStyles.BLOCK,
+      fontSize: FontSizes.MD,
+    },
   },
 }
