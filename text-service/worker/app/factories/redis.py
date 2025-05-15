@@ -1,7 +1,7 @@
 from redis import Redis
 
 
-from app.settings import settings
+from ..settings import settings
 
 
 def create_redis_client():

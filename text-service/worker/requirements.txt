@@ -2,5 +2,5 @@ numpy
 pandas
 redis
 rq
-
-pydantic_settings
+pylint
+pydantic-settings

@@ -1,12 +1,8 @@
+from random import shuffle
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
-from random import shuffle
 
 
-# class TextRequest(BaseModel):
-#     prompt: str
 
 def create_app() -> FastAPI:
     app = FastAPI()
