@@ -1,5 +1,8 @@
-// const URL = process.env.SERVER_URL ||
-const URL = 'http://localhost:5000/generate-text'
+// const URL = import.meta.env.SERVER
+
+// TODO: use env variable for URL
+const URL = '/api/generate-text'
+// const URL = 'http://localhost:5000/generate-text'
 
 export const fetchNewString = async (): Promise<string> => {
   try {
