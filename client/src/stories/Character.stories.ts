@@ -15,9 +15,9 @@ const meta = {
       description: 'The character to display',
       defaultValue: 'a',
     },
-    highlighted: {
+    isActive: {
       control: 'boolean',
-      description: 'Whether the character is highlighted',
+      description: 'Whether the character is isActive',
       defaultValue: false,
     },
     typedStatus: {
@@ -46,7 +46,7 @@ type Story = StoryObj<typeof meta>
 export const Miss: Story = {
   args: {
     char: 'm',
-    highlighted: false,
+    isActive: false,
     typedStatus: TypedStatus.MISS,
   },
 }
@@ -54,7 +54,7 @@ export const Miss: Story = {
 export const Hit: Story = {
   args: {
     char: 'h',
-    highlighted: false,
+    isActive: false,
     typedStatus: TypedStatus.HIT,
   },
 }
@@ -62,7 +62,7 @@ export const Hit: Story = {
 export const Space: Story = {
   args: {
     char: ' ',
-    highlighted: false,
+    isActive: false,
     typedStatus: TypedStatus.NONE,
   },
 }
@@ -70,7 +70,7 @@ export const Space: Story = {
 export const Highlighted: Story = {
   args: {
     char: 'H',
-    highlighted: true,
+    isActive: true,
     typedStatus: TypedStatus.NONE,
     fontSettings: {
       // cursorStyle: CursorStyles.BLOCK,

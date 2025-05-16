@@ -124,7 +124,7 @@ export const TypingWidgetText = ({
   return (
     <div
       ref={typingWidgetTextRef}
-      className="w-fit focus:outline outline-black whitespace-pre-wrap"
+      className="w-fit focus:outline outline-black whitespace-pre-wrap font-mono"
       onKeyDown={(e) => handleKeyDown(e)}
       id="typing-widget-text"
       data-testid="typing-widget-text"
