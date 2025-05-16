@@ -4,19 +4,19 @@ export enum TypedStatus {
   NONE = 'none',
 }
 
-export enum SpaceSymbol {
+export enum SpaceSymbols {
   UNDERSCORE = 'underscore',
   MIDDLE_DOT = 'middle_dot',
 }
 
-export const spaceSymbolMap: Record<SpaceSymbol, string> = {
-  [SpaceSymbol.UNDERSCORE]: '_',
-  [SpaceSymbol.MIDDLE_DOT]: '·',
+export const spaceSymbolMap: Record<SpaceSymbols, string> = {
+  [SpaceSymbols.UNDERSCORE]: '_',
+  [SpaceSymbols.MIDDLE_DOT]: '·',
 }
 
 export type FontSettings = {
   cursorStyle?: CursorStyles
-  spaceSymbol?: SpaceSymbol
+  spaceSymbol?: SpaceSymbols
   textColor?: string
   fontSize?: FontSizes
   fontFamily?: string

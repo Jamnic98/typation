@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
-  --animate-flash-block: flash-block 0.8s ease-out infinite;
+  --animate-flash-block: flash-block 1s infinite;
   @keyframes flash-block {
     0%,
     100% {
@@ -14,7 +14,7 @@
     }
   }
 
-  --animate-flash-underscore: flash-underscore 0.8s ease-out infinite;
+  --animate-flash-underscore: flash-underscore 1s infinite;
   @keyframes flash-underscore {
     0%,
     100% {

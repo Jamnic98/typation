@@ -27,3 +27,6 @@ dist-ssr
 
 
 coverage/
+
+.env*
+main.css

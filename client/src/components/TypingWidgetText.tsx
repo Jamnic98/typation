@@ -1,4 +1,4 @@
-import { /*useEffect, useRef, */ useState } from 'react'
+import { /*useEffect, */ useEffect, useRef, useState } from 'react'
 
 import { Character, type CharacterProps } from 'components'
 import { defaultFontSettings } from 'utils/constants'
@@ -8,7 +8,7 @@ const strToCharObjArray = (string: string): CharacterProps[] =>
   string.split('').map((char, index) => ({
     char,
     typedStatus: TypedStatus.NONE,
-    highlighted: index === 0,
+    isActive: index === 0,
   }))
 
 export interface TypingWidgetTextProps {
@@ -24,35 +24,27 @@ export const TypingWidgetText = ({
 }: TypingWidgetTextProps) => {
   if (!textToType) return null
 
-  // const containerRef = useRef<HTMLDivElement>(null)
+  const typingWidgetTextRef = useRef<HTMLDivElement>(null)
 
-  // useEffect(() => {
-  //   containerRef.current?.focus()
-  // }, [])
-
-  const [charObjArray, setCharObjArray] = useState<CharacterProps[]>(strToCharObjArray(textToType))
-
-  const getCursorIndex = (): number => {
-    try {
-      const cursorIndex = charObjArray.map((charObj) => charObj.highlighted).indexOf(true)
-      if (cursorIndex < 0 || cursorIndex >= charObjArray.length) {
-        console.warn('Invalid cursor index:', cursorIndex)
-        throw new Error('Cursor index out of bounds')
-      }
-      return cursorIndex
-    } catch (error) {
-      console.error('Error getting cursor index:', error)
-      throw new Error('Error getting cursor index')
-    }
+  if (document.activeElement === typingWidgetTextRef.current) {
+    // do something
   }
 
-  const shiftCursor = () =>
-    setCharObjArray(
-      charObjArray.map((obj, index) => ({
-        ...obj,
-        highlighted: index === getCursorIndex() + 1,
-      }))
-    )
+  const [charObjArray, setCharObjArray] = useState<CharacterProps[]>(strToCharObjArray(textToType))
+  const [cursorIndex, setCursorIndex] = useState(0)
+
+  useEffect(() => {
+    if (charObjArray.length > 0) {
+      setCharObjArray(
+        charObjArray.map((obj, index) => ({ ...obj, isActive: index === cursorIndex }))
+      )
+      if (cursorIndex >= 0 && cursorIndex >= charObjArray.length) {
+        setCursorIndex(0)
+      }
+    }
+  }, [cursorIndex])
+
+  const shiftCursor = () => setCursorIndex((prevIndex) => prevIndex + 1)
 
   const updateFunc = async (typedStatus: TypedStatus, cursorIndex: number) => {
     setCharObjArray(
@@ -65,14 +57,8 @@ export const TypingWidgetText = ({
     )
   }
 
-  // if (cursorIndex === charObjArray.length - 1) {
-  //   setCharObjArray(strToCharObjArray(await fetchNewString()))
-  // }
-
   const updateCharObjArray = async (key: string): Promise<void> => {
     try {
-      const cursorIndex = getCursorIndex()
-
       const highlightedCharacter = charObjArray[cursorIndex]
       const typedStatus = highlightedCharacter.char === key ? TypedStatus.HIT : TypedStatus.MISS
       const lastTypedStatus = highlightedCharacter.typedStatus
@@ -102,7 +88,6 @@ export const TypingWidgetText = ({
   const handleNormalKeyPress = async (key: string) => {
     try {
       await updateCharObjArray(key)
-
       // update charObjArray
       // updateCharObjArray(key, cursorIndex)
     } catch (error) {
@@ -136,25 +121,18 @@ export const TypingWidgetText = ({
     }
   }
 
-  // const handleClick = async (e: React.MouseEvent<HTMLElement>) => {
-  //   setCharObjArray(strToCharObjArray(await fetchNewString()))
-  //   console.log('Clicked:', e.currentTarget)
-  // }
-
   return (
     <div
-      // ref={containerRef}
+      ref={typingWidgetTextRef}
       className="w-fit focus:outline outline-black whitespace-pre-wrap"
       onKeyDown={(e) => handleKeyDown(e)}
       id="typing-widget-text"
       data-testid="typing-widget-text"
       tabIndex={0}
     >
-      {charObjArray
-        // .slice(spaceIndex, Object.values(charObjArray).length)
-        .map((characterProps, index) => (
-          <Character {...characterProps} fontSettings={fontSettings} key={index} />
-        ))}
+      {charObjArray.map((characterProps, index) => (
+        <Character {...characterProps} fontSettings={fontSettings} key={index} />
+      ))}
     </div>
   )
 }

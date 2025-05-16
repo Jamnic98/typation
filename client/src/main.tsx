@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import './styles/main.css'
+import './styles/tailwind.css'
 
 import App from './App.tsx'
 

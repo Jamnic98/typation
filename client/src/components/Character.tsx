@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 
 import { defaultFontSettings } from 'utils/constants'
-import { CursorStyles, FontSettings, SpaceSymbol, spaceSymbolMap, TypedStatus } from 'types'
+import { CursorStyles, FontSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 
 export interface CharacterProps {
   char: string
-  highlighted: boolean
+  isActive: boolean
   typedStatus: TypedStatus
   fontSettings?: FontSettings
 }
@@ -18,7 +18,7 @@ const typedStatusStyles: Record<TypedStatus, string> = {
 
 export const Character = ({
   char,
-  highlighted,
+  isActive,
   typedStatus,
   fontSettings = defaultFontSettings,
 }: CharacterProps) => {
@@ -48,8 +48,8 @@ export const Character = ({
   const setHighlightedStyle = (cursorStyle: CursorStyles | undefined): string => {
     // return 'animate-flash-block'
     switch (cursorStyle) {
-      // case CursorStyles.UNDERSCORE:
-      //   return 'animate-flash-underscore'
+      case CursorStyles.UNDERSCORE:
+        return 'animate-flash-underscore'
       case CursorStyles.BLOCK:
         return 'animate-flash-block'
       default:
@@ -59,13 +59,13 @@ export const Character = ({
 
   const fontSettingsClass = fontSettings ? parseFontSettings(fontSettings) : ''
 
-  const highlightedClass = highlighted ? setHighlightedStyle(fontSettings?.cursorStyle) : ''
+  const cursorClass = isActive ? setHighlightedStyle(fontSettings?.cursorStyle) : ''
   const typedStatusClass = typedStatusStyles[typedStatus]
 
-  const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbol.UNDERSCORE]
+  const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
 
   return (
-    <span data-testid="character-cursor" className={`${highlightedClass}`}>
+    <span data-testid="character-cursor" className={`${cursorClass}`}>
       <span
         className={`${typedStatusClass} ${fontSettingsClass} inline-flex w-[0.1em] h-[0.5em] justify-center items-center leading-none px-[0.4em]`}
         data-testid="character"

@@ -11,7 +11,9 @@ window.addEventListener('keydown', function (e) {
 const App = () => {
   return (
     <div className="w-full min-h-screen">
-      <Home />
+      <main className="container max-w-(--breakpoint-xl) mx-auto px-8 py-20">
+        <Home />
+      </main>
       {/* <Header /> */}
       {/* <Footer /> */}
     </div>

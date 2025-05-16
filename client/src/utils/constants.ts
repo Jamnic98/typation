@@ -1,10 +1,10 @@
-import { CursorStyles, FontSettings, FontSizes, SpaceSymbol } from 'types'
+import { CursorStyles, FontSettings, FontSizes, SpaceSymbols } from 'types'
 
 export const defaultFontSettings: FontSettings = {
   textColor: 'black',
   fontSize: FontSizes.XL,
-  spaceSymbol: SpaceSymbol.MIDDLE_DOT,
-  cursorStyle: CursorStyles.BLOCK,
+  spaceSymbol: SpaceSymbols.MIDDLE_DOT,
+  cursorStyle: CursorStyles.UNDERSCORE,
   // fontFamily: 'monospace',
   // fontWeight: 'bold',
   // textAlign: 'left',

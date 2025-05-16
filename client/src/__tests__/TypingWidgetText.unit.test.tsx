@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 
 import { TypingWidgetText, type TypingWidgetTextProps } from 'components'
-import { SpaceSymbol, spaceSymbolMap } from 'types/global'
+import { SpaceSymbols, spaceSymbolMap } from 'types/global'
 
 const defaultTextToType = 'hi'
 const defaultFetchNewStringFunc = vi.fn().mockResolvedValue('mock text')
@@ -40,13 +40,13 @@ describe('Test Rendering', () => {
     renderTypingWidgetText({
       textToType,
       fetchNewString: async () => textToType,
-      fontSettings: { spaceSymbol: SpaceSymbol.UNDERSCORE },
+      fontSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
     })
     const text = screen.getAllByTestId('character')
     expect(text).toHaveLength(textToType.length)
     expect(text[0]).toHaveTextContent(textToType[0])
     expect(text[1]).toHaveTextContent(textToType[1])
-    expect(text[2]).toHaveTextContent(spaceSymbolMap[SpaceSymbol.UNDERSCORE])
+    expect(text[2]).toHaveTextContent(spaceSymbolMap[SpaceSymbols.UNDERSCORE])
     expect(text[3]).toHaveTextContent(textToType[3])
     expect(text[4]).toHaveTextContent(textToType[4])
   })

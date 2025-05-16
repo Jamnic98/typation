@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { TypingWidgetText /* , TypingWidgetTextProps */ } from 'components'
-import { CursorStyles } from 'types/global'
+import { CursorStyles, SpaceSymbols } from 'types/global'
 
 const meta = {
   title: 'TypingWidgetText',
@@ -24,7 +24,8 @@ export const TypingWidgetTextStory: Story = {
       return 'The quick brown fox jumps over the lazy dog'
     },
     fontSettings: {
-      cursorStyle: CursorStyles.BLOCK,
+      spaceSymbol: SpaceSymbols.MIDDLE_DOT,
+      cursorStyle: CursorStyles.UNDERSCORE,
     },
   },
 }

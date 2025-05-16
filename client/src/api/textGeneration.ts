@@ -1,12 +1,11 @@
-// const URL = import.meta.env.SERVER
+const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 // TODO: use env variable for URL
-const URL = '/api/generate-text'
-// const URL = 'http://localhost:5000/generate-text'
+const url = `${baseUrl}/generate-text`
 
 export const fetchNewString = async (): Promise<string> => {
   try {
-    const response = await fetch(URL, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
