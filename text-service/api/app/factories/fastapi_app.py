@@ -21,7 +21,11 @@ def create_app() -> FastAPI:
 
     @app.post("/generate-text")
     async def generate_text():  # body: TextRequest):
-        input_text = 'the quick brown fox jumps over the lazy dog'
+        input_text = (
+            f'the quick brown fox jumps over the lazy dog'
+            f' the quick brown fox jumps over the lazy dog'
+            f' the quick brown fox jumps over the lazy dog'
+        )
         words = input_text.split(' ')
         shuffle(words)
         output_text =  " ".join(words)

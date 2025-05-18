@@ -34,10 +34,7 @@ export const StopWatch = () => {
   }
 
   // Method to reset timer back to 0
-  const reset = () => {
-    console.log('reset')
-    setTime(0)
-  }
+  const reset = () => setTime(0)
 
   return (
     <div className="flex flex-col items-center  p-6 w-64">

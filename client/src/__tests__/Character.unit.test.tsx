@@ -4,7 +4,7 @@ import '@testing-library/jest-dom'
 import { Character, type CharacterProps } from 'components'
 import { CursorStyles, FontSizes, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 
-const dataTestId = 'character'
+// const dataTestId = 'character'
 const defaultProps: CharacterProps = {
   char: 'a',
   isActive: false,
@@ -28,13 +28,13 @@ const renderCharacter = (props: Partial<CharacterProps> = {}) => {
 describe('Character render tests', () => {
   test('should render with undefined props', () => {
     renderCharacter({})
-    const character = screen.getByTestId(dataTestId)
+    const character = screen.getByTestId('background-character')
     expect(character).toBeInTheDocument()
   })
 
   test('should display spaces correctly', () => {
     const { rerender } = renderCharacter({ char: ' ' })
-    const character = screen.getByTestId(dataTestId)
+    const character = screen.getByTestId('background-character')
     expect(character.innerHTML).toBe(
       spaceSymbolMap[defaultProps.fontSettings?.spaceSymbol || SpaceSymbols.MIDDLE_DOT]
     )
@@ -55,19 +55,19 @@ describe('Character render tests', () => {
 describe('Character displays correct styles', () => {
   test('should display hit style', () => {
     renderCharacter({ typedStatus: TypedStatus.HIT })
-    const character = screen.getByTestId(dataTestId)
+    const character = screen.getByTestId('background-character')
     expect(character).toHaveClass('text-green-500')
   })
 
   test('should display miss style', () => {
     renderCharacter({ typedStatus: TypedStatus.MISS })
-    const character = screen.getByTestId(dataTestId)
+    const character = screen.getByTestId('foreground-character')
     expect(character).toHaveClass('text-red-500')
   })
 
   test('should display none style', () => {
     renderCharacter()
-    const character = screen.getByTestId(dataTestId)
+    const character = screen.getByTestId('foreground-character')
     expect(character).toHaveClass('text-black')
   })
 

@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 
 import { TypingWidgetText, type TypingWidgetTextProps } from 'components'
@@ -27,12 +27,19 @@ describe('Test Rendering', () => {
 
   test('Renderes characters', () => {
     renderTypingWidgetText()
-    const text = screen.getAllByTestId('character')
-    expect(text).toHaveLength(defaultTextToType.length)
-    expect(text[0]).toHaveTextContent(defaultTextToType[0])
-    expect(text[1]).toHaveTextContent(defaultTextToType[1])
-    expect(text[0]).toHaveClass('text-black')
-    expect(text[1]).toHaveClass('text-black')
+    const backgroundText = screen.getAllByTestId('background-character')
+    expect(backgroundText).toHaveLength(defaultTextToType.length)
+    expect(backgroundText[0]).toHaveTextContent(defaultTextToType[0])
+    expect(backgroundText[1]).toHaveTextContent(defaultTextToType[1])
+    expect(backgroundText[0]).toHaveClass('text-black')
+    expect(backgroundText[1]).toHaveClass('text-black')
+
+    const foregroundText = screen.getAllByTestId('foreground-character')
+    expect(foregroundText).toHaveLength(defaultTextToType.length)
+    expect(foregroundText[0]).toHaveTextContent(defaultTextToType[0])
+    expect(foregroundText[1]).toHaveTextContent(defaultTextToType[1])
+    expect(foregroundText[0]).toHaveClass('text-black')
+    expect(foregroundText[1]).toHaveClass('text-black')
   })
 
   test('Renders characters with spaces', () => {
@@ -42,13 +49,21 @@ describe('Test Rendering', () => {
       fetchNewString: async () => textToType,
       fontSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
     })
-    const text = screen.getAllByTestId('character')
-    expect(text).toHaveLength(textToType.length)
-    expect(text[0]).toHaveTextContent(textToType[0])
-    expect(text[1]).toHaveTextContent(textToType[1])
-    expect(text[2]).toHaveTextContent(spaceSymbolMap[SpaceSymbols.UNDERSCORE])
-    expect(text[3]).toHaveTextContent(textToType[3])
-    expect(text[4]).toHaveTextContent(textToType[4])
+    const backgroundText = screen.getAllByTestId('background-character')
+    expect(backgroundText).toHaveLength(textToType.length)
+    expect(backgroundText[0]).toHaveTextContent(textToType[0])
+    expect(backgroundText[1]).toHaveTextContent(textToType[1])
+    expect(backgroundText[2]).toHaveTextContent(spaceSymbolMap[SpaceSymbols.UNDERSCORE])
+    expect(backgroundText[3]).toHaveTextContent(textToType[3])
+    expect(backgroundText[4]).toHaveTextContent(textToType[4])
+
+    const foregroundText = screen.getAllByTestId('foreground-character')
+    expect(foregroundText).toHaveLength(textToType.length)
+    expect(foregroundText[0]).toHaveTextContent(textToType[0])
+    expect(foregroundText[1]).toHaveTextContent(textToType[1])
+    expect(foregroundText[2]).toHaveTextContent(spaceSymbolMap[SpaceSymbols.UNDERSCORE])
+    expect(foregroundText[3]).toHaveTextContent(textToType[3])
+    expect(foregroundText[4]).toHaveTextContent(textToType[4])
   })
 
   test('Renders characters and updates styles on key press', async () => {
@@ -60,7 +75,7 @@ describe('Test Rendering', () => {
       fontSettings: { textColor: 'black' },
     })
 
-    const characters = screen.getAllByTestId('character')
+    const characters = screen.getAllByTestId('background-character')
     const characterCursors = screen.getAllByTestId('character-cursor')
     const TypingWidgetText = screen.getByTestId('typing-widget-text')
     // focus on the typing widget
@@ -68,19 +83,24 @@ describe('Test Rendering', () => {
     expect(TypingWidgetText).toHaveFocus()
 
     // check initial state
-    const firstChar = characters[0]
-    expect(firstChar).toHaveClass('text-black')
-    expect(characterCursors[0]).toHaveClass('animate-flash-block')
+    expect(characters[0]).toHaveClass('text-black')
+    await waitFor(() => {
+      expect(characterCursors[0]).toHaveClass('animate-flash-block')
+    })
 
     // 1st hit
     await user.keyboard(textToType[0])
-    expect(firstChar).toHaveClass('text-green-500')
-    expect(characterCursors[1]).toHaveClass('animate-flash-block')
+    expect(characters[0]).toHaveClass('text-green-500')
+    await waitFor(() => {
+      expect(characterCursors[1]).toHaveClass('animate-flash-block')
+    })
 
     // 2nd hit
     await user.keyboard(textToType[1])
     expect(characters[1]).toHaveClass('text-green-500')
-    expect(characterCursors[2]).toHaveClass('animate-flash-block')
+    await waitFor(() => {
+      expect(characterCursors[2]).toHaveClass('animate-flash-block')
+    })
 
     // 1st miss
     await user.keyboard('z')
@@ -91,7 +111,9 @@ describe('Test Rendering', () => {
     // subsequent hit after miss
     await user.keyboard(textToType[2])
     expect(characters[2]).toHaveClass('text-red-500')
-    expect(characterCursors[3]).toHaveClass('animate-flash-block')
+    await waitFor(() => {
+      expect(characterCursors[3]).toHaveClass('animate-flash-block')
+    })
   })
 
   test('Calls fetchNewString on complete', async () => {
@@ -107,6 +129,6 @@ describe('Test Rendering', () => {
     await user.keyboard(defaultTextToType[0])
     await user.keyboard(defaultTextToType[1])
 
-    expect(defaultFetchNewStringFunc.mock.calls.length).toEqual(1)
+    expect(defaultFetchNewStringFunc).toHaveBeenCalledTimes(1)
   })
 })
