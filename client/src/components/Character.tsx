@@ -24,17 +24,20 @@ export const Character = ({
   fontSettings = defaultFontSettings,
 }: CharacterProps) => {
   const randomRotation = Math.floor(Math.random() * 201) - 100
-  const setHighlightedStyle = (cursorStyle: CursorStyles | undefined): string => {
-    // return 'animate-flash-block'
-    switch (cursorStyle) {
-      case CursorStyles.UNDERSCORE:
-        return 'animate-flash-underscore'
-      case CursorStyles.BLOCK:
-        return 'animate-flash-block'
-      default:
-        return 'animate-flash-block'
+  const setCursorStyle = useMemo(() => {
+    return (cursorStyle: CursorStyles | undefined): string => {
+      switch (cursorStyle) {
+        case CursorStyles.UNDERSCORE:
+          return 'animate-flash-underscore'
+        case CursorStyles.BLOCK:
+          return 'animate-flash-block'
+        case CursorStyles.OUTLINE:
+          return 'animate-flash-outline'
+        default:
+          return 'none'
+      }
     }
-  }
+  }, [fontSettings.cursorStyle])
 
   const fontSettingsClass = useMemo(() => {
     return Object.entries(fontSettings)
@@ -58,13 +61,11 @@ export const Character = ({
       .join(' ')
   }, [fontSettings])
 
-  const cursorClass = isActive ? setHighlightedStyle(fontSettings?.cursorStyle) : ''
   const typedStatusClass = typedStatusStyles[typedStatus]
-
+  const cursorClass = isActive ? setCursorStyle(fontSettings?.cursorStyle) : ''
   const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
 
   // Decide if the letter should be visible or falling (typed)
-  // Let's say TypedStatus.HIT means typed correctly, so letter should fall away and disappear
   const isVisible = typedStatus !== TypedStatus.HIT
 
   return (
@@ -86,7 +87,7 @@ export const Character = ({
         {isVisible && (
           <motion.span
             // key={`char-${char}-${typedStatus === TypedStatus.NONE ? 'HIT' : 'VISIBLE'}`}
-            className={`${typedStatusClass} ${fontSettingsClass} z-10 relative`}
+            className={`${typedStatusClass} ${fontSettingsClass} z-10`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{

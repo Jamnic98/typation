@@ -4,27 +4,51 @@ import { Character, type CharacterProps } from 'components'
 import { defaultFontSettings } from 'utils/constants'
 import { type FontSettings, TypedStatus } from 'types'
 
-const strToCharObjArray = (string: string): CharacterProps[] =>
-  string.split('').map((char, index) => ({
-    char,
-    typedStatus: TypedStatus.NONE,
-    isActive: index === 0,
-  }))
-
 export interface TypingWidgetTextProps {
   textToType: string | null
   fetchNewString: () => Promise<string>
   fontSettings?: FontSettings
+  onStart: () => void
+  onComplete: () => void
 }
 
 export const TypingWidgetText = ({
   textToType,
   fetchNewString,
   fontSettings = defaultFontSettings,
+  onStart,
+  onComplete,
 }: TypingWidgetTextProps) => {
-  const typingWidgetTextRef = useRef<HTMLDivElement>(null)
+  const onFocus = () => {
+    setFocused(true)
+    if (cursorIndex === -1) {
+      setCursorIndex(0)
+    }
 
-  const [cursorIndex, setCursorIndex] = useState(0)
+    if (charObjArray && !charObjArray[cursorIndex]?.isActive) {
+      setCharObjArray(
+        charObjArray?.map((character, index) => ({ ...character, isActive: index === cursorIndex }))
+      )
+    }
+  }
+  const onBlur = () => {
+    setFocused(false)
+    charObjArray &&
+      setCharObjArray(charObjArray?.map((character) => ({ ...character, isActive: false })))
+  }
+
+  const strToCharObjArray = (string: string): CharacterProps[] =>
+    string.split('').map((char, index) => ({
+      char,
+      typedStatus: TypedStatus.NONE,
+      isActive: focused && index === 0,
+    }))
+
+  const typingWidgetTextRef = useRef<HTMLDivElement>(null)
+  const [focused, setFocused] = useState(false)
+  // const [showCursor, setShowCursor] = useState(false)
+  const [cursorIndex, setCursorIndex] = useState(-1)
+
   const [charObjArray, setCharObjArray] = useState<CharacterProps[] | null>(
     textToType ? strToCharObjArray(textToType) : null
   )
@@ -32,7 +56,10 @@ export const TypingWidgetText = ({
   useEffect(() => {
     if (charObjArray && charObjArray.length > 0) {
       setCharObjArray(
-        charObjArray.map((obj, index) => ({ ...obj, isActive: index === cursorIndex }))
+        charObjArray.map((obj, index) => ({
+          ...obj,
+          isActive: focused && index === cursorIndex,
+        }))
       )
       if (cursorIndex >= 0 && cursorIndex >= charObjArray.length) {
         setCursorIndex(0)
@@ -130,10 +157,12 @@ export const TypingWidgetText = ({
   return (
     <div
       ref={typingWidgetTextRef}
-      className="w-fit focus:outline outline-black font-mono p-4"
+      className="w-fit font-mono outline-none" //  focus:outline outline-black font-mono p-4"
       onKeyUp={(e) => handleKeyDown(e)}
       id="typing-widget-text"
       data-testid="typing-widget-text"
+      onFocus={onFocus}
+      onBlur={onBlur}
       tabIndex={0}
     >
       {charObjArray &&

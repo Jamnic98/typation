@@ -4,7 +4,7 @@ export const defaultFontSettings: FontSettings = {
   textColor: 'black',
   fontSize: FontSizes.FOUR_XL,
   spaceSymbol: SpaceSymbols.DOT,
-  cursorStyle: CursorStyles.UNDERSCORE,
+  cursorStyle: CursorStyles.OUTLINE,
   // fontFamily: 'monospace',
   // fontWeight: 'bold',
   // textAlign: 'left',
@@ -18,3 +18,6 @@ export const defaultFontSettings: FontSettings = {
   // textLetterSpacing: 'normal',
   // textWordSpacing: 'normal',
 }
+
+export const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+export const CHAR_ARRAY = (' ' + ALPHABET).split('')

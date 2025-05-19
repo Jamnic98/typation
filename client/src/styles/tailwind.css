@@ -5,12 +5,12 @@
   @keyframes flash-block {
     0%,
     100% {
-      background-color: #fff;
-      color: #000;
-    }
-    50% {
       background-color: #000;
       color: #fff;
+    }
+    50% {
+      background-color: #fff;
+      color: #000;
     }
   }
 
@@ -18,37 +18,25 @@
   @keyframes flash-underscore {
     0%,
     100% {
-      border-bottom: 2px solid #fff;
-      color: #000;
-    }
-    50% {
       border-bottom: 2px solid #000;
       color: #fff;
+    }
+    50% {
+      border-bottom: 2px solid #fff;
+      color: #000;
     }
   }
 
   --animate-flash-outline: flash-outline 1s infinite;
-  /* @keyframes flash-outline {
-    0%,
-    100% {
-      outline: 1px solid #fff;
-      color: #000;
-    }
-    50% {
-      outline: 1px solid #000;
-      color: #fff;
-    }
-  } */
-
   @keyframes flash-outline {
     0%,
     100% {
-      outline: 1px solid #fff;
-      color: #000;
-    }
-    50% {
       outline: 1px solid #000;
       color: #fff;
+    }
+    50% {
+      outline: 1px solid #fff;
+      color: #000;
     }
   }
 }

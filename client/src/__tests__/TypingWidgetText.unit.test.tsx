@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 
 import { TypingWidgetText, type TypingWidgetTextProps } from 'components'
-import { SpaceSymbols, spaceSymbolMap } from 'types/global'
+import { CursorStyles, SpaceSymbols, spaceSymbolMap } from 'types/global'
 
 const defaultTextToType = 'hi'
 const defaultFetchNewStringFunc = vi.fn().mockResolvedValue('mock text')
@@ -11,6 +11,8 @@ const defaultFetchNewStringFunc = vi.fn().mockResolvedValue('mock text')
 const defaultProps: TypingWidgetTextProps = {
   textToType: defaultTextToType,
   fetchNewString: defaultFetchNewStringFunc,
+  onStart: () => {},
+  onComplete: () => {},
 }
 
 const renderTypingWidgetText = (props?: TypingWidgetTextProps) => {
@@ -48,6 +50,8 @@ describe('Test Rendering', () => {
       textToType,
       fetchNewString: async () => textToType,
       fontSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
+      onStart: () => {},
+      onComplete: () => {},
     })
     const backgroundText = screen.getAllByTestId('background-character')
     expect(backgroundText).toHaveLength(textToType.length)
@@ -72,7 +76,9 @@ describe('Test Rendering', () => {
     renderTypingWidgetText({
       textToType,
       fetchNewString: async () => textToType,
-      fontSettings: { textColor: 'black' },
+      fontSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
+      onStart: () => {},
+      onComplete: () => {},
     })
 
     const characters = screen.getAllByTestId('background-character')
