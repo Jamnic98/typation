@@ -16,8 +16,8 @@ export const TypingWidgetText = ({
   textToType,
   fetchNewString,
   fontSettings = defaultFontSettings,
-  onStart,
-  onComplete,
+  // onStart,
+  // onComplete,
 }: TypingWidgetTextProps) => {
   const onFocus = () => {
     setFocused(true)

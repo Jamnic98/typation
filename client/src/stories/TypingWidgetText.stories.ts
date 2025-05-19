@@ -27,5 +27,7 @@ export const TypingWidgetTextStory: Story = {
       spaceSymbol: SpaceSymbols.DOT,
       cursorStyle: CursorStyles.UNDERSCORE,
     },
+    onStart: () => {},
+    onComplete: () => {},
   },
 }
