@@ -12,7 +12,7 @@ const defaultProps: CharacterProps = {
   fontSettings: {
     textColor: 'black',
     fontSize: FontSizes.XL,
-    spaceSymbol: SpaceSymbols.MIDDLE_DOT,
+    spaceSymbol: SpaceSymbols.DOT,
     cursorStyle: CursorStyles.BLOCK,
   },
 }
@@ -36,7 +36,7 @@ describe('Character render tests', () => {
     const { rerender } = renderCharacter({ char: ' ' })
     const character = screen.getByTestId('background-character')
     expect(character.innerHTML).toBe(
-      spaceSymbolMap[defaultProps.fontSettings?.spaceSymbol || SpaceSymbols.MIDDLE_DOT]
+      spaceSymbolMap[defaultProps.fontSettings?.spaceSymbol || SpaceSymbols.DOT]
     )
 
     // Re-render with spaceSymbol
@@ -44,11 +44,11 @@ describe('Character render tests', () => {
       getTestCharacter({
         char: ' ',
         fontSettings: {
-          spaceSymbol: SpaceSymbols.MIDDLE_DOT,
+          spaceSymbol: SpaceSymbols.DOT,
         },
       })
     )
-    expect(character).toHaveTextContent(spaceSymbolMap[SpaceSymbols.MIDDLE_DOT])
+    expect(character).toHaveTextContent(spaceSymbolMap[SpaceSymbols.DOT])
   })
 })
 

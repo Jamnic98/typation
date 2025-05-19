@@ -24,7 +24,7 @@ export const TypingWidgetTextStory: Story = {
       return 'The quick brown fox jumps over the lazy dog'
     },
     fontSettings: {
-      spaceSymbol: SpaceSymbols.MIDDLE_DOT,
+      spaceSymbol: SpaceSymbols.DOT,
       cursorStyle: CursorStyles.UNDERSCORE,
     },
   },

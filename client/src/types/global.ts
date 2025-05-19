@@ -6,12 +6,14 @@ export enum TypedStatus {
 
 export enum SpaceSymbols {
   UNDERSCORE = 'underscore',
-  MIDDLE_DOT = 'middle_dot',
+  DOT = 'DOT',
+  NONE = 'none',
 }
 
 export const spaceSymbolMap: Record<SpaceSymbols, string> = {
   [SpaceSymbols.UNDERSCORE]: '_',
-  [SpaceSymbols.MIDDLE_DOT]: '·',
+  [SpaceSymbols.DOT]: '·',
+  [SpaceSymbols.NONE]: ' ',
 }
 
 export type FontSettings = {
@@ -39,12 +41,13 @@ export enum FontSizes {
   MD = 'md',
   LG = 'lg',
   XL = 'xl',
-  '2XL' = '2xl',
-  '3XL' = '3xl',
-  '4XL' = '4xl',
+  TWO_XL = '2xl',
+  THREE_XL = '3xl',
+  FOUR_XL = '4xl',
 }
 
 export enum CursorStyles {
   UNDERSCORE = 'underscore',
   BLOCK = 'block',
+  OUTLINE = 'outline',
 }

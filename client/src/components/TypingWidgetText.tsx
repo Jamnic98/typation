@@ -1,4 +1,4 @@
-import { /*useEffect, */ useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Character, type CharacterProps } from 'components'
 import { defaultFontSettings } from 'utils/constants'
@@ -29,10 +29,6 @@ export const TypingWidgetText = ({
     textToType ? strToCharObjArray(textToType) : null
   )
 
-  if (document.activeElement !== typingWidgetTextRef.current) {
-    // hide cursor
-  }
-
   useEffect(() => {
     if (charObjArray && charObjArray.length > 0) {
       setCharObjArray(
@@ -52,7 +48,13 @@ export const TypingWidgetText = ({
 
   const shiftCursor = () => setCursorIndex((prevIndex) => prevIndex + 1)
 
-  const updateFunc = async (typedStatus: TypedStatus, cursorIndex: number) => {
+  const updateStats = async (typedStatus: TypedStatus /* , lastTypedStatus: TypedStatus */) => {
+    const char = charObjArray?.[cursorIndex].char
+    console.log(typedStatus)
+    console.log(char)
+  }
+
+  const updateFunc = async (typedStatus: TypedStatus) => {
     charObjArray &&
       setCharObjArray(
         charObjArray.map((obj: CharacterProps, index: number) => {
@@ -72,8 +74,8 @@ export const TypingWidgetText = ({
 
       if (typedStatus === TypedStatus.HIT) {
         if (lastTypedStatus === TypedStatus.NONE) {
-          // await updateStats(typedStatus, lastTypedStatus, cursorIndex)
-          await updateFunc(TypedStatus.HIT, cursorIndex)
+          await updateStats(typedStatus)
+          await updateFunc(TypedStatus.HIT)
         }
         shiftCursor()
         if (charObjArray && cursorIndex === charObjArray.length - 1) {
@@ -82,8 +84,7 @@ export const TypingWidgetText = ({
         }
       } else if (typedStatus === TypedStatus.MISS) {
         if (lastTypedStatus === TypedStatus.NONE) {
-          // await updateStats(typedStatus, lastTypedStatus, cursorIndex)
-          await updateFunc(TypedStatus.MISS, cursorIndex)
+          await updateFunc(TypedStatus.MISS)
         }
       }
     } catch (error) {
@@ -94,7 +95,7 @@ export const TypingWidgetText = ({
 
   const handleNormalKeyPress = async (key: string) => {
     try {
-      await updateCharObjArray(key)
+      charObjArray && (await updateCharObjArray(key))
     } catch (error) {
       console.error('Error handling normal key press:', error)
       throw new Error('Error handling normal key press')
@@ -102,9 +103,8 @@ export const TypingWidgetText = ({
   }
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
-    const key = e.key
-
     try {
+      const { key } = e
       if (key === 'Backspace') {
         // handle backspace
       } else if (key == 'Space') {
@@ -130,7 +130,7 @@ export const TypingWidgetText = ({
   return (
     <div
       ref={typingWidgetTextRef}
-      className="w-fit focus:outline outline-black font-mono"
+      className="w-fit focus:outline outline-black font-mono p-4"
       onKeyUp={(e) => handleKeyDown(e)}
       id="typing-widget-text"
       data-testid="typing-widget-text"
