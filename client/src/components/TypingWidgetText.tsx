@@ -31,6 +31,7 @@ export const TypingWidgetText = ({
       )
     }
   }
+
   const onBlur = () => {
     setFocused(false)
     charObjArray &&
@@ -54,7 +55,8 @@ export const TypingWidgetText = ({
   )
 
   useEffect(() => {
-    if (charObjArray && charObjArray.length > 0) {
+    // update the charObjArray to reflect cursor change visually
+    if (charObjArray) {
       setCharObjArray(
         charObjArray.map((obj, index) => ({
           ...obj,
@@ -157,7 +159,7 @@ export const TypingWidgetText = ({
   return (
     <div
       ref={typingWidgetTextRef}
-      className="w-fit font-mono outline-none" //  focus:outline outline-black font-mono p-4"
+      className="w-fit font-mono outline-none"
       onKeyUp={(e) => handleKeyDown(e)}
       id="typing-widget-text"
       data-testid="typing-widget-text"

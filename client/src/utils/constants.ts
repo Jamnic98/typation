@@ -21,3 +21,8 @@ export const defaultFontSettings: FontSettings = {
 
 export const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 export const CHAR_ARRAY = (' ' + ALPHABET).split('')
+
+// create an array of all possible char pair combinations from CHAR_ARRAY
+export const CHAR_ARRAY_PAIRS = CHAR_ARRAY.map((char1) =>
+  CHAR_ARRAY.map((char2) => ({ charPair: char1 + char2, hit: 0, miss: 0 }))
+)

@@ -86,13 +86,12 @@ export const Character = ({
       <AnimatePresence mode="popLayout">
         {isVisible && (
           <motion.span
-            // key={`char-${char}-${typedStatus === TypedStatus.NONE ? 'HIT' : 'VISIBLE'}`}
             className={`${typedStatusClass} ${fontSettingsClass} z-10`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{
               opacity: 0,
-              y: Math.floor(Math.random() * 100) + 50,
+              y: Math.floor(Math.random() * 10) + 50,
               rotate: randomRotation,
             }}
             transition={{ duration: 0.3 }}

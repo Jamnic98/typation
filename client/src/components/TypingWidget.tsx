@@ -2,16 +2,8 @@ import { useEffect, useState } from 'react'
 
 import { TypingWidgetText } from 'components'
 import { fetchNewString } from 'api/textGeneration'
-import { defaultFontSettings } from 'utils/constants'
+import { CHAR_ARRAY_PAIRS, defaultFontSettings } from 'utils/constants'
 import { /* TypedStatus,  */ type FontSettings } from 'types/global'
-
-// create an array of all possible char pair combinations from CHAR_ARRAY
-// const CHAR_ARRAY_PAIRS = CHAR_ARRAY.map((char1) =>
-//   CHAR_ARRAY.map((char2) => {
-//     const charPair = char1 + char2
-//     return { charPair, hit: 0, miss: 0 }
-//   })
-// )
 
 export interface TypingWidgetProps {}
 
