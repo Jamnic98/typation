@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { TypingWidgetText } from 'components'
 import { fetchNewString } from 'api/textGeneration'
-import { CHAR_ARRAY_PAIRS, defaultFontSettings } from 'utils/constants'
+import { defaultFontSettings } from 'utils/constants'
 import { /* TypedStatus,  */ type FontSettings } from 'types/global'
 
 export interface TypingWidgetProps {}
