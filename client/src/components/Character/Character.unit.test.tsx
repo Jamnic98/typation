@@ -48,6 +48,7 @@ describe('Character render tests', () => {
         },
       })
     )
+
     expect(character).toHaveTextContent(spaceSymbolMap[SpaceSymbols.DOT])
   })
 })

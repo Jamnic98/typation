@@ -30,3 +30,9 @@ coverage/
 
 .env*
 main.css
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
