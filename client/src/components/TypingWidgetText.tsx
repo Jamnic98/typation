@@ -9,7 +9,11 @@ export interface TypingWidgetTextProps {
   fetchNewString: () => Promise<string>
   fontSettings?: FontSettings
   onStart: () => void
-  onComplete: () => void
+  onComplete: (
+    charObjArray: CharacterProps[],
+    typedStatus: TypedStatus,
+    cursorIndex: number
+  ) => void
 }
 
 export const TypingWidgetText = ({
@@ -77,12 +81,6 @@ export const TypingWidgetText = ({
 
   const shiftCursor = () => setCursorIndex((prevIndex) => prevIndex + 1)
 
-  const updateStats = async (typedStatus: TypedStatus /* , lastTypedStatus: TypedStatus */) => {
-    const char = charObjArray?.[cursorIndex].char
-    console.log(typedStatus)
-    console.log(char)
-  }
-
   const updateFunc = async (typedStatus: TypedStatus) => {
     charObjArray &&
       setCharObjArray(
@@ -103,7 +101,7 @@ export const TypingWidgetText = ({
 
       if (typedStatus === TypedStatus.HIT) {
         if (lastTypedStatus === TypedStatus.NONE) {
-          await updateStats(typedStatus)
+          // await updateStats(charObjArray, typedStatus, )
           await updateFunc(TypedStatus.HIT)
         }
         shiftCursor()

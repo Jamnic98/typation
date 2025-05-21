@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react'
 
-import { TypingWidgetText } from 'components'
+import { CharacterProps, TypingWidgetText } from 'components'
 import { fetchNewString } from 'api/textGeneration'
 import { defaultFontSettings } from 'utils/constants'
-import { /* TypedStatus,  */ type FontSettings } from 'types/global'
+import { TypedStatus, type FontSettings } from 'types/global'
+
+const updateStats = async (
+  charObjArray: CharacterProps[],
+  typedStatus: TypedStatus,
+  cursorIndex: number
+) => {
+  const char = charObjArray?.[cursorIndex].char
+  console.log(char, typedStatus)
+}
 
 export interface TypingWidgetProps {}
 
@@ -23,7 +32,13 @@ export const TypingWidget = () => {
 
   const onStart = () => {}
 
-  const onComplete = () => {}
+  const onComplete = (
+    charObjArray: CharacterProps[],
+    typedStatus: TypedStatus,
+    cursorIndex: number
+  ) => {
+    updateStats(charObjArray, typedStatus, cursorIndex)
+  }
 
   return (
     <div id="typing-widget" data-testid="typing-widget">

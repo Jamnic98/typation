@@ -14,8 +14,8 @@ export const fetchNewString = async (): Promise<string> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error(errorMessage)
-    return 'the quick brown fox jumps over the lazy dog'
-    // alert(errorMessage)
-    // throw new Error(errorMessage)
+    // return 'the quick brown fox jumps over the lazy dog'
+    alert(errorMessage)
+    throw new Error(errorMessage)
   }
 }
