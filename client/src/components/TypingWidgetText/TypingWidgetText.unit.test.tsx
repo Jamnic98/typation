@@ -6,13 +6,15 @@ import { TypingWidgetText, type TypingWidgetTextProps } from 'components'
 import { CursorStyles, SpaceSymbols, spaceSymbolMap } from 'types/global'
 
 const defaultTextToType = 'hi'
-const defaultFetchNewStringFunc = vi.fn().mockResolvedValue('mock text')
+const defaultOnStartFunc = vi.fn().mockResolvedValue(null)
+const defaultOnCompleteFunc = vi.fn().mockResolvedValue(null)
+const defaultOnTypeFunc = vi.fn().mockResolvedValue(null)
 
 const defaultProps: TypingWidgetTextProps = {
   textToType: defaultTextToType,
-  fetchNewString: defaultFetchNewStringFunc,
-  onStart: () => {},
-  onComplete: () => {},
+  onStart: defaultOnStartFunc,
+  onComplete: defaultOnCompleteFunc,
+  onType: defaultOnTypeFunc,
 }
 
 const renderTypingWidgetText = (props?: TypingWidgetTextProps) => {
@@ -48,10 +50,11 @@ describe('Test Rendering', () => {
     const textToType = 'hi me'
     renderTypingWidgetText({
       textToType,
-      fetchNewString: async () => textToType,
+      // fetchNewString: async () => textToType,
       fontSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
-      onStart: () => {},
-      onComplete: () => {},
+      onStart: async () => {},
+      onComplete: async () => {},
+      onType: async () => {},
     })
     const backgroundText = screen.getAllByTestId('background-character')
     expect(backgroundText).toHaveLength(textToType.length)
@@ -70,15 +73,34 @@ describe('Test Rendering', () => {
     expect(foregroundText[4]).toHaveTextContent(textToType[4])
   })
 
-  test('Renders characters and updates styles on key press', async () => {
+  test('Calls fetchNewString on complete', async () => {
+    renderTypingWidgetText()
+    const user = userEvent.setup()
+
+    // focus on the typing widget
+    const TypingWidgetText = screen.getByTestId('typing-widget-text')
+    await user.click(TypingWidgetText)
+    expect(TypingWidgetText).toHaveFocus()
+
+    // type correct characters and expect fetchNewString to be called
+    await user.keyboard(defaultTextToType[0])
+    await user.keyboard(defaultTextToType[1])
+
+    expect(defaultOnCompleteFunc).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Test functionality', () => {
+  test('Updates styles on key press', async () => {
     const user = userEvent.setup()
     const textToType = 'heya'
     renderTypingWidgetText({
       textToType,
-      fetchNewString: async () => textToType,
+      // fetchNewString: async () => textToType,
       fontSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
-      onStart: () => {},
-      onComplete: () => {},
+      onStart: async () => {},
+      onComplete: async () => {},
+      onType: async () => {},
     })
 
     const characters = screen.getAllByTestId('background-character')
@@ -120,21 +142,7 @@ describe('Test Rendering', () => {
     await waitFor(() => {
       expect(characterCursors[3]).toHaveClass('animate-flash-block')
     })
-  })
 
-  test('Calls fetchNewString on complete', async () => {
-    renderTypingWidgetText()
-    const user = userEvent.setup()
-
-    // focus on the typing widget
-    const TypingWidgetText = screen.getByTestId('typing-widget-text')
-    await user.click(TypingWidgetText)
-    expect(TypingWidgetText).toHaveFocus()
-
-    // type correct characters and expect fetchNewString to be called
-    await user.keyboard(defaultTextToType[0])
-    await user.keyboard(defaultTextToType[1])
-
-    expect(defaultFetchNewStringFunc).toHaveBeenCalledTimes(1)
+    expect(defaultOnTypeFunc).toHaveBeenCalledTimes(2)
   })
 })

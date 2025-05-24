@@ -51,3 +51,8 @@ export enum CursorStyles {
   BLOCK = 'block',
   OUTLINE = 'outline',
 }
+
+export enum StopWatchState {
+  RUNNING = 'running',
+  STOPPED = 'stopped',
+}

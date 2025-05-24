@@ -6,25 +6,30 @@ import { type FontSettings, TypedStatus } from 'types'
 
 export interface TypingWidgetTextProps {
   textToType: string | null
-  fetchNewString: () => Promise<string>
+  // fetchNewString: () => Promise<string>
   fontSettings?: FontSettings
-  onStart: () => void
-  onComplete: (
+  onStart: () => Promise<void>
+  onComplete: () // charObjArray: CharacterProps[],
+  // typedStatus: TypedStatus,
+  // cursorIndex: number
+  => Promise<void>
+  onType: (
     charObjArray: CharacterProps[],
     typedStatus: TypedStatus,
     cursorIndex: number
-  ) => void
+  ) => Promise<void>
 }
 
 export const TypingWidgetText = ({
   textToType,
-  fetchNewString,
+  // fetchNewString,
   fontSettings = defaultFontSettings,
-  // onStart,
-  // onComplete,
+  onStart,
+  onComplete,
+  onType,
 }: TypingWidgetTextProps) => {
   const onFocus = () => {
-    setFocused(true)
+    setIsFocused(true)
     if (cursorIndex === -1) {
       setCursorIndex(0)
     }
@@ -37,7 +42,7 @@ export const TypingWidgetText = ({
   }
 
   const onBlur = () => {
-    setFocused(false)
+    setIsFocused(false)
     charObjArray &&
       setCharObjArray(charObjArray?.map((character) => ({ ...character, isActive: false })))
   }
@@ -46,12 +51,11 @@ export const TypingWidgetText = ({
     string.split('').map((char, index) => ({
       char,
       typedStatus: TypedStatus.NONE,
-      isActive: focused && index === 0,
+      isActive: isFocused && index === 0,
     }))
 
   const typingWidgetTextRef = useRef<HTMLDivElement>(null)
-  const [focused, setFocused] = useState(false)
-  // const [showCursor, setShowCursor] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
   const [cursorIndex, setCursorIndex] = useState(-1)
 
   const [charObjArray, setCharObjArray] = useState<CharacterProps[] | null>(
@@ -64,7 +68,7 @@ export const TypingWidgetText = ({
       setCharObjArray(
         charObjArray.map((obj, index) => ({
           ...obj,
-          isActive: focused && index === cursorIndex,
+          isActive: isFocused && index === cursorIndex,
         }))
       )
       if (cursorIndex >= 0 && cursorIndex >= charObjArray.length) {
@@ -82,7 +86,8 @@ export const TypingWidgetText = ({
   const shiftCursor = () => setCursorIndex((prevIndex) => prevIndex + 1)
 
   const updateFunc = async (typedStatus: TypedStatus) => {
-    charObjArray &&
+    if (charObjArray) {
+      onType(charObjArray, typedStatus, cursorIndex)
       setCharObjArray(
         charObjArray.map((obj: CharacterProps, index: number) => {
           if (index === cursorIndex) {
@@ -91,6 +96,7 @@ export const TypingWidgetText = ({
           return obj
         })
       )
+    }
   }
 
   const updateCharObjArray = async (key: string): Promise<void> => {
@@ -100,14 +106,16 @@ export const TypingWidgetText = ({
       const lastTypedStatus = highlightedCharacter?.typedStatus
 
       if (typedStatus === TypedStatus.HIT) {
+        shiftCursor()
         if (lastTypedStatus === TypedStatus.NONE) {
-          // await updateStats(charObjArray, typedStatus, )
           await updateFunc(TypedStatus.HIT)
         }
-        shiftCursor()
-        if (charObjArray && cursorIndex === charObjArray.length - 1) {
-          const newString = await fetchNewString()
-          setCharObjArray(strToCharObjArray(newString ?? ''))
+        if (isFocused && charObjArray && cursorIndex === charObjArray.length - 1) {
+          // if (isFocused && charObjArray && cursorIndex === charObjArray?.length - 1) {
+          // }
+          await onComplete()
+          // const newString = await fetchNewString()
+          // setCharObjArray(strToCharObjArray(newString ?? ''))
         }
       } else if (typedStatus === TypedStatus.MISS) {
         if (lastTypedStatus === TypedStatus.NONE) {
@@ -140,9 +148,10 @@ export const TypingWidgetText = ({
         return
       } else if (key === 'Tab') {
         e.preventDefault() // so focus doesn’t jump
-        // handle tab
       } else if (key.length === 1) {
-        // it's a printable character, including shifted ones like 'A'await handleNormalKeyPress(key)
+        if (isFocused && cursorIndex === 0) {
+          onStart()
+        }
         await handleNormalKeyPress(key)
       } else {
         // Ignore modifier or control keys (Shift, Ctrl, etc.)
@@ -157,7 +166,7 @@ export const TypingWidgetText = ({
   return (
     <div
       ref={typingWidgetTextRef}
-      className="w-fit font-mono outline-none"
+      className="w-fit h-fit font-mono outline-none "
       onKeyUp={(e) => handleKeyDown(e)}
       id="typing-widget-text"
       data-testid="typing-widget-text"

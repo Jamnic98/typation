@@ -4,7 +4,9 @@ export const defaultFontSettings: FontSettings = {
   textColor: 'black',
   fontSize: FontSizes.FOUR_XL,
   spaceSymbol: SpaceSymbols.DOT,
-  cursorStyle: CursorStyles.OUTLINE,
+  cursorStyle: CursorStyles.UNDERSCORE,
+  // cursorStyle: CursorStyles.OUTLINE,
+
   // fontFamily: 'monospace',
   // fontWeight: 'bold',
   // textAlign: 'left',

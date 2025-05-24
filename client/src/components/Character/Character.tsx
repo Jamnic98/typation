@@ -69,38 +69,37 @@ export const Character = ({
   const isVisible = typedStatus !== TypedStatus.HIT
 
   return (
-    <span
-      data-testid="character-cursor"
-      className={`${cursorClass} w-[1ch] inline-block relative h-4`}
-    >
-      {/* Background "ghost" letter to avoid layout shift */}
-      <span
-        data-testid="background-character"
-        aria-hidden="true"
-        className={`${typedStatusClass} ${fontSettingsClass} absolute top-0 left-0 w-full h-full select-none`}
-      >
-        {char === ' ' && spaceSymbol ? spaceSymbol : char}
-      </span>
+    <span data-testid="character-cursor" className={`${cursorClass}`}>
+      <span className={`w-[1ch] inline-block relative h-4`}>
+        {/* Background "ghost" letter to avoid layout shift */}
+        <span
+          data-testid="background-character"
+          aria-hidden="true"
+          className={`${typedStatusClass} ${fontSettingsClass} absolute top-0 left-0 w-full h-full select-none`}
+        >
+          {char === ' ' && spaceSymbol ? spaceSymbol : char}
+        </span>
 
-      {/* Foreground animated letter */}
-      <AnimatePresence mode="popLayout">
-        {isVisible && (
-          <motion.span
-            className={`${typedStatusClass} ${fontSettingsClass} z-10`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{
-              opacity: 0,
-              y: Math.floor(Math.random() * 10) + 50,
-              rotate: randomRotation,
-            }}
-            transition={{ duration: 0.3 }}
-            data-testid="foreground-character"
-          >
-            {char === ' ' && spaceSymbol ? spaceSymbol : char}
-          </motion.span>
-        )}
-      </AnimatePresence>
+        {/* Foreground animated letter */}
+        <AnimatePresence mode="popLayout">
+          {isVisible && (
+            <motion.span
+              className={`${typedStatusClass} ${fontSettingsClass} z-10`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{
+                opacity: 0,
+                y: Math.floor(Math.random() * 10) + 50,
+                rotate: randomRotation,
+              }}
+              transition={{ duration: 0.3 }}
+              data-testid="foreground-character"
+            >
+              {char === ' ' && spaceSymbol ? spaceSymbol : char}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </span>
     </span>
   )
 }

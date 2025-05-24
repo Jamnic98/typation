@@ -45,6 +45,9 @@ type Story = StoryObj<typeof meta>
 
 export const StopWatchStory: Story = {
   args: {
+    time: 0,
+    setTime: (time: number) => time,
+    isRunning: false,
     // char: 'm',
     // highlighted: false,
     // typedStatus: TypedStatus.MISS,

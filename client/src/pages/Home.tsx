@@ -4,9 +4,6 @@ export const Home = () => {
   return (
     <article className="justify-center items-center flex flex-col">
       <TypingWidget />
-      <br />
-      <br />
-      {/* <StopWatch /> */}
     </article>
   )
 }

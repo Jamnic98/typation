@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 
-import { CharacterProps, TypingWidgetText } from 'components'
+import { CharacterProps, StopWatch, TypingWidgetText } from 'components'
 import { fetchNewString } from 'api/textGeneration'
 import { defaultFontSettings } from 'utils/constants'
 import { TypedStatus, type FontSettings } from 'types/global'
+import { Accuracy } from 'components/Accuracy/Accuracy'
 
 const updateStats = async (
   charObjArray: CharacterProps[],
   typedStatus: TypedStatus,
   cursorIndex: number
 ) => {
+  // update hit / miss for letters, bigrams and trigrams
+  // duration
+  // startTime
+  // completionTime
+
   const char = charObjArray?.[cursorIndex].char
   console.log(char, typedStatus)
 }
@@ -18,6 +24,9 @@ export interface TypingWidgetProps {}
 
 export const TypingWidget = () => {
   const [text, setText] = useState<string | null>(null)
+  const [runStopWatch, setRunStopWatch] = useState<boolean>(false)
+  const [accuracy, setAccuracy] = useState<number>(0)
+  const [stopWatchTime, setStopWatchTime] = useState<number>(0)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
 
   useEffect(() => {
@@ -30,26 +39,58 @@ export const TypingWidget = () => {
     }
   }, [fetchNewString])
 
-  const onStart = () => {}
+  const onStart = async () => {
+    setAccuracy(0)
+    setStopWatchTime(0)
+    setRunStopWatch(true)
+  }
 
-  const onComplete = (
+  const onType = async (
     charObjArray: CharacterProps[],
     typedStatus: TypedStatus,
     cursorIndex: number
   ) => {
-    updateStats(charObjArray, typedStatus, cursorIndex)
+    await updateStats(charObjArray, typedStatus, cursorIndex)
+    await updateAccuracy(charObjArray, cursorIndex)
+  }
+
+  const onComplete = async () => {
+    setRunStopWatch(false)
+    setText(await fetchNewString())
+  }
+
+  const updateAccuracy = async (charObjArray: CharacterProps[], cursorIndex: number) => {
+    const correctChars = charObjArray
+      .slice(0, cursorIndex + 1)
+      .reduce((count, char) => count + (char.typedStatus === TypedStatus.MISS ? 0 : 1), 0)
+
+    const totalTyped = cursorIndex + 1
+    const accuracy = totalTyped > 0 ? (correctChars / totalTyped) * 100 : 0
+
+    setAccuracy(Math.round(accuracy))
   }
 
   return (
     <div id="typing-widget" data-testid="typing-widget">
       {/* setting for typing widget */}
-      <TypingWidgetText
-        onStart={onStart}
-        onComplete={onComplete}
-        textToType={text}
-        fetchNewString={fetchNewString}
-        fontSettings={fontSettings}
-      />
+      <div className="w-full">
+        <TypingWidgetText
+          onStart={onStart}
+          onComplete={onComplete}
+          onType={onType}
+          textToType={text}
+          fontSettings={fontSettings}
+        />
+      </div>
+      {/* TODO: Remove br */}
+      <br />
+      <div>
+        <StopWatch time={stopWatchTime} setTime={setStopWatchTime} isRunning={runStopWatch} />
+      </div>
+      {/* TODO: Remove br */}
+      <br />
+      <Accuracy accuracy={accuracy} />
+      {/* </div> */}
     </div>
   )
 }
