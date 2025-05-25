@@ -1,28 +1,8 @@
-import { useEffect } from 'react'
-
 interface StopWatchProps {
   time: number
-  setTime: (time: number) => void
-  isRunning: boolean
-  start?: () => void
-  stop?: () => void
-  reset?: () => void
 }
 
-export const StopWatch = ({
-  time,
-  setTime,
-  isRunning /* , start, stop, reset */,
-}: StopWatchProps) => {
-  useEffect(() => {
-    let intervalId: any
-    if (isRunning) {
-      // setting time from 0 to 1 every 10 milisecond using javascript setInterval method
-      intervalId = setInterval(() => setTime(time + 1), 10)
-    }
-    return () => clearInterval(intervalId)
-  }, [isRunning, time])
-
+export const StopWatch = ({ time }: StopWatchProps) => {
   // Minutes calculation
   const minutes = Math.floor((time % 360000) / 6000)
 

@@ -6,28 +6,33 @@ import { defaultFontSettings } from 'utils/constants'
 import { TypedStatus, type FontSettings } from 'types/global'
 import { Accuracy } from 'components/Accuracy/Accuracy'
 
-const updateStats = async (
-  charObjArray: CharacterProps[],
-  typedStatus: TypedStatus,
-  cursorIndex: number
-) => {
-  // update hit / miss for letters, bigrams and trigrams
-  // duration
-  // startTime
-  // completionTime
-
-  const char = charObjArray?.[cursorIndex].char
-  console.log(char, typedStatus)
-}
+import { WordsPerMin } from 'components/WordsPerMin'
+import { updateStats } from 'api/userStatistics'
 
 export interface TypingWidgetProps {}
 
 export const TypingWidget = () => {
+  const [showStats, setShowStats] = useState<boolean>(true)
+  const [wpm, setWpm] = useState<number>(0)
+  const [accuracy, setAccuracy] = useState<number>(0)
   const [text, setText] = useState<string | null>(null)
   const [runStopWatch, setRunStopWatch] = useState<boolean>(false)
-  const [accuracy, setAccuracy] = useState<number>(0)
   const [stopWatchTime, setStopWatchTime] = useState<number>(0)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null
+
+    if (runStopWatch) {
+      intervalId = setInterval(() => {
+        setStopWatchTime((prev) => prev + 1)
+      }, 10)
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [runStopWatch])
 
   useEffect(() => {
     if (!text) {
@@ -40,8 +45,10 @@ export const TypingWidget = () => {
   }, [fetchNewString])
 
   const onStart = async () => {
+    setWpm(0)
     setAccuracy(0)
     setStopWatchTime(0)
+    // setShowStats(false)
     setRunStopWatch(true)
   }
 
@@ -50,11 +57,14 @@ export const TypingWidget = () => {
     typedStatus: TypedStatus,
     cursorIndex: number
   ) => {
+    console.log(charObjArray)
     await updateStats(charObjArray, typedStatus, cursorIndex)
     await updateAccuracy(charObjArray, cursorIndex)
+    await updateWpm(charObjArray, cursorIndex)
   }
 
   const onComplete = async () => {
+    setShowStats(true)
     setRunStopWatch(false)
     setText(await fetchNewString())
   }
@@ -70,6 +80,30 @@ export const TypingWidget = () => {
     setAccuracy(Math.round(accuracy))
   }
 
+  const updateWpm = async (
+    charObjArray: CharacterProps[],
+    cursorIndex: number
+    // stopWatchTime: number,
+    // setWpm: (wpm: number) => void
+  ) => {
+    if (stopWatchTime === 0) {
+      setWpm(0)
+      return
+    }
+
+    const correctChars = charObjArray
+      .slice(0, cursorIndex + 1)
+      .reduce((count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0), 0)
+
+    const minutesElapsed = stopWatchTime / 6000 // because 6000 units = 60 seconds
+
+    const wordsTyped = correctChars / 5
+
+    const wpm = Math.round(wordsTyped / minutesElapsed)
+
+    setWpm(wpm)
+  }
+
   return (
     <div id="typing-widget" data-testid="typing-widget">
       {/* setting for typing widget */}
@@ -83,14 +117,23 @@ export const TypingWidget = () => {
         />
       </div>
       {/* TODO: Remove br */}
-      <br />
-      <div>
-        <StopWatch time={stopWatchTime} setTime={setStopWatchTime} isRunning={runStopWatch} />
-      </div>
-      {/* TODO: Remove br */}
-      <br />
-      <Accuracy accuracy={accuracy} />
-      {/* </div> */}
+      {showStats ? (
+        <>
+          <br />
+          <div>
+            <StopWatch time={stopWatchTime} />
+          </div>
+          {/* TODO: Remove br */}
+          <br />
+          <div>
+            <Accuracy accuracy={accuracy} />
+          </div>
+          <br />
+          <div>
+            <WordsPerMin wpm={wpm} />
+          </div>
+        </>
+      ) : null}
     </div>
   )
 }
