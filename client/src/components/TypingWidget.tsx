@@ -12,9 +12,9 @@ import { updateStats } from 'api/userStatistics'
 export interface TypingWidgetProps {}
 
 export const TypingWidget = () => {
-  const [showStats, setShowStats] = useState<boolean>(true)
   const [wpm, setWpm] = useState<number>(0)
   const [accuracy, setAccuracy] = useState<number>(0)
+  const [showStats, setShowStats] = useState<boolean>(false)
   const [text, setText] = useState<string | null>(null)
   const [runStopWatch, setRunStopWatch] = useState<boolean>(false)
   const [stopWatchTime, setStopWatchTime] = useState<number>(0)
@@ -48,7 +48,7 @@ export const TypingWidget = () => {
     setWpm(0)
     setAccuracy(0)
     setStopWatchTime(0)
-    // setShowStats(false)
+    setShowStats(false)
     setRunStopWatch(true)
   }
 
@@ -57,15 +57,14 @@ export const TypingWidget = () => {
     typedStatus: TypedStatus,
     cursorIndex: number
   ) => {
-    console.log(charObjArray)
     await updateStats(charObjArray, typedStatus, cursorIndex)
     await updateAccuracy(charObjArray, cursorIndex)
     await updateWpm(charObjArray, cursorIndex)
   }
 
   const onComplete = async () => {
-    setShowStats(true)
     setRunStopWatch(false)
+    setShowStats(true)
     setText(await fetchNewString())
   }
 

@@ -6,13 +6,9 @@ import { type FontSettings, TypedStatus } from 'types'
 
 export interface TypingWidgetTextProps {
   textToType: string | null
-  // fetchNewString: () => Promise<string>
   fontSettings?: FontSettings
   onStart: () => Promise<void>
-  onComplete: () // charObjArray: CharacterProps[],
-  // typedStatus: TypedStatus,
-  // cursorIndex: number
-  => Promise<void>
+  onComplete: () => Promise<void>
   onType: (
     charObjArray: CharacterProps[],
     typedStatus: TypedStatus,
@@ -22,7 +18,6 @@ export interface TypingWidgetTextProps {
 
 export const TypingWidgetText = ({
   textToType,
-  // fetchNewString,
   fontSettings = defaultFontSettings,
   onStart,
   onComplete,
@@ -30,10 +25,7 @@ export const TypingWidgetText = ({
 }: TypingWidgetTextProps) => {
   const onFocus = () => {
     setIsFocused(true)
-    if (cursorIndex === -1) {
-      setCursorIndex(0)
-    }
-
+    if (cursorIndex === -1) setCursorIndex(0)
     if (charObjArray && !charObjArray[cursorIndex]?.isActive) {
       setCharObjArray(
         charObjArray?.map((character, index) => ({ ...character, isActive: index === cursorIndex }))
@@ -43,6 +35,8 @@ export const TypingWidgetText = ({
 
   const onBlur = () => {
     setIsFocused(false)
+    setCursorIndex(0)
+
     charObjArray &&
       setCharObjArray(charObjArray?.map((character) => ({ ...character, isActive: false })))
   }
@@ -65,15 +59,13 @@ export const TypingWidgetText = ({
   useEffect(() => {
     // update the charObjArray to reflect cursor change visually
     if (charObjArray) {
+      if (cursorIndex === charObjArray.length) setCursorIndex(0)
       setCharObjArray(
         charObjArray.map((obj, index) => ({
           ...obj,
           isActive: isFocused && index === cursorIndex,
         }))
       )
-      if (cursorIndex >= 0 && cursorIndex >= charObjArray.length) {
-        setCursorIndex(0)
-      }
     }
   }, [cursorIndex])
 
@@ -85,9 +77,9 @@ export const TypingWidgetText = ({
 
   const shiftCursor = (forward: boolean = true) => {
     setCursorIndex((prevIndex) => {
-      if (prevIndex === charObjArray?.length) {
-        return 0
-      }
+      // if (cursorIndex === charObjArray?.length) {
+      //   return 0
+      // }
       return prevIndex + (forward ? 1 : -1)
     })
   }
@@ -113,23 +105,16 @@ export const TypingWidgetText = ({
       const lastTypedStatus = highlightedCharacter?.typedStatus
 
       if (typedStatus === TypedStatus.HIT) {
-        // shiftCursor()
         if (lastTypedStatus === TypedStatus.NONE) {
           await updateFunc(TypedStatus.HIT)
         }
-        if (isFocused && charObjArray && cursorIndex === charObjArray.length - 1) {
-          // if (isFocused && charObjArray && cursorIndex === charObjArray?.length - 1) {
-          // }
-          await onComplete()
-          // const newString = await fetchNewString()
-          // setCharObjArray(strToCharObjArray(newString ?? ''))
-        }
       } else if (typedStatus === TypedStatus.MISS) {
         await updateFunc(TypedStatus.MISS)
-        // if (lastTypedStatus === TypedStatus.NONE) {
-        // }
       }
       shiftCursor()
+      if (isFocused && charObjArray && cursorIndex === charObjArray.length - 1) {
+        await onComplete()
+      }
     } catch (error) {
       console.error('updateCharObjArray failed:', error)
       throw new Error('Error updating charObjArray')
@@ -146,36 +131,30 @@ export const TypingWidgetText = ({
   }
 
   const handleBackspace = async () => {
-    // shiftCursor(false)
-    // handle backspace
     if (cursorIndex > 0 && charObjArray) {
-      setCursorIndex((prevIndex) => prevIndex - 1)
-      const updatedCharObjArray = charObjArray.map((obj, index) => {
-        if (index === cursorIndex - 1) {
-          return { ...obj, typedStatus: TypedStatus.NONE }
-        }
-        return obj
-      })
-      setCharObjArray(updatedCharObjArray)
+      if (charObjArray[cursorIndex - 1].typedStatus === TypedStatus.MISS) {
+        shiftCursor(false)
+        const updatedCharObjArray = charObjArray.map((obj, index) => {
+          if (index === cursorIndex - 1) {
+            return { ...obj, typedStatus: TypedStatus.NONE }
+          }
+          return obj
+        })
+        setCharObjArray(updatedCharObjArray)
+      }
     }
   }
 
   const handleKeyUp = async (e: React.KeyboardEvent<HTMLElement>) => {
     try {
       const { key } = e
-      if (key == 'Space') {
-        e.preventDefault()
-        await handleNormalKeyPress(key)
-        return
-      } else if (key === 'Tab') {
+      if (key === 'Tab') {
         e.preventDefault() // so focus doesn’t jump
       } else if (key.length === 1) {
-        if (isFocused && cursorIndex === 0) {
-          onStart()
-        }
+        if (isFocused && cursorIndex === 0) onStart()
         await handleNormalKeyPress(key)
       } else {
-        // Ignore modifier or control keys (Shift, Ctrl, etc.)
+        // Ignore modifier or control keys (Shift, Ctrl, etc. )
         return
       }
     } catch (error) {
@@ -194,13 +173,12 @@ export const TypingWidgetText = ({
   if (!textToType) return null
   return (
     <div
-      ref={typingWidgetTextRef}
-      className="w-fit h-fit font-mono outline-none "
-      // onKeyUp={(e) => handleKeyUp(e)}
-      onKeyUp={(e) => handleKeyUp(e)}
-      onKeyDown={(e) => handleKeyDown(e)}
       id="typing-widget-text"
       data-testid="typing-widget-text"
+      ref={typingWidgetTextRef}
+      className="w-fit h-fit font-mono outline-none "
+      onKeyUp={(e) => handleKeyUp(e)}
+      onKeyDown={(e) => handleKeyDown(e)}
       onFocus={onFocus}
       onBlur={onBlur}
       tabIndex={0}
