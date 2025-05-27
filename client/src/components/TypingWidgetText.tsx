@@ -84,7 +84,7 @@ export const TypingWidgetText = ({
     })
   }
 
-  const updateFunc = async (typedStatus: TypedStatus) => {
+  const updateFunc = async (typedStatus: TypedStatus, key?: string) => {
     if (charObjArray) {
       onType(charObjArray, typedStatus, cursorIndex)
       setCharObjArray(
@@ -109,7 +109,7 @@ export const TypingWidgetText = ({
           await updateFunc(TypedStatus.HIT)
         }
       } else if (typedStatus === TypedStatus.MISS) {
-        await updateFunc(TypedStatus.MISS)
+        await updateFunc(TypedStatus.MISS, key)
       }
       shiftCursor()
       if (isFocused && charObjArray && cursorIndex === charObjArray.length - 1) {
@@ -148,14 +148,11 @@ export const TypingWidgetText = ({
   const handleKeyUp = async (e: React.KeyboardEvent<HTMLElement>) => {
     try {
       const { key } = e
-      if (key === 'Tab') {
-        e.preventDefault() // so focus doesn’t jump
-      } else if (key.length === 1) {
+      if (key.length === 1) {
         if (isFocused && cursorIndex === 0) onStart()
         await handleNormalKeyPress(key)
       } else {
-        // Ignore modifier or control keys (Shift, Ctrl, etc. )
-        return
+        e.preventDefault()
       }
     } catch (error) {
       console.error('Error handling key press:', error)
@@ -163,7 +160,7 @@ export const TypingWidgetText = ({
   }
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
-    e.preventDefault() // prevent default behavior for all keys
+    e.preventDefault()
     const { key } = e
     if (key === 'Backspace') {
       handleBackspace()

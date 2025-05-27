@@ -33,6 +33,18 @@ describe('Test Rendering', () => {
     expect(typingWidget).toBeInTheDocument()
   })
 
+  test("Doesn't render with no text to type", async () => {
+    renderTypingWidgetText({
+      textToType: '',
+      fontSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
+      onStart: async () => {},
+      onComplete: async () => {},
+      onType: async () => {},
+    })
+    const typingWidget = screen.queryByTestId('typing-widget-text')
+    expect(typingWidget).not.toBeInTheDocument()
+  })
+
   test('Renders characters with spaces', () => {
     renderTypingWidgetText({
       textToType: defaultTextToType,
