@@ -84,7 +84,7 @@ export const TypingWidgetText = ({
     })
   }
 
-  const updateFunc = async (typedStatus: TypedStatus, key?: string) => {
+  const updateFunc = async (typedStatus: TypedStatus) => {
     if (charObjArray) {
       onType(charObjArray, typedStatus, cursorIndex)
       setCharObjArray(
@@ -109,7 +109,7 @@ export const TypingWidgetText = ({
           await updateFunc(TypedStatus.HIT)
         }
       } else if (typedStatus === TypedStatus.MISS) {
-        await updateFunc(TypedStatus.MISS, key)
+        await updateFunc(TypedStatus.MISS)
       }
       shiftCursor()
       if (isFocused && charObjArray && cursorIndex === charObjArray.length - 1) {
