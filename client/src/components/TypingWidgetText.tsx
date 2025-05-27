@@ -83,7 +83,14 @@ export const TypingWidgetText = ({
     }
   }, [textToType])
 
-  const shiftCursor = () => setCursorIndex((prevIndex) => prevIndex + 1)
+  const shiftCursor = (forward: boolean = true) => {
+    setCursorIndex((prevIndex) => {
+      if (prevIndex === charObjArray?.length) {
+        return 0
+      }
+      return prevIndex + (forward ? 1 : -1)
+    })
+  }
 
   const updateFunc = async (typedStatus: TypedStatus) => {
     if (charObjArray) {
@@ -106,7 +113,7 @@ export const TypingWidgetText = ({
       const lastTypedStatus = highlightedCharacter?.typedStatus
 
       if (typedStatus === TypedStatus.HIT) {
-        shiftCursor()
+        // shiftCursor()
         if (lastTypedStatus === TypedStatus.NONE) {
           await updateFunc(TypedStatus.HIT)
         }
@@ -118,10 +125,11 @@ export const TypingWidgetText = ({
           // setCharObjArray(strToCharObjArray(newString ?? ''))
         }
       } else if (typedStatus === TypedStatus.MISS) {
-        if (lastTypedStatus === TypedStatus.NONE) {
-          await updateFunc(TypedStatus.MISS)
-        }
+        await updateFunc(TypedStatus.MISS)
+        // if (lastTypedStatus === TypedStatus.NONE) {
+        // }
       }
+      shiftCursor()
     } catch (error) {
       console.error('updateCharObjArray failed:', error)
       throw new Error('Error updating charObjArray')
@@ -137,12 +145,25 @@ export const TypingWidgetText = ({
     }
   }
 
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
+  const handleBackspace = async () => {
+    // shiftCursor(false)
+    // handle backspace
+    if (cursorIndex > 0 && charObjArray) {
+      setCursorIndex((prevIndex) => prevIndex - 1)
+      const updatedCharObjArray = charObjArray.map((obj, index) => {
+        if (index === cursorIndex - 1) {
+          return { ...obj, typedStatus: TypedStatus.NONE }
+        }
+        return obj
+      })
+      setCharObjArray(updatedCharObjArray)
+    }
+  }
+
+  const handleKeyUp = async (e: React.KeyboardEvent<HTMLElement>) => {
     try {
       const { key } = e
-      if (key === 'Backspace') {
-        // handle backspace
-      } else if (key == 'Space') {
+      if (key == 'Space') {
         e.preventDefault()
         await handleNormalKeyPress(key)
         return
@@ -162,12 +183,22 @@ export const TypingWidgetText = ({
     }
   }
 
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
+    e.preventDefault() // prevent default behavior for all keys
+    const { key } = e
+    if (key === 'Backspace') {
+      handleBackspace()
+    }
+  }
+
   if (!textToType) return null
   return (
     <div
       ref={typingWidgetTextRef}
       className="w-fit h-fit font-mono outline-none "
-      onKeyUp={(e) => handleKeyDown(e)}
+      // onKeyUp={(e) => handleKeyUp(e)}
+      onKeyUp={(e) => handleKeyUp(e)}
+      onKeyDown={(e) => handleKeyDown(e)}
       id="typing-widget-text"
       data-testid="typing-widget-text"
       onFocus={onFocus}

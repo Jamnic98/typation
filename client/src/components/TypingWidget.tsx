@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 
-import { CharacterProps, StopWatch, TypingWidgetText } from 'components'
+import { CharacterProps, /* StopWatch, */ TypingWidgetText } from 'components'
 import { fetchNewString } from 'api/textGeneration'
 import { defaultFontSettings } from 'utils/constants'
 import { TypedStatus, type FontSettings } from 'types/global'
-import { Accuracy } from 'components/Accuracy/Accuracy'
+import { Accuracy } from 'components/Accuracy'
 
 import { WordsPerMin } from 'components/WordsPerMin'
 import { updateStats } from 'api/userStatistics'
@@ -96,9 +96,7 @@ export const TypingWidget = () => {
       .reduce((count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0), 0)
 
     const minutesElapsed = stopWatchTime / 6000 // because 6000 units = 60 seconds
-
     const wordsTyped = correctChars / 5
-
     const wpm = Math.round(wordsTyped / minutesElapsed)
 
     setWpm(wpm)
@@ -119,10 +117,10 @@ export const TypingWidget = () => {
       {/* TODO: Remove br */}
       {showStats ? (
         <>
-          <br />
+          {/* <br />
           <div>
             <StopWatch time={stopWatchTime} />
-          </div>
+          </div> */}
           {/* TODO: Remove br */}
           <br />
           <div>
