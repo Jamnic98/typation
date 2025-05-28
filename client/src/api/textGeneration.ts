@@ -1,6 +1,5 @@
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
-// TODO: use env variable for URL
 const url = `${baseUrl}/text/generate-practice-text`
 
 export const fetchNewString = async (): Promise<string> => {

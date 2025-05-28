@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 
 import { TypingWidgetText, type TypingWidgetTextProps } from 'components'
@@ -23,7 +23,11 @@ const renderTypingWidgetText = (props?: TypingWidgetTextProps) => {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
+})
+
+afterEach(() => {
+  cleanup()
 })
 
 describe('Test Rendering', () => {
@@ -105,12 +109,13 @@ describe('Test functionality', () => {
 
     // 1st miss
     await user.keyboard('z')
-    expect(characters[2]).toHaveClass('text-red-500')
-    // expect(characterCursors[3]).toHaveClass('animate-flash-block')
+    const character = screen.getAllByText('z')[1]
+    expect(character).toHaveClass('text-red-500 line-through')
+    expect(characters[3]).toHaveClass('text-black')
 
     // subsequent hit after miss
-    await user.keyboard(defaultTextToType[2])
-    expect(characters[2]).toHaveClass('text-red-500')
+    await user.keyboard(defaultTextToType[3])
+    expect(characters[3]).toHaveClass('text-green-500')
   })
 
   test('Updates cursor position correctly', async () => {
@@ -127,27 +132,19 @@ describe('Test functionality', () => {
     const typingWidgetText = screen.getByTestId('typing-widget-text')
 
     // not focused, no cursor
-    await waitFor(() => {
-      expect(characterCursors[0]).not.toHaveClass('animate-flash-block')
-    })
+    await waitFor(() => expect(characterCursors[0]).not.toHaveClass('animate-flash-block'))
 
     // cursor appears when focused
     await user.click(typingWidgetText)
-    await waitFor(() => {
-      expect(characterCursors[0]).toHaveClass('animate-flash-block')
-    })
+    await waitFor(() => expect(characterCursors[0]).toHaveClass('animate-flash-block'))
 
     // keystroke hit
     await user.keyboard(defaultTextToType[0])
-    await waitFor(() => {
-      expect(characterCursors[1]).toHaveClass('animate-flash-block')
-    })
+    await waitFor(() => expect(characterCursors[1]).toHaveClass('animate-flash-block'))
 
     // keystroke miss
     await user.keyboard('z')
-    await waitFor(() => {
-      expect(characterCursors[2]).toHaveClass('animate-flash-block')
-    })
+    await waitFor(() => expect(characterCursors[2]).toHaveClass('animate-flash-block'))
 
     // click off resets hides cursor and sets index to 0
     await user.click(document.body)
@@ -158,15 +155,11 @@ describe('Test functionality', () => {
 
     // click back displays cursor at index 0
     await user.click(typingWidgetText)
-    await waitFor(() => {
-      expect(characterCursors[0]).toHaveClass('animate-flash-block')
-    })
+    await waitFor(() => expect(characterCursors[0]).toHaveClass('animate-flash-block'))
 
     // backspace has no effect when cursor at index 0
     await user.keyboard('{backspace}')
-    await waitFor(() => {
-      expect(characterCursors[0]).toHaveClass('animate-flash-block')
-    })
+    await waitFor(() => expect(characterCursors[0]).toHaveClass('animate-flash-block'))
 
     // move cursor forward to index 2 with 1 correct typed char and 1 incorrect typed char
     await user.keyboard(defaultTextToType[0])
@@ -177,18 +170,14 @@ describe('Test functionality', () => {
     })
 
     // backspace moves cursor back
+    expect(characterCursors[1]).toHaveClass('animate-flash-block')
     await user.keyboard('{backspace}')
-    await waitFor(() => {
-      expect(characterCursors[2]).not.toHaveClass('animate-flash-block')
-      expect(characterCursors[1]).toHaveClass('animate-flash-block')
-    })
+    await waitFor(() => expect(characterCursors[2]).toHaveClass('animate-flash-block'))
 
     // cursor doesnt overwrite correctly typed text
+    expect(characterCursors[1]).toHaveClass('animate-flash-block')
     await user.keyboard('{backspace}')
-    await waitFor(() => {
-      expect(characterCursors[2]).not.toHaveClass('animate-flash-block')
-      expect(characterCursors[1]).toHaveClass('animate-flash-block')
-    })
+    await waitFor(() => expect(characterCursors[2]).toHaveClass('animate-flash-block'))
   })
 
   test('Calls onType function for valid keystrokes ', async () => {
@@ -228,13 +217,9 @@ describe('Test functionality', () => {
     expect(defaultOnCompleteFunc).toHaveBeenCalledTimes(1)
 
     // cursor behaves as expected after fetching new string
-    await waitFor(() => {
-      expect(characterCursors[0]).toHaveClass('animate-flash-underscore')
-    })
+    await waitFor(() => expect(characterCursors[0]).toHaveClass('animate-flash-underscore'))
     await user.keyboard('a')
-    await waitFor(() => {
-      expect(characterCursors[1]).toHaveClass('animate-flash-underscore')
-    })
+    await waitFor(() => expect(characterCursors[1]).toHaveClass('animate-flash-underscore'))
   })
 
   test('Calls onComplete upon text completion on incorrect final char and refreshes text correctly', async () => {
@@ -255,13 +240,9 @@ describe('Test functionality', () => {
 
     // cursor behaves as expected after fetching new string
     const characterCursors = screen.getAllByTestId('character-cursor')
-    await waitFor(() => {
-      expect(characterCursors[0]).toHaveClass('animate-flash-underscore')
-    })
+    await waitFor(() => expect(characterCursors[0]).toHaveClass('animate-flash-underscore'))
 
     await user.keyboard('a')
-    await waitFor(() => {
-      expect(characterCursors[1]).toHaveClass('animate-flash-underscore')
-    })
+    await waitFor(() => expect(characterCursors[1]).toHaveClass('animate-flash-underscore'))
   })
 })

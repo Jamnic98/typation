@@ -10,5 +10,3 @@ export const updateStats = async (
 ) => {
   console.log(charObjArray, typedStatus, cursorIndex)
 }
-
-// export const deleteStats = () => {}

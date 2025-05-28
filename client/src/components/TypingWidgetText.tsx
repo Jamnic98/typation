@@ -7,13 +7,14 @@ import { type FontSettings, TypedStatus } from 'types'
 export interface TypingWidgetTextProps {
   textToType: string | null
   fontSettings?: FontSettings
-  onStart: () => Promise<void>
+  onStart: () => void
   onComplete: () => Promise<void>
   onType: (
     charObjArray: CharacterProps[],
     typedStatus: TypedStatus,
     cursorIndex: number
   ) => Promise<void>
+  reset?: () => void
 }
 
 export const TypingWidgetText = ({
@@ -22,6 +23,7 @@ export const TypingWidgetText = ({
   onStart,
   onComplete,
   onType,
+  reset,
 }: TypingWidgetTextProps) => {
   const onFocus = () => {
     setIsFocused(true)
@@ -34,11 +36,19 @@ export const TypingWidgetText = ({
   }
 
   const onBlur = () => {
+    reset && reset()
     setIsFocused(false)
     setCursorIndex(0)
 
+    // reset charObjArray
     charObjArray &&
-      setCharObjArray(charObjArray?.map((character) => ({ ...character, isActive: false })))
+      setCharObjArray(
+        charObjArray?.map((character) => ({
+          ...character,
+          isActive: false,
+          typedStatus: TypedStatus.NONE,
+        }))
+      )
   }
 
   const strToCharObjArray = (string: string): CharacterProps[] =>
@@ -70,25 +80,42 @@ export const TypingWidgetText = ({
   }, [cursorIndex])
 
   useEffect(() => {
-    if (textToType) {
-      setCharObjArray(strToCharObjArray(textToType))
-    }
+    textToType && setCharObjArray(strToCharObjArray(textToType))
   }, [textToType])
 
   const shiftCursor = (forward: boolean = true) =>
     setCursorIndex((prevIndex) => prevIndex + (forward ? 1 : -1))
 
-  // TODO: insert incorrectly typed text into charObjArray
   const updateFunc = async (typedStatus: TypedStatus, key?: string) => {
-    key && console.log(key)
-    if (charObjArray) {
-      // run onType func with current state
-      onType(charObjArray, typedStatus, cursorIndex)
-      // update state
+    if (!charObjArray) return
+
+    // run onType func with current state
+    onType(charObjArray, typedStatus, cursorIndex)
+
+    // handle miss: insert incorrect character at cursorIndex
+    if (key && typedStatus === TypedStatus.MISS) {
+      const newCharObj: CharacterProps = {
+        char: key,
+        isActive: false,
+        typedStatus: TypedStatus.MISS,
+      }
+
+      const updatedArray = [
+        ...charObjArray.slice(0, cursorIndex),
+        newCharObj,
+        ...charObjArray.slice(cursorIndex + 1),
+      ]
+
+      setCharObjArray(updatedArray)
+    } else {
+      // normal update
       setCharObjArray(
         charObjArray.map((obj: CharacterProps, index: number) => {
           if (index === cursorIndex) {
-            obj.typedStatus = typedStatus
+            return {
+              ...obj,
+              typedStatus,
+            }
           }
           return obj
         })
@@ -129,16 +156,23 @@ export const TypingWidgetText = ({
   }
 
   const handleBackspace = async () => {
-    if (cursorIndex > 0 && charObjArray) {
-      if (charObjArray[cursorIndex - 1].typedStatus === TypedStatus.MISS) {
-        shiftCursor(false)
-        const updatedCharObjArray = charObjArray.map((obj, index) => {
-          if (index === cursorIndex - 1) {
-            return { ...obj, typedStatus: TypedStatus.NONE }
-          }
-          return obj
-        })
+    if (cursorIndex > 0 && charObjArray && textToType) {
+      const prevIndex = cursorIndex - 1
+      const prevChar = charObjArray[prevIndex]
+
+      if (prevChar.typedStatus === TypedStatus.MISS) {
+        const updatedCharObjArray = charObjArray.map((obj, index) =>
+          index === prevIndex
+            ? {
+                ...obj,
+                char: textToType[prevIndex],
+                typedStatus: TypedStatus.NONE,
+              }
+            : obj
+        )
+
         setCharObjArray(updatedCharObjArray)
+        shiftCursor(false)
       }
     }
   }
@@ -179,8 +213,12 @@ export const TypingWidgetText = ({
       tabIndex={0}
     >
       {charObjArray &&
-        charObjArray.map((characterProps, index) => (
-          <Character {...characterProps} fontSettings={fontSettings} key={index} />
+        charObjArray.map((character, index) => (
+          <Character
+            {...character}
+            fontSettings={fontSettings}
+            key={`${character.char}-${index}`}
+          />
         ))}
     </div>
   )

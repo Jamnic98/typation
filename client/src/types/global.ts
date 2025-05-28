@@ -1,6 +1,7 @@
 export enum TypedStatus {
   HIT = 'hit',
   MISS = 'miss',
+  // STRIKE = 'strike',
   NONE = 'none',
 }
 

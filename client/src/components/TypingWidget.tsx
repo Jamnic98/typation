@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { CharacterProps, /* StopWatch, */ TypingWidgetText } from 'components'
+import { CharacterProps, TypingWidgetText } from 'components'
 import { fetchNewString } from 'api/textGeneration'
 import { defaultFontSettings } from 'utils/constants'
 import { TypedStatus, type FontSettings } from 'types/global'
@@ -14,7 +14,7 @@ export interface TypingWidgetProps {}
 export const TypingWidget = () => {
   const [wpm, setWpm] = useState<number>(0)
   const [accuracy, setAccuracy] = useState<number>(0)
-  const [showStats, setShowStats] = useState<boolean>(false)
+  const [showStats, setShowStats] = useState<boolean>(true)
   const [text, setText] = useState<string | null>(null)
   const [runStopWatch, setRunStopWatch] = useState<boolean>(false)
   const [stopWatchTime, setStopWatchTime] = useState<number>(0)
@@ -24,9 +24,7 @@ export const TypingWidget = () => {
     let intervalId: NodeJS.Timeout | null = null
 
     if (runStopWatch) {
-      intervalId = setInterval(() => {
-        setStopWatchTime((prev) => prev + 1)
-      }, 10)
+      intervalId = setInterval(() => setStopWatchTime((prev) => prev + 100), 100)
     }
 
     return () => {
@@ -44,12 +42,15 @@ export const TypingWidget = () => {
     }
   }, [fetchNewString])
 
-  const onStart = async () => {
+  const onStart = () => {
+    reset()
+    setRunStopWatch(true)
+  }
+
+  const reset = () => {
     setWpm(0)
     setAccuracy(0)
     setStopWatchTime(0)
-    setShowStats(false)
-    setRunStopWatch(true)
   }
 
   const onType = async (
@@ -80,16 +81,13 @@ export const TypingWidget = () => {
   }
 
   const updateWpm = async (charObjArray: CharacterProps[], cursorIndex: number) => {
-    if (stopWatchTime === 0) {
-      setWpm(0)
-      return
-    }
+    if (stopWatchTime === 0) return setWpm(0)
 
     const correctChars = charObjArray
       .slice(0, cursorIndex + 1)
       .reduce((count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0), 0)
 
-    const minutesElapsed = stopWatchTime / 6000
+    const minutesElapsed = stopWatchTime / 60000
     const wordsTyped = correctChars / 5
     const wpm = Math.round(wordsTyped / minutesElapsed)
 
@@ -104,16 +102,18 @@ export const TypingWidget = () => {
           onStart={onStart}
           onComplete={onComplete}
           onType={onType}
+          reset={reset}
           textToType={text}
           fontSettings={fontSettings}
         />
       </div>
+      {/* TODO: Remove br */}
+      <br />
       {showStats ? (
         <>
           <div>
             <Accuracy accuracy={accuracy} />
           </div>
-          {/* TODO: Remove br */}
           <br />
           <div>
             <WordsPerMin wpm={wpm} />

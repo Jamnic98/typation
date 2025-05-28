@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { defaultFontSettings } from 'utils/constants'
@@ -12,12 +12,12 @@ export interface CharacterProps {
 }
 
 const typedStatusStyles: Record<TypedStatus, string> = {
-  [TypedStatus.MISS]: 'text-red-500',
+  [TypedStatus.MISS]: 'text-red-500 line-through',
   [TypedStatus.HIT]: 'text-green-500',
   [TypedStatus.NONE]: 'text-black',
 }
 
-export const Character = ({
+export const CharacterComponent = ({
   char,
   isActive,
   typedStatus,
@@ -56,7 +56,7 @@ export const Character = ({
         // if (key === 'textLineHeight') return `leading-${value}`
         // if (key === 'textLetterSpacing') return `tracking-${value}`
         // if (key === 'textWordSpacing') return `word-spacing-${value}`
-        return ''
+        return
       })
       .join(' ')
   }, [fontSettings])
@@ -103,3 +103,5 @@ export const Character = ({
     </span>
   )
 }
+
+export const Character = memo(CharacterComponent)
