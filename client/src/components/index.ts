@@ -1,6 +1,5 @@
 export * from './Character'
 export * from './Footer'
 export * from './Header'
-export * from './StopWatch'
 export * from './TypingWidgetText'
 export * from './TypingWidget'

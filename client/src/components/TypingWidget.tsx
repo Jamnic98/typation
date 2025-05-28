@@ -89,7 +89,7 @@ export const TypingWidget = () => {
       .slice(0, cursorIndex + 1)
       .reduce((count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0), 0)
 
-    const minutesElapsed = stopWatchTime / 6000 // because 6000 units = 60 seconds
+    const minutesElapsed = stopWatchTime / 6000
     const wordsTyped = correctChars / 5
     const wpm = Math.round(wordsTyped / minutesElapsed)
 
@@ -108,18 +108,12 @@ export const TypingWidget = () => {
           fontSettings={fontSettings}
         />
       </div>
-      {/* TODO: Remove br */}
       {showStats ? (
         <>
-          {/* <br />
-          <div>
-            <StopWatch time={stopWatchTime} />
-          </div> */}
-          {/* TODO: Remove br */}
-          <br />
           <div>
             <Accuracy accuracy={accuracy} />
           </div>
+          {/* TODO: Remove br */}
           <br />
           <div>
             <WordsPerMin wpm={wpm} />
