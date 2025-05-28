@@ -9,14 +9,13 @@ text_router = APIRouter(prefix='/text')
 async def generate_practice_text():
 
     input_texts = [
-        # f'the quick brown fox jumps over the lazy dog',
         f'the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog',
-        f'pack my box with five dozen liquor jugs pack my box with five dozen liquor jugs',
         f'waltz bad nymph for quick jigs vex waltz bad nymph for quick jigs vex',
         f'the five boxing wizards jump quickly the five boxing wizards jump quickly',
         f'jackdaws love my big sphinx of quartz jackdaws love my big sphinx of quartz',
-        # f'how vexingly quick daft zebras jump how vexingly quick daft zebras jump'
+        f'how vexingly quick daft zebras jump how vexingly quick daft zebras jump'
     ]
+    
     random_text = choice(input_texts)
     words = random_text.split(' ')
     shuffle(words)

@@ -14,7 +14,7 @@ export interface TypingWidgetProps {}
 export const TypingWidget = () => {
   const [wpm, setWpm] = useState<number>(0)
   const [accuracy, setAccuracy] = useState<number>(0)
-  const [showStats, setShowStats] = useState<boolean>(true)
+  const [showStats, setShowStats] = useState<boolean>(false)
   const [text, setText] = useState<string | null>(null)
   const [runStopWatch, setRunStopWatch] = useState<boolean>(false)
   const [stopWatchTime, setStopWatchTime] = useState<number>(0)
@@ -40,27 +40,28 @@ export const TypingWidget = () => {
       }
       fetchText()
     }
-  }, [fetchNewString])
+  }, [])
+
+  const reset = () => {
+    setWpm(0)
+    setAccuracy(0)
+    setStopWatchTime(0)
+    setShowStats(false)
+  }
 
   const onStart = () => {
     reset()
     setRunStopWatch(true)
   }
 
-  const reset = () => {
-    setWpm(0)
-    setAccuracy(0)
-    setStopWatchTime(0)
-  }
-
-  const onType = async (
+  const onType = (
     charObjArray: CharacterProps[],
     typedStatus: TypedStatus,
     cursorIndex: number
   ) => {
-    await updateStats(charObjArray, typedStatus, cursorIndex)
-    await updateAccuracy(charObjArray, cursorIndex)
-    await updateWpm(charObjArray, cursorIndex)
+    updateStats(charObjArray, typedStatus, cursorIndex)
+    updateAccuracy(charObjArray, cursorIndex)
+    updateWpm(charObjArray, cursorIndex)
   }
 
   const onComplete = async () => {
@@ -70,9 +71,11 @@ export const TypingWidget = () => {
   }
 
   const updateAccuracy = async (charObjArray: CharacterProps[], cursorIndex: number) => {
-    const correctChars = charObjArray
-      .slice(0, cursorIndex + 1)
-      .reduce((count, char) => count + (char.typedStatus === TypedStatus.MISS ? 0 : 1), 0)
+    const typedChars = charObjArray.slice(0, cursorIndex + 1)
+    const correctChars = typedChars.reduce(
+      (count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0),
+      0
+    )
 
     const totalTyped = cursorIndex + 1
     const accuracy = totalTyped > 0 ? (correctChars / totalTyped) * 100 : 0
@@ -107,18 +110,12 @@ export const TypingWidget = () => {
           fontSettings={fontSettings}
         />
       </div>
-      {/* TODO: Remove br */}
       <br />
       {showStats ? (
-        <>
-          <div>
-            <Accuracy accuracy={accuracy} />
-          </div>
-          <br />
-          <div>
-            <WordsPerMin wpm={wpm} />
-          </div>
-        </>
+        <div className="flex justify-between">
+          <WordsPerMin wpm={wpm} />
+          <Accuracy accuracy={accuracy} />
+        </div>
       ) : null}
     </div>
   )

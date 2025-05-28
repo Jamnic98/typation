@@ -8,5 +8,5 @@ export const updateStats = async (
   typedStatus: TypedStatus,
   cursorIndex: number
 ) => {
-  console.log(charObjArray, typedStatus, cursorIndex)
+  console.log('[userStats]', charObjArray, typedStatus, cursorIndex)
 }
