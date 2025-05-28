@@ -75,18 +75,16 @@ export const TypingWidgetText = ({
     }
   }, [textToType])
 
-  const shiftCursor = (forward: boolean = true) => {
-    setCursorIndex((prevIndex) => {
-      // if (cursorIndex === charObjArray?.length) {
-      //   return 0
-      // }
-      return prevIndex + (forward ? 1 : -1)
-    })
-  }
+  const shiftCursor = (forward: boolean = true) =>
+    setCursorIndex((prevIndex) => prevIndex + (forward ? 1 : -1))
 
-  const updateFunc = async (typedStatus: TypedStatus) => {
+  // TODO: insert incorrectly typed text into charObjArray
+  const updateFunc = async (typedStatus: TypedStatus, key?: string) => {
+    key && console.log(key)
     if (charObjArray) {
+      // run onType func with current state
       onType(charObjArray, typedStatus, cursorIndex)
+      // update state
       setCharObjArray(
         charObjArray.map((obj: CharacterProps, index: number) => {
           if (index === cursorIndex) {
@@ -109,7 +107,7 @@ export const TypingWidgetText = ({
           await updateFunc(TypedStatus.HIT)
         }
       } else if (typedStatus === TypedStatus.MISS) {
-        await updateFunc(TypedStatus.MISS)
+        await updateFunc(TypedStatus.MISS, key)
       }
       shiftCursor()
       if (isFocused && charObjArray && cursorIndex === charObjArray.length - 1) {

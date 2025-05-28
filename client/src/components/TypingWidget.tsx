@@ -79,12 +79,7 @@ export const TypingWidget = () => {
     setAccuracy(Math.round(accuracy))
   }
 
-  const updateWpm = async (
-    charObjArray: CharacterProps[],
-    cursorIndex: number
-    // stopWatchTime: number,
-    // setWpm: (wpm: number) => void
-  ) => {
+  const updateWpm = async (charObjArray: CharacterProps[], cursorIndex: number) => {
     if (stopWatchTime === 0) {
       setWpm(0)
       return
