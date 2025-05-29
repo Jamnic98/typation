@@ -170,14 +170,18 @@ describe('Test functionality', () => {
     })
 
     // backspace moves cursor back
-    expect(characterCursors[1]).toHaveClass('animate-flash-block')
     await user.keyboard('{backspace}')
-    await waitFor(() => expect(characterCursors[2]).toHaveClass('animate-flash-block'))
+    await waitFor(() => {
+      expect(characterCursors[2]).not.toHaveClass('animate-flash-block')
+      expect(characterCursors[1]).toHaveClass('animate-flash-block')
+    })
 
     // cursor doesnt overwrite correctly typed text
-    expect(characterCursors[1]).toHaveClass('animate-flash-block')
     await user.keyboard('{backspace}')
-    await waitFor(() => expect(characterCursors[2]).toHaveClass('animate-flash-block'))
+    await waitFor(() => {
+      expect(characterCursors[1]).toHaveClass('animate-flash-block')
+      expect(characterCursors[0]).not.toHaveClass('animate-flash-block')
+    })
   })
 
   test('Calls onType function for valid keystrokes ', async () => {

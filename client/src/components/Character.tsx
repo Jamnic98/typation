@@ -2,7 +2,8 @@ import { memo, useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { defaultFontSettings } from 'utils/constants'
-import { CursorStyles, FontSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
+import { getCursorStyle, randomRotation } from 'utils/helpers'
+import { FontSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 
 export interface CharacterProps {
   char: string
@@ -23,22 +24,6 @@ export const CharacterComponent = ({
   typedStatus,
   fontSettings = defaultFontSettings,
 }: CharacterProps) => {
-  const randomRotation = Math.floor(Math.random() * 201) - 100
-  const setCursorStyle = useMemo(() => {
-    return (cursorStyle: CursorStyles | undefined): string => {
-      switch (cursorStyle) {
-        case CursorStyles.UNDERSCORE:
-          return 'animate-flash-underscore'
-        case CursorStyles.BLOCK:
-          return 'animate-flash-block'
-        case CursorStyles.OUTLINE:
-          return 'animate-flash-outline'
-        default:
-          return 'none'
-      }
-    }
-  }, [fontSettings.cursorStyle])
-
   const fontSettingsClass = useMemo(() => {
     return Object.entries(fontSettings)
       .map(([key, value]) => {
@@ -62,7 +47,7 @@ export const CharacterComponent = ({
   }, [fontSettings])
 
   const typedStatusClass = typedStatusStyles[typedStatus]
-  const cursorClass = isActive ? setCursorStyle(fontSettings?.cursorStyle) : ''
+  const cursorClass = isActive ? getCursorStyle(fontSettings?.cursorStyle) : ''
   const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
 
   // Decide if the letter should be visible or falling (typed)

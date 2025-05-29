@@ -27,15 +27,29 @@
     }
   }
 
+  /* TODO:: review outline vs border & line width settings */
   --animate-flash-outline: flash-outline 1s infinite;
   @keyframes flash-outline {
     0%,
     100% {
-      outline: 1px solid #000;
+      outline: 2px solid #000;
       color: #fff;
     }
     50% {
-      outline: 1px solid #fff;
+      outline: 2px solid #fff;
+      color: #000;
+    }
+  }
+
+  --animate-flash-pipe: flash-pipe 1s infinite;
+  @keyframes flash-pipe {
+    0%,
+    100% {
+      border-left: 2px solid #000;
+      color: #fff;
+    }
+    50% {
+      border-left: 2px solid #fff;
       color: #000;
     }
   }

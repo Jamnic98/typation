@@ -35,24 +35,17 @@ export const TypingWidgetText = ({
   const onBlur = () => {
     reset && reset()
     setIsFocused(false)
-    setCursorIndex(0)
 
     // reset charObjArray
-    charObjArray &&
-      setCharObjArray(
-        charObjArray?.map((character) => ({
-          ...character,
-          isActive: false,
-          typedStatus: TypedStatus.NONE,
-        }))
-      )
+    setCursorIndex(0)
+    textToType && setCharObjArray(strToCharObjArray(textToType))
   }
 
   const strToCharObjArray = (string: string): CharacterProps[] =>
     string.split('').map((char, index) => ({
       char,
       typedStatus: TypedStatus.NONE,
-      isActive: isFocused && index === 0,
+      isActive: isFocused && index === cursorIndex,
     }))
 
   const typingWidgetTextRef = useRef<HTMLDivElement>(null)
@@ -99,12 +92,11 @@ export const TypingWidgetText = ({
   }
 
   const updateFunc = (typedStatus: TypedStatus, key?: string) => {
-    if (!charObjArray) return
-
+    if (!charObjArray) return charObjArray
     return key && typedStatus === TypedStatus.MISS
       ? [
           ...charObjArray.slice(0, cursorIndex),
-          { char: key, isActive: false, typedStatus: TypedStatus.MISS },
+          { char: key, typedStatus: TypedStatus.MISS, isActive: false },
           ...charObjArray.slice(cursorIndex + 1),
         ]
       : charObjArray.map((obj, index) => (index === cursorIndex ? { ...obj, typedStatus } : obj))
@@ -134,20 +126,19 @@ export const TypingWidgetText = ({
       const lastTypedStatus = highlightedCharacter?.typedStatus
 
       const updatedCharObjArray = updateCharObjArray(typedStatus, lastTypedStatus, key)
-      updatedCharObjArray && onType(updatedCharObjArray, typedStatus, cursorIndex)
-
-      updatedCharObjArray && setCharObjArray(updatedCharObjArray)
-      if (isLastChar) {
-        await onComplete()
+      if (updatedCharObjArray) {
+        onType(updatedCharObjArray, typedStatus, cursorIndex)
+        setCharObjArray(updatedCharObjArray)
+        if (isLastChar) await onComplete()
+        shiftCursor(true)
       }
-      shiftCursor(true)
     } catch (error) {
       console.error('Error handling normal key press:', error)
       throw new Error('Error handling normal key press')
     }
   }
 
-  const handleBackspace = async (ctrl: boolean = false) => {
+  const handleBackspace = (ctrl: boolean = false) => {
     if (cursorIndex > 0 && charObjArray && textToType) {
       const prevIndex = cursorIndex - 1
       const prevChar = charObjArray[prevIndex]
@@ -188,10 +179,10 @@ export const TypingWidgetText = ({
   }
 
   const handleKeyUp = async (e: React.KeyboardEvent<HTMLElement>) => {
+    e.preventDefault()
     try {
       const { key } = e
       if (key.length === 1) {
-        // if (!e.ctrlKey) e.preventDefault()
         if (isFocused && cursorIndex === 0) onStart()
         await handleNormalKeyPress(key)
       }
@@ -212,7 +203,7 @@ export const TypingWidgetText = ({
       data-testid="typing-widget-text"
       ref={typingWidgetTextRef}
       className="w-fit h-fit font-mono outline-none "
-      onKeyUp={(e) => handleKeyUp(e)}
+      onKeyUp={async (e) => await handleKeyUp(e)}
       onKeyDown={(e) => handleKeyDown(e)}
       onFocus={onFocus}
       onBlur={onBlur}

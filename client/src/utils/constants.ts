@@ -5,7 +5,6 @@ export const defaultFontSettings: FontSettings = {
   fontSize: FontSizes.FOUR_XL,
   spaceSymbol: SpaceSymbols.DOT,
   cursorStyle: CursorStyles.UNDERSCORE,
-  // cursorStyle: CursorStyles.OUTLINE,
 
   // fontFamily: 'monospace',
   // fontWeight: 'bold',

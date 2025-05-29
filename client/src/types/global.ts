@@ -51,6 +51,7 @@ export enum CursorStyles {
   UNDERSCORE = 'underscore',
   BLOCK = 'block',
   OUTLINE = 'outline',
+  PIPE = 'pipe',
 }
 
 export enum StopWatchState {
