@@ -72,21 +72,15 @@ export const TypingWidgetText = ({
     textToType && setCharObjArray(strToCharObjArray(textToType))
   }, [textToType])
 
-  const shiftCursor = (forward: boolean = true) => {
+  const shiftCursor = (shift: number) => {
     if (!charObjArray || charObjArray.length === 0) return
 
-    if (cursorIndex >= charObjArray.length) {
-      return
-    }
-
     setCursorIndex((prevIndex) => {
-      const newIndex = forward
-        ? prevIndex >= charObjArray.length - 1
-          ? 0
-          : prevIndex + 1
-        : prevIndex <= 0
-          ? charObjArray.length - 1
-          : prevIndex - 1
+      const len = charObjArray.length
+      // Calculate new index with wrapping:
+      // Use modulo, but since JS % can be negative, handle that:
+      let newIndex = (prevIndex + shift) % len
+      if (newIndex < 0) newIndex += len
       return newIndex
     })
   }
@@ -129,8 +123,8 @@ export const TypingWidgetText = ({
         onType(updatedCharObjArray, typedStatus, cursorIndex)
         setCharObjArray(updatedCharObjArray)
       }
-      shiftCursor(true)
       if (cursorIndex === charObjArray.length - 1) await onComplete()
+      shiftCursor(1)
     } catch (error) {
       console.error('Error handling normal key press:', error)
       throw new Error('Error handling normal key press')
@@ -141,8 +135,27 @@ export const TypingWidgetText = ({
     if (cursorIndex > 0 && charObjArray && textToType) {
       const prevIndex = cursorIndex - 1
       const prevChar = charObjArray[prevIndex]
+      // only allow missed chars to be deleted
       if (prevChar.typedStatus === TypedStatus.MISS) {
-        if (!ctrl) {
+        if (ctrl) {
+          // Find position after last correctly typed char before cursor using recursion or a functional approach
+          const findDeleteFrom = (index: number): number =>
+            index < 0 || charObjArray[index].typedStatus !== TypedStatus.MISS
+              ? index + 1
+              : findDeleteFrom(index - 1)
+
+          const deleteFrom = findDeleteFrom(cursorIndex - 1)
+
+          // Reset missed chars in [deleteFrom, cursorIndex)
+          const updatedCharObjArray = charObjArray.map((obj, index) =>
+            index >= deleteFrom && index < cursorIndex && obj.typedStatus === TypedStatus.MISS
+              ? { ...obj, typedStatus: TypedStatus.NONE, char: textToType[index] }
+              : obj
+          )
+
+          setCharObjArray(updatedCharObjArray)
+          shiftCursor(deleteFrom - cursorIndex) // shiftCursor by the relative distance
+        } else {
           const updatedCharObjArray = charObjArray.map((obj, index) =>
             index === prevIndex
               ? {
@@ -154,24 +167,7 @@ export const TypingWidgetText = ({
           )
 
           setCharObjArray(updatedCharObjArray)
-          shiftCursor(false)
-        } else {
-          // Find position after last correctly typed char before cursor
-          let deleteFrom = cursorIndex - 1
-          while (deleteFrom >= 0 && charObjArray[deleteFrom].typedStatus === TypedStatus.MISS) {
-            deleteFrom--
-          }
-          deleteFrom++ // Move to the first missed char after correctly typed one
-
-          // Reset missed chars in [deleteFrom, cursorIndex)
-          const updatedCharObjArray = charObjArray.map((obj, index) =>
-            index >= deleteFrom && index < cursorIndex && obj.typedStatus === TypedStatus.MISS
-              ? { ...obj, typedStatus: TypedStatus.NONE, char: textToType[index] }
-              : obj
-          )
-
-          setCharObjArray(updatedCharObjArray)
-          setCursorIndex(deleteFrom)
+          shiftCursor(-1)
         }
       }
     }
