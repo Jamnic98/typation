@@ -1,3 +1,7 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+
 # Format code using Prettier and lint using ESLint only on staged files
 npx lint-staged
 

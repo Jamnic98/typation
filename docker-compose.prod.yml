@@ -1,0 +1,41 @@
+services:
+  loadbalancer:
+    image: nginx:1.27.5-alpine-slim
+    expose:
+      - "80"
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - client
+      - text-api
+    networks:
+      - app-network
+    container_name: loadbalancer
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    networks:
+      - app-network
+    container_name: client
+    environment:
+      - VITE_SERVER_BASE_URL=/api
+
+  text-api:
+    expose:
+      - "5000"
+    build:
+      context: ./text-service/api
+      dockerfile: api.Dockerfile
+    networks:
+      - app-network
+    container_name: text-api
+    environment:
+      - DATABASE_URL=${PROD_DATABASE_URL} # Pass prod DB URL here
+
+networks:
+  app-network:
+    external: true
