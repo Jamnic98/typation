@@ -3,3 +3,5 @@ uvicorn
 pydantic-settings
 requests
 pylint
+sqlalchemy
+email_validator

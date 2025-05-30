@@ -72,10 +72,10 @@ export const TypingWidgetText = ({
     textToType && setCharObjArray(strToCharObjArray(textToType))
   }, [textToType])
 
-  const shiftCursor = (forward: boolean = true, currentIndex = cursorIndex) => {
+  const shiftCursor = (forward: boolean = true) => {
     if (!charObjArray || charObjArray.length === 0) return
 
-    if (currentIndex >= charObjArray.length) {
+    if (cursorIndex >= charObjArray.length) {
       return
     }
 
@@ -120,7 +120,6 @@ export const TypingWidgetText = ({
   const handleNormalKeyPress = async (key: string) => {
     try {
       if (!isFocused || !charObjArray) return
-      const isLastChar = cursorIndex === charObjArray.length - 1
       const highlightedCharacter = charObjArray?.[cursorIndex]
       const typedStatus = highlightedCharacter?.char === key ? TypedStatus.HIT : TypedStatus.MISS
       const lastTypedStatus = highlightedCharacter?.typedStatus
@@ -129,9 +128,9 @@ export const TypingWidgetText = ({
       if (updatedCharObjArray) {
         onType(updatedCharObjArray, typedStatus, cursorIndex)
         setCharObjArray(updatedCharObjArray)
-        if (isLastChar) await onComplete()
-        shiftCursor(true)
       }
+      shiftCursor(true)
+      if (cursorIndex === charObjArray.length - 1) await onComplete()
     } catch (error) {
       console.error('Error handling normal key press:', error)
       throw new Error('Error handling normal key press')
@@ -191,7 +190,7 @@ export const TypingWidgetText = ({
     }
   }
 
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (!e.ctrlKey) e.preventDefault()
     if (e.key === 'Backspace') handleBackspace(e.ctrlKey || e.metaKey)
   }

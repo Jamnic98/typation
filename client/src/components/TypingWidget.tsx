@@ -112,7 +112,7 @@ export const TypingWidget = () => {
       </div>
       <br />
       {showStats ? (
-        <div className="flex justify-between">
+        <div className="flex justify-between space-x-4">
           <WordsPerMin wpm={wpm} />
           <Accuracy accuracy={accuracy} />
         </div>
