@@ -1,0 +1,16 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running client lint-staged, tests, and build..."
+cd client || exit 1
+npx lint-staged
+npm test
+npm run build
+
+echo "Running text-service python tests and lint..."
+cd ../text-service || exit 1
+pytest
+pylint api/app worker/app
+
+exit 0
+
