@@ -17,25 +17,27 @@ services:
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     networks:
       - app-network
     container_name: client
+    env_file:
+      - .env.production
     environment:
-      - VITE_SERVER_BASE_URL=/api
+      - VITE_SERVER_BASE_URL={VITE_SERVER_BASE_URL}
 
   text-api:
-    expose:
-      - "5000"
     build:
       context: ./text-service/api
-      dockerfile: api.Dockerfile
+      dockerfile: Dockerfile.prod
     networks:
       - app-network
     container_name: text-api
+    env_file:
+      - .env.production
     environment:
-      - DATABASE_URL=${PROD_DATABASE_URL} # Pass prod DB URL here
+      - DATABASE_URL=${DATABASE_URL} # Pass prod DB URL here
 
 networks:
   app-network:
-    external: true
+    # external: true

@@ -1,13 +1,15 @@
-from sqlalchemy import Column, Integer, String
+from typing import Optional
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ..factories.database import Base
+
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_name = Column(String, index=True)
-    first_name = Column(String, index=True)
-    last_name = Column(String, index=True)
-    email = Column(String, unique=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_name: Mapped[Optional[str]] = mapped_column(index=True)
+    first_name: Mapped[Optional[str]] = mapped_column(index=True)
+    last_name: Mapped[Optional[str]] = mapped_column(index=True)
+    email: Mapped[str] = mapped_column(unique=True, index=True)

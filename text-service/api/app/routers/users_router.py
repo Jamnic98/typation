@@ -12,10 +12,11 @@ from ..controllers.users_controller import (
     get_all_users
 )
 
+
 users_router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@users_router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@users_router.post("", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def create_new_user(user: UserCreate, db: Session = Depends(get_db)):
     try:
         return create_user(db, user)
@@ -32,7 +33,7 @@ def read_user_by_id(user_id: int, db: Session = Depends(get_db)):
     return db_user
 
 
-@users_router.get("/", response_model=List[UserRead])
+@users_router.get("", response_model=List[UserRead])
 def read_all_users(db: Session = Depends(get_db)):
     return get_all_users(db)
 

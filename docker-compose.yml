@@ -1,91 +1,83 @@
 services:
-  loadbalancer:
-    image: nginx:1.27.5-alpine-slim
-    expose:
-      - "80"
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - client
-      # - server
-      - text-api
-      # - text-worker
-      # - redis
-      # - db
-    networks:
-      - app-network
-    container_name: loadbalancer
-
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
-    # depends_on:
-    #   - server
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./client:/app
+    env_file:
+      - .env.development
     networks:
       - app-network
-    container_name: client
-    # environment:
-    #   - VITE_SERVER_BASE_URL=/api
-
-  # server:
-  #   build:
-  #     context: ./server
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     - text-api
-  #     - text-worker
-  #     - redis
-  #     - db
-  #   networks:
-  #     - app-network
-  #   container_name: server
+    ports:
+      - "5173:5173"
 
   text-api:
-    expose:
-      - "5000"
     build:
       context: ./text-service/api
-      dockerfile: api.Dockerfile
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./text-service/api:/app
+    env_file:
+      - .env.development
     networks:
       - app-network
-    container_name: text-api
-
-  # text-worker:
-  #   build:
-  #     context: ./text-service/worker
-  #     dockerfile: worker.Dockerfile
-  #   depends_on:
-  #     - redis
-  #   networks:
-  #     - app-network
-  #   container_name: text-worker
-
-  # redis:
-  #   image: redis:alpine
-  #   container_name: redis
-  #   networks:
-  #     - app-network
-
-  # db:
-  #   image: postgres:17.0-alpine
-  #   container_name: postgres
-  #   restart: always
-  #   # environment:
-  #   #   POSTGRES_USER: ${POSTGRES_USER}
-  #   #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #   #   POSTGRES_DB: ${POSTGRES_DB}
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   networks:
-  #     - app-network
+    ports:
+      - "5000:5000"
 
 networks:
   app-network:
-    name: app-network
     driver: bridge
+# services:
+#   postgres:
+#     image: postgres:17-alpine
+#     environment:
+#       POSTGRES_USER: youruser
+#       POSTGRES_PASSWORD: yourpassword
+#       POSTGRES_DB: yourdb
+#     volumes:
+#       - postgres-data:/var/lib/postgresql/data
+#     networks:
+#       - app-network
 
-volumes:
-  postgres_data:
+#   text-api:
+#     build: ./text-api
+#     command: uvicorn main:app --host 0.0.0.0 --port 5000 --reload  # <-- reload/watch enabled
+#     volumes:
+#       - ./text-api:/app  # mount code for live reload
+#     depends_on:
+#       - postgres
+#     environment:
+#       DATABASE_URL: postgres://youruser:yourpassword@postgres:5432/yourdb
+#     networks:
+#       - app-network
+#     ports:
+#       - "5000:5000"
+
+#   client:
+#     build: ./client
+#     volumes:
+#       - ./client:/usr/share/nginx/html  # or your frontend dev folder
+#     networks:
+#       - app-network
+#     ports:
+#       - "80:80"
+
+#   loadbalancer:
+#     image: nginx:latest
+#     volumes:
+#       - ./loadbalancer/nginx.conf:/etc/nginx/nginx.conf:ro
+#     ports:
+#       - "8080:80"
+#     depends_on:
+#       - client
+#       - text-api
+#     networks:
+#       - app-network
+
+# volumes:
+#   postgres-data:
+
+# networks:
+#   app-network:
+#     driver: bridge

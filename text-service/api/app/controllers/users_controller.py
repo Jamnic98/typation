@@ -1,4 +1,3 @@
-from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -26,12 +25,12 @@ def get_user_by_id(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()
 
 
-def get_all_users(db: Session):
+def get_all_users(db: Session) -> list[type[User]]:
     users = db.query(User).all()
     return users
 
 
-def update_user(db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
+def update_user(db: Session, user_id: int, user: UserUpdate) -> type[User] | None:
     db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
         return None
@@ -44,7 +43,7 @@ def update_user(db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
     return db_user
 
 
-def delete_user(db: Session, user_id: int) -> Optional[User]:
+def delete_user(db: Session, user_id: int) -> type[User] | None:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         return None

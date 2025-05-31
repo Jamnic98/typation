@@ -5,3 +5,4 @@ requests
 pylint
 sqlalchemy
 email_validator
+psycopg2-binary
