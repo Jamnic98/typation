@@ -14,7 +14,7 @@ services:
 
 networks:
   app-network:
-    external: true
+    # external: true
 
 volumes:
   postgres_data:

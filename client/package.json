@@ -12,8 +12,7 @@
     "format": "prettier --write src/**/*.{js,jsx,ts,tsx,json,css,scss,md}",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "prepare": "husky install"
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "framer-motion": "^12.12.1",
