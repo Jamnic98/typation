@@ -1,7 +1,7 @@
 # --------------------------------------
 # 🔧 Build Stage (Vite frontend)
 # --------------------------------------
-FROM node:23-slim AS build
+FROM node:24-slim AS build
 
 WORKDIR /app
 
