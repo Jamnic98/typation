@@ -21,7 +21,14 @@ export const TypingWidgetText = ({
   onType,
   reset,
 }: TypingWidgetTextProps) => {
-  const onFocus = () => {
+  const strToCharObjArray = (string: string, showCursor: boolean = true): CharacterProps[] =>
+    string.split('').map((char, index) => ({
+      char,
+      typedStatus: TypedStatus.NONE,
+      isActive: showCursor && isFocused && index === cursorIndex,
+    }))
+
+  const handleFocus = () => {
     setIsFocused(true)
     if (cursorIndex === -1) {
       setCursorIndex(0)
@@ -32,26 +39,17 @@ export const TypingWidgetText = ({
     }
   }
 
-  const onBlur = () => {
-    reset && reset()
+  const handleBlur = () => {
     setIsFocused(false)
-
+    reset && reset()
     // reset charObjArray
-    setCursorIndex(0)
-    textToType && setCharObjArray(strToCharObjArray(textToType))
+    textToType && setCharObjArray(strToCharObjArray(textToType, false))
+    setCursorIndex(-1)
   }
 
-  const strToCharObjArray = (string: string): CharacterProps[] =>
-    string.split('').map((char, index) => ({
-      char,
-      typedStatus: TypedStatus.NONE,
-      isActive: isFocused && index === cursorIndex,
-    }))
-
   const typingWidgetTextRef = useRef<HTMLDivElement>(null)
-  const [isFocused, setIsFocused] = useState(false)
-  const [cursorIndex, setCursorIndex] = useState(-1)
-
+  const [isFocused, setIsFocused] = useState<boolean>(false)
+  const [cursorIndex, setCursorIndex] = useState<number>(-1)
   const [charObjArray, setCharObjArray] = useState<CharacterProps[] | null>(
     textToType ? strToCharObjArray(textToType) : null
   )
@@ -173,10 +171,18 @@ export const TypingWidgetText = ({
     }
   }
 
-  const handleKeyUp = async (e: React.KeyboardEvent<HTMLElement>) => {
-    e.preventDefault()
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
     try {
-      const { key } = e
+      const { key, ctrlKey, metaKey } = e
+
+      if (!ctrlKey) e.preventDefault()
+      if (ctrlKey && key === 'r') return
+
+      if (key === 'Backspace') {
+        handleBackspace(ctrlKey || metaKey)
+        return
+      }
+
       if (key.length === 1) {
         if (isFocused && cursorIndex === 0) onStart()
         await handleNormalKeyPress(key)
@@ -186,32 +192,46 @@ export const TypingWidgetText = ({
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-    if (!e.ctrlKey) e.preventDefault()
-    if (e.key === 'Backspace') handleBackspace(e.ctrlKey || e.metaKey)
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
+    e.preventDefault()
+    if (e.ctrlKey && e.key === 'r') {
+      return
+    }
   }
 
   if (!textToType) return null
   return (
-    <div
-      id="typing-widget-text"
-      data-testid="typing-widget-text"
-      ref={typingWidgetTextRef}
-      className="w-fit h-fit font-mono outline-none "
-      onKeyUp={async (e) => await handleKeyUp(e)}
-      onKeyDown={(e) => handleKeyDown(e)}
-      onFocus={onFocus}
-      onBlur={onBlur}
-      tabIndex={0}
-    >
-      {charObjArray &&
-        charObjArray.map((character, index) => (
-          <Character
-            {...character}
-            fontSettings={fontSettings}
-            key={`${character.char}-${index}`}
-          />
-        ))}
+    <div className="relative w-fit h-fit select-none">
+      {/* Overlay message when not focused */}
+      {!isFocused && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none select-none text-lg font-medium text-neutral-500">
+          Click here to start
+        </div>
+      )}
+
+      {/* Typing widget */}
+      <div
+        id="typing-widget-text"
+        data-testid="typing-widget-text"
+        ref={typingWidgetTextRef}
+        className={`w-fit h-fit font-mono outline-none transition duration-300 ease-in-out ${
+          isFocused ? '' : 'blur-xs'
+        }`}
+        onKeyUp={(e) => handleKeyUp(e)}
+        onKeyDown={async (e) => await handleKeyDown(e)}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        tabIndex={0}
+      >
+        {charObjArray &&
+          charObjArray.map((character, index) => (
+            <Character
+              {...character}
+              fontSettings={fontSettings}
+              key={`${character.char}-${index}`}
+            />
+          ))}
+      </div>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { Accuracy, CharacterProps, TypingWidgetText, WordsPerMin } from 'components'
+import { Accuracy, CharacterProps, StopWatch, TypingWidgetText, WordsPerMin } from 'components'
 import { fetchNewString, updateStats } from 'api'
 import {
   defaultFontSettings,
@@ -12,9 +12,10 @@ import { TypedStatus, type FontSettings } from 'types/global'
 export interface TypingWidgetProps {}
 
 export const TypingWidget = () => {
+  // const [isLoadingText, setIsLoadingText] = useState<boolean>(false)
   const [wpm, setWpm] = useState<number>(0)
   const [accuracy, setAccuracy] = useState<number>(0)
-  const [showStats, setShowStats] = useState<boolean>(false)
+  const [showStats, setShowStats] = useState<boolean>(true)
   const [text, setText] = useState<string | null>(null)
   const [runStopWatch, setRunStopWatch] = useState<boolean>(false)
   const [stopWatchTime, setStopWatchTime] = useState<number>(0)
@@ -55,7 +56,7 @@ export const TypingWidget = () => {
     setWpm(0)
     setAccuracy(0)
     setStopWatchTime(0)
-    setShowStats(false)
+    setRunStopWatch(false)
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
   }
 
@@ -114,7 +115,7 @@ export const TypingWidget = () => {
     setWpm(wpm)
   }
 
-  return (
+  return text ? (
     <div id="typing-widget" data-testid="typing-widget">
       <div className="w-full">
         <TypingWidgetText
@@ -127,12 +128,14 @@ export const TypingWidget = () => {
         />
       </div>
       <br />
+      <br />
       {showStats ? (
-        <div className="flex justify-between space-x-4">
+        <div id="stats" className="space-y-4">
           <WordsPerMin wpm={wpm} />
           <Accuracy accuracy={accuracy} />
+          <StopWatch time={stopWatchTime} />
         </div>
       ) : null}
     </div>
-  )
+  ) : null
 }
