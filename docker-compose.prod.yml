@@ -23,8 +23,8 @@ services:
     container_name: client
     env_file:
       - .env.production
-    environment:
-      - VITE_SERVER_BASE_URL={VITE_SERVER_BASE_URL}
+    depends_on:
+      - text-api
 
   text-api:
     build:
@@ -35,8 +35,6 @@ services:
     container_name: text-api
     env_file:
       - .env.production
-    environment:
-      - DATABASE_URL=${DATABASE_URL} # Pass prod DB URL here
 
 networks:
   app-network:
