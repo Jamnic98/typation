@@ -8,7 +8,7 @@ from ..app.settings import settings
 
 @pytest.fixture(scope="session")
 def test_db_engine_and_session():
-    engine, testing_session_local = init_db(str(settings.database_url), use_static_pool=True)
+    engine, testing_session_local = init_db("sqlite:///:memory:", use_static_pool=True)
     Base.metadata.create_all(bind=engine)
     yield engine, testing_session_local
     Base.metadata.drop_all(bind=engine)
