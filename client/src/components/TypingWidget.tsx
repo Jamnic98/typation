@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 
-import { CharacterProps, TypingWidgetText } from 'components'
-import { fetchNewString } from 'api/textGeneration'
-import { defaultFontSettings } from 'utils/constants'
+import { Accuracy, CharacterProps, TypingWidgetText, WordsPerMin } from 'components'
+import { fetchNewString, updateStats } from 'api'
+import {
+  defaultFontSettings,
+  LOCAL_STORAGE_COMPLETED_KEY,
+  LOCAL_STORAGE_TEXT_KEY,
+} from 'utils/constants'
 import { TypedStatus, type FontSettings } from 'types/global'
-import { Accuracy } from 'components/Accuracy'
-
-import { WordsPerMin } from 'components/WordsPerMin'
-import { updateStats } from 'api/userStatistics'
 
 export interface TypingWidgetProps {}
 
@@ -20,6 +20,25 @@ export const TypingWidget = () => {
   const [stopWatchTime, setStopWatchTime] = useState<number>(0)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
 
+  // Load persisted text from localStorage or fetch new text on mount
+  useEffect(() => {
+    const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
+    const completed = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY)
+
+    if (savedText && completed === 'false') {
+      setText(savedText)
+    } else {
+      const fetchText = async () => {
+        const newText = await fetchNewString()
+        setText(newText)
+        localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
+        localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+      }
+      fetchText()
+    }
+  }, [])
+
+  // Stopwatch interval
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null
 
@@ -32,21 +51,12 @@ export const TypingWidget = () => {
     }
   }, [runStopWatch])
 
-  useEffect(() => {
-    if (!text) {
-      const fetchText = async () => {
-        const newText = await fetchNewString()
-        setText(newText)
-      }
-      fetchText()
-    }
-  }, [])
-
   const reset = () => {
     setWpm(0)
     setAccuracy(0)
     setStopWatchTime(0)
     setShowStats(false)
+    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
   }
 
   const onStart = () => {
@@ -67,10 +77,17 @@ export const TypingWidget = () => {
   const onComplete = async () => {
     setRunStopWatch(false)
     setShowStats(true)
-    setText(await fetchNewString())
+    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
+
+    const newText = await fetchNewString()
+    setText(newText)
+
+    // Save new text and reset completion
+    localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
+    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
   }
 
-  const updateAccuracy = async (charObjArray: CharacterProps[], cursorIndex: number) => {
+  const updateAccuracy = (charObjArray: CharacterProps[], cursorIndex: number) => {
     const typedChars = charObjArray.slice(0, cursorIndex + 1)
     const correctChars = typedChars.reduce(
       (count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0),
@@ -83,7 +100,7 @@ export const TypingWidget = () => {
     setAccuracy(Math.round(accuracy))
   }
 
-  const updateWpm = async (charObjArray: CharacterProps[], cursorIndex: number) => {
+  const updateWpm = (charObjArray: CharacterProps[], cursorIndex: number) => {
     if (stopWatchTime === 0) return setWpm(0)
 
     const correctChars = charObjArray
@@ -99,7 +116,6 @@ export const TypingWidget = () => {
 
   return (
     <div id="typing-widget" data-testid="typing-widget">
-      {/* setting for typing widget */}
       <div className="w-full">
         <TypingWidgetText
           onStart={onStart}

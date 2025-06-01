@@ -27,3 +27,6 @@ export const CHAR_ARRAY = (' ' + ALPHABET).split('')
 export const CHAR_ARRAY_PAIRS = CHAR_ARRAY.map((char1) =>
   CHAR_ARRAY.map((char2) => ({ charPair: char1 + char2, hit: 0, miss: 0 }))
 )
+
+export const LOCAL_STORAGE_TEXT_KEY = 'typingText'
+export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'

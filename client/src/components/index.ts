@@ -1,5 +1,7 @@
+export * from './Accuracy'
 export * from './Character'
 export * from './Footer'
 export * from './Header'
 export * from './TypingWidgetText'
 export * from './TypingWidget'
+export * from './WordsPerMin'
