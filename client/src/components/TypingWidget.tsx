@@ -110,24 +110,20 @@ export const TypingWidget = () => {
 
     const minutesElapsed = stopWatchTime / 60000
     const wordsTyped = correctChars / 5
-    const wpm = Math.round(wordsTyped / minutesElapsed)
 
-    setWpm(wpm)
+    setWpm(Math.round(wordsTyped / minutesElapsed))
   }
 
   return text ? (
     <div id="typing-widget" data-testid="typing-widget">
-      <div className="w-full">
-        <TypingWidgetText
-          onStart={onStart}
-          onComplete={onComplete}
-          onType={onType}
-          reset={reset}
-          textToType={text}
-          fontSettings={fontSettings}
-        />
-      </div>
-      <br />
+      <TypingWidgetText
+        onStart={onStart}
+        onComplete={onComplete}
+        onType={onType}
+        reset={reset}
+        textToType={text}
+        fontSettings={fontSettings}
+      />
       <br />
       {showStats ? (
         <div id="stats" className="space-y-4">

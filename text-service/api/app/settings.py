@@ -2,7 +2,7 @@ import os
 from pathlib import Path, PosixPath
 from typing import ClassVar, Union, Optional
 
-from pydantic import PostgresDsn, AnyUrl, model_validator
+from pydantic import PostgresDsn, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     testing: bool = False
     database_url: Optional[Union[PostgresDsn, AnyUrl]] = None
 
-    @model_validator(mode="before")
     @classmethod
     def populate_database_url(cls, values):
         if values.get("database_url"):
@@ -34,4 +33,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-print(settings.database_url)

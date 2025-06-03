@@ -20,8 +20,8 @@ const typedStatusStyles: Record<TypedStatus, string> = {
 
 export const CharacterComponent = ({
   char,
-  isActive,
-  typedStatus,
+  isActive = false,
+  typedStatus = TypedStatus.NONE,
   fontSettings = defaultFontSettings,
 }: CharacterProps) => {
   const fontSettingsClass = useMemo(() => {
