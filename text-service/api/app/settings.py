@@ -1,35 +1,29 @@
 import os
-from pathlib import Path, PosixPath
-from typing import ClassVar, Union, Optional
-
-from pydantic import PostgresDsn, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_ROOT: ClassVar[PosixPath] = Path(__file__).parent.parent.parent.resolve()
-    database_path: ClassVar[PosixPath] = PROJECT_ROOT / "development.db"
+    PYTHONPATH: str = "./"
 
-    testing: bool = False
-    database_url: Optional[Union[PostgresDsn, AnyUrl]] = None
+    # redis settings
+    QUEUE_NAME: str = "task_queue"
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
 
-    @classmethod
-    def populate_database_url(cls, values):
-        if values.get("database_url"):
-            return values
+    # uvicorn settings
+    DEBUG: bool = True
+    RELOAD: bool = True
+    UVICORN_PORT: int = 8080
 
-        if values.get("testing", False):
-            values["database_url"] = "sqlite:///:memory:"
-        else:
-            values["database_url"] = f"sqlite:///{cls.database_path}"
+    DATABASE_URL: str = "sqlite+aiosqlite:///:memory:"
 
-        return values
+    @property
+    def is_test(self):
+        return os.getenv("ENV", "dev") == "test"
 
     model_config = SettingsConfigDict(
-        env_file=f".env.{os.getenv('ENV', 'development')}",
-        case_sensitive=False,
-        env_prefix='',
+        env_file=f".env.{os.getenv('ENV', 'dev')}",
+        case_sensitive=True
     )
-
 
 settings = Settings()

@@ -1,52 +1,58 @@
-from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from typing import Sequence
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException, status
 
-from ..schemas.user_schema import UserCreate, UserUpdate
 from ..models.user_model import User
+from ..schemas.user_schema import UserCreate, UserUpdate
 
 
-def create_user(db: Session, user: UserCreate):
+async def create_user(db: AsyncSession, user: UserCreate) -> User:
     db_user = User(**user.model_dump())
     db.add(db_user)
     try:
-        db.commit()
+        await db.commit()
     except IntegrityError as e:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already exists"
         ) from e
-    db.refresh(db_user)
+    await db.refresh(db_user)
     return db_user
 
 
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(User).filter(User.id == user_id).first()
+async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    return user
 
 
-def get_all_users(db: Session) -> list[type[User]]:
-    users = db.query(User).all()
+async def get_all_users(db: AsyncSession) -> Sequence[User]:
+    result = await db.execute(select(User))
+    users = result.scalars().all()
     return users
 
 
-def update_user(db: Session, user_id: int, user: UserUpdate) -> type[User] | None:
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if not db_user:
+async def update_user(db: AsyncSession, user_id: int, user: UserUpdate) -> User | None:
+    existing_user = await get_user_by_id(db, user_id)
+    if not existing_user:
         return None
 
     update_data = user.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        setattr(db_user, field, value)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+        setattr(existing_user, field, value)
+
+    await db.commit()
+    await db.refresh(existing_user)
+    return existing_user
 
 
-def delete_user(db: Session, user_id: int) -> type[User] | None:
-    user = db.query(User).filter(User.id == user_id).first()
+async def delete_user(db, user_id: int) -> bool:
+    user = await db.get(User, user_id)
     if not user:
-        return None
-    db.delete(user)
-    db.commit()
-    return user
+        return False
+    await db.delete(user)
+    await db.commit()
+    return True

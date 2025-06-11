@@ -1,5 +1,6 @@
 services:
   loadbalancer:
+    container_name: loadbalancer
     image: nginx:1.27.5-alpine-slim
     expose:
       - "80"
@@ -12,27 +13,26 @@ services:
       - text-api
     networks:
       - app-network
-    container_name: loadbalancer
 
   client:
+    container_name: client
     build:
       context: ./client
       dockerfile: Dockerfile.prod
     networks:
       - app-network
-    container_name: client
     env_file:
       - .env.production
     depends_on:
       - text-api
 
   text-api:
+    container_name: text-api
     build:
       context: ./text-service/api
       dockerfile: Dockerfile.prod
     networks:
       - app-network
-    container_name: text-api
     env_file:
       - .env.production
 

@@ -1,8 +1,14 @@
 fastapi
-uvicorn
 pydantic-settings
 requests
 pylint
-sqlalchemy
 email_validator
 psycopg2-binary
+strawberry-graphql
+uvicorn[standard]
+sqlalchemy[asyncio]
+asyncpg
+aiosqlite
+pytest-asyncio
+pytest
+pytest-env

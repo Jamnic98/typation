@@ -4,7 +4,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from ..factories.database import Base
 
 
-
 class User(Base):
     __tablename__ = "users"
 

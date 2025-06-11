@@ -1,34 +1,44 @@
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ..routers.text_router import text_router
-from ..routers.users_router import users_router
 from .database import Base, init_db, get_db
-from ..settings import Settings
+from ..routers.graphql_router import create_graphql_router
+from ..routers.text_router import text_router
+from ..settings import settings
 
 
-def create_app(testing: bool = False):
-    # Load settings from env and override testing param if needed
-    settings = Settings()
-    if testing:
-        settings.testing = True
+async def async_create_tables(engine):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    if settings.testing:
-        engine, session_local = init_db(database_url="sqlite:///:memory:", use_static_pool=True)
+
+def create_app():
+    engine, session_local = init_db(database_url=str(settings.DATABASE_URL), use_static_pool=True)
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        from sqlalchemy import create_engine
+        sync_engine = create_engine(
+            str(settings.DATABASE_URL).replace("postgresql+asyncpg://", "postgresql://")
+        )
+        Base.metadata.create_all(bind=sync_engine)
     else:
-        engine, session_local = init_db(database_url=str(settings.database_url))
-
-    Base.metadata.create_all(bind=engine)
+        asyncio.run(async_create_tables(engine))
 
     app = FastAPI()
+    app.dependency_overrides[get_db] = get_db(session_local)  # type: ignore
 
-    # Override get_db with session_local from init_db
-    app.dependency_overrides[get_db] = get_db(session_local)
-
-    app.include_router(users_router)
+    # GraphQL router with DB session injected
+    graphql_app = create_graphql_router(session_local)
+    app.include_router(graphql_app, prefix="/graphql")
 
     app.add_middleware(
-        CORSMiddleware,
+        CORSMiddleware, # type: ignore
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],

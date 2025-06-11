@@ -1,5 +1,16 @@
 from typing import Optional
+
+import strawberry
 from pydantic import BaseModel, EmailStr, ConfigDict
+
+
+@strawberry.type
+class UserType:
+    id: int
+    user_name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: str
 
 
 class UserCreate(BaseModel):
@@ -31,6 +42,6 @@ class UserRead(BaseModel):
     user_name: str
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
 
     model_config = ConfigDict(from_attributes=True)
