@@ -30,3 +30,5 @@ export const CHAR_ARRAY_PAIRS = CHAR_ARRAY.map((char1) =>
 
 export const LOCAL_STORAGE_TEXT_KEY = 'typingText'
 export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
+
+export const AVERAGE_WORD_LENGTH = 5

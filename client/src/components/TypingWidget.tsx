@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useDeferredValue, useEffect, useState } from 'react'
 
 import { Accuracy, CharacterProps, StopWatch, TypingWidgetText, WordsPerMin } from 'components'
 import { fetchNewString, updateStats } from 'api'
@@ -6,6 +6,7 @@ import {
   defaultFontSettings,
   LOCAL_STORAGE_COMPLETED_KEY,
   LOCAL_STORAGE_TEXT_KEY,
+  AVERAGE_WORD_LENGTH,
 } from 'utils/constants'
 import { TypedStatus, type FontSettings } from 'types/global'
 
@@ -20,6 +21,9 @@ export const TypingWidget = () => {
   const [runStopWatch, setRunStopWatch] = useState<boolean>(false)
   const [stopWatchTime, setStopWatchTime] = useState<number>(0)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
+
+  const deferredWpm = useDeferredValue(wpm)
+  const deferredAccuracy = useDeferredValue(accuracy)
 
   // Load persisted text from localStorage or fetch new text on mount
   useEffect(() => {
@@ -108,8 +112,8 @@ export const TypingWidget = () => {
       .slice(0, cursorIndex + 1)
       .reduce((count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0), 0)
 
-    const minutesElapsed = stopWatchTime / 60000
-    const wordsTyped = correctChars / 5
+    const minutesElapsed = stopWatchTime / (60 * 1000)
+    const wordsTyped = correctChars / AVERAGE_WORD_LENGTH
 
     setWpm(Math.round(wordsTyped / minutesElapsed))
   }
@@ -127,8 +131,8 @@ export const TypingWidget = () => {
       <br />
       {showStats ? (
         <div id="stats" className="space-y-4">
-          <WordsPerMin wpm={wpm} />
-          <Accuracy accuracy={accuracy} />
+          <WordsPerMin wpm={deferredWpm} />
+          <Accuracy accuracy={deferredAccuracy} />
           <StopWatch time={stopWatchTime} />
         </div>
       ) : null}
