@@ -3,24 +3,8 @@ interface StopWatchProps {
 }
 
 export const StopWatch = ({ time }: StopWatchProps) => {
-  const totalSeconds = Math.floor(time / 1000)
-  const minutes = Math.floor(totalSeconds / 60)
-  let seconds = totalSeconds % 60
+  const totalSeconds = time / 1000
+  const seconds = totalSeconds % 60 // Includes decimal part
 
-  // Safety: reset to 0 if seconds somehow rounds to 60
-  if (seconds === 60) {
-    seconds = 0
-  }
-
-  return (
-    <div className="text-xl font-mono tracking-widest select-none">
-      {minutes > 0 ? (
-        <>
-          {minutes}:{seconds.toString().padStart(2, '0')}s
-        </>
-      ) : (
-        <>{seconds}s</>
-      )}
-    </div>
-  )
+  return <div className="text-xl font-mono tracking-widest select-none">{seconds.toFixed(1)}s</div>
 }

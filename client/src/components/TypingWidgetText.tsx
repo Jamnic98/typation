@@ -40,18 +40,33 @@ export const TypingWidgetText = ({
     textToType ? strToCharObjArray(textToType) : null
   )
 
+  const updateCharObjArrayManually = useCallback(
+    (cursorPosition: number = 0) => {
+      setCharObjArray((prev) =>
+        prev
+          ? prev.map((charObj, idx) => ({
+              ...charObj,
+              isActive: isFocused && cursorPosition === idx,
+            }))
+          : []
+      )
+    },
+    [isFocused, setCharObjArray] // dependencies
+  )
+
+  const readyState = isFocused && charObjArray && charObjArray.length > 0
+  useEffect(() => {
+    if (readyState) {
+      updateCharObjArrayManually(cursorIndex.current)
+    }
+  }, [readyState, updateCharObjArrayManually])
+
   useEffect(() => {
     if (textToType) {
       cursorIndex.current = 0
       setCharObjArray(strToCharObjArray(textToType, true))
     }
-  }, [textToType])
-
-  useEffect(() => {
-    if (isFocused && charObjArray) {
-      updateCharObjArrayManually(cursorIndex.current)
-    }
-  }, [isFocused])
+  }, [textToType, strToCharObjArray])
 
   const setCharObjArrayWithCursor = (
     updater: (prev: CharacterProps[], index: number) => CharacterProps[],
@@ -94,16 +109,6 @@ export const TypingWidgetText = ({
     cursorIndex.current = newIndex
     forceCursorUpdate()
   }
-
-  const updateCharObjArrayManually = (cursorPosition: number = 0) =>
-    setCharObjArray((prev) =>
-      prev
-        ? prev.map((charObj, idx) => ({
-            ...charObj,
-            isActive: isFocused && cursorPosition === idx,
-          }))
-        : []
-    )
 
   const updateFunc = (typedStatus: TypedStatus, key?: string) => {
     if (!charObjArray) return charObjArray
@@ -213,6 +218,7 @@ export const TypingWidgetText = ({
         return
       }
 
+      // one character key pressed
       if (key.length === 1) {
         if (isFocused && cursorIndex.current === 0) onStart()
         await handleNormalKeyPress(key)

@@ -58,3 +58,28 @@ export enum StopWatchState {
   RUNNING = 'running',
   STOPPED = 'stopped',
 }
+
+export type State = {
+  wpm: number
+  accuracy: number
+  stopWatchTime: number
+  runStopWatch: boolean
+}
+
+export type Action =
+  | { type: 'RESET' }
+  | { type: 'START' }
+  | { type: 'STOP' }
+  | { type: 'TICK' }
+  | { type: 'SET_WPM'; payload: number }
+  | { type: 'SET_ACCURACY'; payload: number }
+
+export type TypingStats = {
+  wpm: number
+  accuracy: number
+  time: number
+  startTime?: number
+  endTime?: number
+  // textToType?: string
+  // textTyped?: string
+}

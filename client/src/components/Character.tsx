@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 import { defaultFontSettings } from 'utils/constants'
 import { getCursorStyle, randomRotation } from 'utils/helpers'
-import { FontSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
+import { type FontSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 
 export interface CharacterProps {
   char: string
