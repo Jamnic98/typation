@@ -1,25 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
-import strawberry
 from pydantic import BaseModel, EmailStr, ConfigDict
-
-
-@strawberry.input
-class UserCreateInput:
-    user_name: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    email: str
-
-
-@strawberry.type
-class UserType:
-    id: UUID
-    user_name: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    email: str
 
 
 class UserCreate(BaseModel):

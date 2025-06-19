@@ -1,23 +1,12 @@
 import pytest
-from typing import Optional
-from httpx import AsyncClient
-from requests import Response
+from httpx import Response
+from typing import Callable, Optional, Coroutine, Any
 
 from api.app.models.user_model import User
 
-GRAPHQL_ENDPOINT = "/graphql"
-
-
-async def graphql_query(async_client: AsyncClient, query: str, variables: Optional[dict | str] = None) -> Response:
-    payload = {"query": query}
-    if variables:
-        payload["variables"] = variables
-    response = await async_client.post(GRAPHQL_ENDPOINT, json=payload)
-    return response
-
 
 @pytest.mark.anyio
-async def test_create_user(async_client: AsyncClient):
+async def test_create_user(graphql_query_fixture: Callable[[str, Optional[dict]], Coroutine[Any, Any, Response]]):
     mutation = """
         mutation CreateUser($userInput: UserCreateInput!) {
             createUser(userInput: $userInput) {
@@ -31,16 +20,15 @@ async def test_create_user(async_client: AsyncClient):
             "email": "newuser@example.com"
         }
     }
-    response = await graphql_query(async_client, mutation, variables)
+    response = await graphql_query_fixture(mutation, variables)
     assert response.status_code == 200
     json_data = response.json()
     assert "errors" not in json_data
-    assert "data" in json_data
-    data = json_data["data"]["createUser"]
-    assert data["email"] == "newuser@example.com"
+    assert json_data["data"]["createUser"]["email"] == "newuser@example.com"
+
 
 @pytest.mark.anyio
-async def test_duplicate_email(async_client: AsyncClient):
+async def test_duplicate_email(graphql_query_fixture):
     mutation = """
         mutation CreateUser($userInput: UserCreateInput!) {
             createUser(userInput: $userInput) {
@@ -50,25 +38,21 @@ async def test_duplicate_email(async_client: AsyncClient):
         }
     """
     variables = {
-        "userInput": {
-            "email": "newuser@example.com"
-        }
+        "userInput": {"email": "newuser@example.com"}
     }
 
-    # First create
-    response1 = await graphql_query(async_client, mutation, variables)
-    assert response1.status_code == 200
-    assert "errors" not in response1.json()
+    res1 = await graphql_query_fixture(mutation, variables)
+    assert res1.status_code == 200
+    assert "errors" not in res1.json()
 
-    # Duplicate
-    response2 = await graphql_query(async_client, mutation, variables)
-    json_data = response2.json()
-    assert response2.status_code == 200
-    assert "errors" in json_data
-    assert "email already exists" in json_data["errors"][0]["message"].lower()
+    res2 = await graphql_query_fixture(mutation, variables)
+    assert res2.status_code == 200
+    assert "errors" in res2.json()
+    assert "email already exists" in res2.json()["errors"][0]["message"].lower()
+
 
 @pytest.mark.anyio
-async def test_create_user_duplicate_email(async_client: AsyncClient):
+async def test_create_user_duplicate_email(graphql_query_fixture):
     email = "duplicategql@example.com"
     mutation = """
         mutation CreateUser($userInput: UserCreateInput!) {
@@ -78,40 +62,29 @@ async def test_create_user_duplicate_email(async_client: AsyncClient):
             }
         }
     """
-    variables = {
-        "userInput": {
-            # give same email for different user
-            "email": email
-        }
-    }
-    response1 = await graphql_query(async_client, mutation, variables)
-    assert response1.status_code == 200
-    assert response1.json()["data"]["createUser"]["email"] == email
+    variables = {"userInput": {"email": email}}
 
-    response2 = await graphql_query(async_client, mutation, variables)
-    assert response2.status_code == 200
-    assert "errors" in response2.json()
-    assert "already exists" in response2.json()["errors"][0]["message"].lower()
+    res1 = await graphql_query_fixture(mutation, variables)
+    assert res1.status_code == 200
+    assert res1.json()["data"]["createUser"]["email"] == email
+
+    res2 = await graphql_query_fixture(mutation, variables)
+    assert res2.status_code == 200
+    assert "errors" in res2.json()
+    assert "already exists" in res2.json()["errors"][0]["message"].lower()
+
 
 @pytest.mark.anyio
-async def test_get_all_users(async_client: AsyncClient, test_users):
-    query = """
-        query {
-            users {
-                id
-            }
-        }
-    """
-    response = await graphql_query(async_client, query)
+async def test_get_all_users(graphql_query_fixture, test_users):
+    query = """query { users { id } }"""
+    response = await graphql_query_fixture(query, None)
     assert response.status_code == 200
-    users = response.json()["data"]["users"]
-    assert isinstance(users, list)
-    assert len(users) >= len(test_users)
+    assert isinstance(response.json()["data"]["users"], list)
+    assert len(response.json()["data"]["users"]) >= len(test_users)
 
 
 @pytest.mark.anyio
-async def test_get_user_by_id(async_client: AsyncClient, async_session, test_users):
-
+async def test_get_user_by_id(graphql_query_fixture, async_session, test_users):
     test_user = test_users[0]
     user = await async_session.get(User, test_user.id)
     query = """
@@ -123,7 +96,7 @@ async def test_get_user_by_id(async_client: AsyncClient, async_session, test_use
             }
         }
     """
-    response = await graphql_query(async_client, query, {"userId": str(user.id)})
+    response = await graphql_query_fixture(query, {"userId": str(user.id)})
     assert response.status_code == 200
     data = response.json()["data"]["user"]
     assert data["id"] == str(user.id)
@@ -131,7 +104,7 @@ async def test_get_user_by_id(async_client: AsyncClient, async_session, test_use
 
 
 @pytest.mark.anyio
-async def test_get_user_by_invalid_id(async_client: AsyncClient):
+async def test_get_user_by_invalid_id(graphql_query_fixture):
     query = """
         query {
             user(userId: "68c9ac03-9d6a-49d7-a308-e461a63713eb") {
@@ -140,25 +113,21 @@ async def test_get_user_by_invalid_id(async_client: AsyncClient):
             }
         }
     """
-    response = await graphql_query(async_client, query)
-    assert response.status_code == 200
-    assert response.json()["data"]["user"] is None
+    res = await graphql_query_fixture(query, None)
+    assert res.status_code == 200
+    assert res.json()["data"]["user"] is None
+
 
 @pytest.mark.anyio
-async def test_get_users_empty(async_client: AsyncClient):
-    query = """
-        query {
-            users {
-                id
-            }
-        }
-    """
-    response = await graphql_query(async_client, query)
+async def test_get_users_empty(graphql_query_fixture):
+    query = """query { users { id } }"""
+    response = await graphql_query_fixture(query, None)
     assert response.status_code == 200
     assert response.json()["data"]["users"] == []
 
+
 @pytest.mark.anyio
-async def test_update_user(async_client: AsyncClient, test_users):
+async def test_update_user(graphql_query_fixture, test_users):
     test_user = test_users[0]
     mutation = """
         mutation UpdateUser($userId: UUID!, $userName: String!) {
@@ -173,15 +142,15 @@ async def test_update_user(async_client: AsyncClient, test_users):
         "userId": str(test_user.id),
         "userName": "updated_username",
     }
-
-    response = await graphql_query(async_client, mutation, variables)
-    assert response.status_code == 200
-    data = response.json()["data"]["updateUser"]
+    res = await graphql_query_fixture(mutation, variables)
+    assert res.status_code == 200
+    data = res.json()["data"]["updateUser"]
     assert data["userName"] == "updated_username"
     assert data["id"] == str(test_user.id)
 
+
 @pytest.mark.anyio
-async def test_update_user_invalid_id(async_client: AsyncClient):
+async def test_update_user_invalid_id(graphql_query_fixture):
     mutation = """
         mutation UpdateUser($userId: UUID!, $userName: String!) {
             updateUser(userId: $userId, userName: $userName) {
@@ -190,28 +159,23 @@ async def test_update_user_invalid_id(async_client: AsyncClient):
             }
         }
     """
-    invalid_id = "68c9ac03-9d6a-49d7-a308-e461a63713eb"
-    response = await graphql_query(
-        async_client,
-        mutation,
-        {"userId": invalid_id, "userName": "ghost"}
-    )
-    assert response.status_code == 200
-    assert response.json()["data"]["updateUser"] is None
+    variables = {"userId": "68c9ac03-9d6a-49d7-a308-e461a63713eb", "userName": "ghost"}
+    res = await graphql_query_fixture(mutation, variables)
+    assert res.status_code == 200
+    assert res.json()["data"]["updateUser"] is None
 
 
 @pytest.mark.anyio
-async def test_delete_user(async_client: AsyncClient, test_users):
+async def test_delete_user(graphql_query_fixture, test_users):
     test_user = test_users[0]
     mutation = """
         mutation DeleteUser($userId: UUID!) {
             deleteUser(userId: $userId)
         }
     """
-
-    response = await graphql_query(async_client, mutation, {"userId": str(test_user.id)})
-    assert response.status_code == 200
-    assert response.json()["data"]["deleteUser"] is True
+    res = await graphql_query_fixture(mutation, {"userId": str(test_user.id)})
+    assert res.status_code == 200
+    assert res.json()["data"]["deleteUser"] is True
 
     query = """
         query GetUser($userId: UUID!) {
@@ -221,6 +185,6 @@ async def test_delete_user(async_client: AsyncClient, test_users):
             }
         }
     """
-    confirm_response = await graphql_query(async_client, query, {"userId": str(test_user.id)})
-    assert confirm_response.status_code == 200
-    assert confirm_response.json()["data"]["user"] is None
+    confirm_res = await graphql_query_fixture(query, {"userId": str(test_user.id)})
+    assert confirm_res.status_code == 200
+    assert confirm_res.json()["data"]["user"] is None

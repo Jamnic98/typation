@@ -4,7 +4,8 @@ from starlette.requests import Request
 from strawberry.fastapi import GraphQLRouter
 
 from ..factories.database import async_sessionmaker
-from ..graphql.resolvers.users_resolvers import UsersQuery, UsersMutation
+from ..graphql.resolvers.user_mutations import UsersMutation
+from ..graphql.resolvers.user_queries import UsersQuery
 
 
 def create_graphql_router(session_maker: async_sessionmaker[AsyncSession]):
