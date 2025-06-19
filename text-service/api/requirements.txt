@@ -12,3 +12,4 @@ aiosqlite
 pytest-asyncio
 pytest
 pytest-env
+alembic

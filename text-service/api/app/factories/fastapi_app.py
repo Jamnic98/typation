@@ -1,52 +1,46 @@
-import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncEngine
 
-from .database import Base, init_db, get_db
+from .database import Base, init_db
 from ..routers.graphql_router import create_graphql_router
 from ..routers.text_router import text_router
 from ..settings import settings
 
 
-async def async_create_tables(engine):
+async def async_create_tables(engine: AsyncEngine):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 
-def create_app():
-    engine, session_local = init_db(database_url=str(settings.DATABASE_URL), use_static_pool=True)
+def get_lifespan(engine: AsyncEngine):
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        await async_create_tables(engine)
+        yield
 
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = None
+    return lifespan
 
-    if loop and loop.is_running():
-        from sqlalchemy import create_engine
-        sync_engine = create_engine(
-            str(settings.DATABASE_URL).replace("postgresql+asyncpg://", "postgresql://")
-        )
-        Base.metadata.create_all(bind=sync_engine)
-    else:
-        asyncio.run(async_create_tables(engine))
 
-    app = FastAPI()
-    app.dependency_overrides[get_db] = get_db(session_local)  # type: ignore
+def create_app(engine=None, async_session=None):
+    if engine is None or async_session is None:
+        engine, async_session = init_db(database_url=str(settings.DATABASE_URL))
 
-    # GraphQL router with DB session injected
-    graphql_app = create_graphql_router(session_local)
-    app.include_router(graphql_app, prefix="/graphql")
+    app = FastAPI(lifespan=get_lifespan(engine))
 
     app.add_middleware(
-        CORSMiddleware, # type: ignore
+        CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
+    app.include_router(create_graphql_router(async_session), prefix="/graphql")
+    app.include_router(text_router)
+
     @app.get("/health")
     def health():
         return {"status": "ok"}
 
-    app.include_router(text_router)
-    return app, session_local
+    return app

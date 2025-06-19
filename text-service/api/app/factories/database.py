@@ -1,22 +1,13 @@
-from sqlalchemy.ext.asyncio import  create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.pool import StaticPool
-
 
 Base = declarative_base()
 
 
-def init_db(database_url: str, use_static_pool: bool = False):
-    engine = create_async_engine(
-        database_url,
-        echo=False,
-        connect_args={"check_same_thread": False} if "sqlite" in database_url else {},
-        poolclass=StaticPool if use_static_pool else None,
-        future=True,
-    )
-
-    testing_session_local = async_sessionmaker(engine, expire_on_commit=False)
-    return engine, testing_session_local
+def init_db(database_url: str):
+    engine = create_async_engine(database_url, future=True)
+    session_maker = async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
+    return engine, session_maker
 
 
 def get_db(session_local_factory):

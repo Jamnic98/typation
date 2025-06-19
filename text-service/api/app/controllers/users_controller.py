@@ -1,4 +1,6 @@
 from typing import Sequence
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -14,16 +16,20 @@ async def create_user(db: AsyncSession, user: UserCreate) -> User:
     try:
         await db.commit()
     except IntegrityError as e:
+        print("IntegrityError:", e)
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already exists"
         ) from e
+
+    print("Committed user:", user)
     await db.refresh(db_user)
+    print("Refreshed user:", user)
     return db_user
 
 
-async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:
+async def get_user_by_id(db: AsyncSession, user_id: UUID) -> User | None:
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
     return user
@@ -35,7 +41,7 @@ async def get_all_users(db: AsyncSession) -> Sequence[User]:
     return users
 
 
-async def update_user(db: AsyncSession, user_id: int, user: UserUpdate) -> User | None:
+async def update_user(db: AsyncSession, user_id: UUID, user: UserUpdate) -> User | None:
     existing_user = await get_user_by_id(db, user_id)
     if not existing_user:
         return None
@@ -49,7 +55,7 @@ async def update_user(db: AsyncSession, user_id: int, user: UserUpdate) -> User 
     return existing_user
 
 
-async def delete_user(db, user_id: int) -> bool:
+async def delete_user(db, user_id: UUID) -> bool:
     user = await db.get(User, user_id)
     if not user:
         return False

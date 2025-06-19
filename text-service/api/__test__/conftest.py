@@ -1,57 +1,19 @@
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import NullPool
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from api.app.factories.database import Base, get_db
 from api.app.factories.fastapi_app import create_app
 from api.app.models.user_model import User
-
 from api.app.settings import settings
 
 
-# Create async engine (binds correctly to the event loop)
-@pytest_asyncio.fixture(scope="session")
-async def engine():
-    engine = create_async_engine(settings.DATABASE_URL, echo=True, future=True)
-    yield engine
-    await engine.dispose()
-
-
 @pytest_asyncio.fixture(scope="function")
-async def async_session_maker():
-    engine = create_async_engine(
-        settings.DATABASE_URL,
-        poolclass=NullPool,
-    )
-    async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
-
-    # create tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    yield async_session_maker
-
-    # drop tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await engine.dispose()
-
-
-# Actual session fixture — creates and tears down a session per test
-@pytest_asyncio.fixture
-async def async_session(async_session_maker):
-    async with async_session_maker() as session:
-        yield session
-
-
-@pytest_asyncio.fixture
-async def app(async_session_maker):
-    app, _ = create_app()
-
+async def app(async_engine, async_session):
+    app = create_app(engine=async_engine, async_session=async_session)
     async def override_get_db():
-        async with async_session_maker() as session:
+        async with async_session() as session:
             yield session
 
     app.dependency_overrides[get_db] = override_get_db
@@ -65,33 +27,56 @@ async def async_client(app):
         yield client
 
 
-@pytest_asyncio.fixture
-async def db(async_session_maker):
-    async with async_session_maker() as session:
-        async with session.begin():  # ensure transaction block
-            yield session
+@pytest_asyncio.fixture(scope="session")
+async def async_engine():
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        # echo=True,
+        future=True,
+        poolclass=NullPool,
+    )
+    yield engine
+    await engine.dispose()
 
 
-@pytest_asyncio.fixture
-async def seed_db(async_session_maker):  # Use session maker instead of the shared session
-    async with async_session_maker() as session:
-        users = [
-            User(user_name="user1", first_name="User", last_name="One", email="user1@example.com"),
-            User(user_name="user2", first_name="User", last_name="Two", email="user2@example.com"),
-        ]
-        session.add_all(users)
-        await session.commit()
-
-        for user in users:
-            await session.refresh(user)
-
-        return users
-
-
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def prepare_database(engine):
-    async with engine.begin() as conn:
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def setup_database(async_engine):
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    # yield
+    # async with engine.begin() as conn:
+    #     await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest_asyncio.fixture(scope="function")
+async def async_session(async_engine):
+    async_session_maker = async_sessionmaker(
+        bind=async_engine, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session_maker() as session:
+        yield session
+
+
+@pytest_asyncio.fixture
+async def seeded_session(async_session):
+    # Just yield a clean, usable session
+    yield async_session
+
+
+async def create_test_users(async_session):
+    users = [
+        User(user_name="user1", first_name="User", last_name="One", email="user1@example.com"),
+        User(user_name="user2", first_name="User", last_name="Two", email="user2@example.com"),
+    ]
+    async_session.add_all(users)
+    await async_session.commit()
+    for user in users:
+        await async_session.refresh(user)
+    return users
+
+@pytest_asyncio.fixture
+async def test_users(seeded_session):
+    users = await create_test_users(seeded_session)
+    return users
