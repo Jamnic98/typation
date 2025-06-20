@@ -9,6 +9,8 @@ class Settings(BaseSettings):
 
     PYTHONPATH: str = "./"
 
+    GRAPHQL_ENDPOINT: str = "/graphql"
+
     # Redis
     QUEUE_NAME: str = "task_queue"
     REDIS_HOST: str = "localhost"
@@ -18,6 +20,10 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     RELOAD: bool = True
     UVICORN_PORT: int = 8080
+
+    SECRET_KEY: str = None
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     @cached_property
     def database_url(self) -> str:

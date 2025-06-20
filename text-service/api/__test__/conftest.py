@@ -7,13 +7,10 @@ from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio.session import async_sessionmaker as AsyncSessionMaker
 
-from api.app.factories.database import Base, get_db
-from api.app.factories.fastapi_app import create_app
-from api.app.models.user_model import User, UserStatsSession
-from api.app.settings import settings
-
-GRAPHQL_ENDPOINT = "/graphql"
-
+from ..app.factories.database import Base, get_db
+from ..app.factories.fastapi_app import create_app
+from ..app.models.user_model import User, UserStatsSession
+from ..app.settings import settings
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -101,24 +98,36 @@ def graphql_query_fixture(async_client: AsyncClient) -> Callable[
         payload = {"query": query}
         if variables:
             payload["variables"] = variables
-        response = await async_client.post(GRAPHQL_ENDPOINT, json=payload)
+        response = await async_client.post(settings.GRAPHQL_ENDPOINT, json=payload)
         return response
 
     return _graphql_query
 
 
-# TODO: refactor
-# DB seed fixtures
 async def create_test_users(async_session: AsyncSession) -> list[User]:
-    users = [
-        User(user_name="user1", first_name="User", last_name="One", email="user1@example.com"),
-        User(user_name="user2", first_name="User", last_name="Two", email="user2@example.com"),
+    test_users = [
+        User(
+            id=UUID("7086a442-804e-4eea-a40a-af713cb86f65"),
+            user_name="user1",
+            first_name="User",
+            last_name="One",
+            email="user1@example.com",
+            hashed_password="dummyhashedpassword123",  # <-- add a dummy hash here
+        ),
+        User(
+            id=UUID("3c53e6e8-8f0d-4d1d-a928-24ce9325101d"),
+            user_name="user2",
+            first_name="User",
+            last_name="Two",
+            email="user2@example.com",
+            hashed_password="dummyhashedpassword123",
+        ),
     ]
-    async_session.add_all(users)
+    async_session.add_all(test_users)
     await async_session.commit()
-    for user in users:
+    for user in test_users:
         await async_session.refresh(user)
-    return users
+    return test_users
 
 
 async def create_test_user_stats_sessions(

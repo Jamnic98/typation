@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from ..models.user_model import UserStatsSession
-from ..schemas.user_stats_session_graphql import UserStatsSessionInput
+from ..schemas.user_stats_session_graphql import UserStatsSessionUpdateInput
 from ..schemas.user_stats_session_schema import UserStatsSessionCreate
 
 
@@ -36,7 +36,7 @@ async def get_all_user_stats_sessions(
 
 
 async def update_user_stats_session(
-    db: AsyncSession, session_id: UUID, update_data: UserStatsSessionInput
+    db: AsyncSession, session_id: UUID, update_data: UserStatsSessionUpdateInput
 ) -> type[UserStatsSession] | None:
     session = await db.get(UserStatsSession, session_id)
     if not session:

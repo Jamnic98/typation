@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from .database import Base, init_db
 from ..routers.graphql_router import create_graphql_router
 from ..routers.text_router import text_router
+from ..auth.routes import auth_router
 from ..settings import settings
 
 
@@ -38,6 +39,7 @@ def create_app(engine=None, async_session=None):
 
     app.include_router(create_graphql_router(async_session), prefix="/graphql")
     app.include_router(text_router)
+    app.include_router(auth_router)
 
     @app.get("/health")
     def health():

@@ -4,10 +4,12 @@ import strawberry
 from strawberry.types import Info
 
 from ...controllers.user_stats_controller import get_all_user_stats_sessions, get_user_stats_session_by_id
+from ...controllers.user_stats_summary_controller import get_all_user_stats_summaries, get_user_stats_summary_by_user_id
 from ...controllers.users_controller import get_all_users
 from ...models.user_model import User
 from ...schemas.user_graphql import UserType
 from ...schemas.user_stats_session_graphql import UserStatsSessionType
+from ...schemas.user_stats_summary_graphql import UserStatsSummaryType
 
 
 @strawberry.type
@@ -74,4 +76,39 @@ class UsersQuery:
                 practice_duration=session.practice_duration,
                 created_at=session.created_at,
                 ended_at=session.ended_at,
+            )
+
+    @strawberry.field(name="userStatsSummaries")
+    async def user_stats_summaries(self, info: Info) -> List[UserStatsSummaryType]:
+        async_session_maker = info.context["db"]
+        async with async_session_maker() as db:
+            summaries = await get_all_user_stats_summaries(db)
+            return [
+                UserStatsSummaryType(
+                    user_id=summary.user_id,
+                    total_sessions=summary.total_sessions,
+                    total_practice_duration=summary.total_practice_duration,
+                    average_wpm=summary.average_wpm,
+                    average_accuracy=summary.average_accuracy,
+                    best_wpm=summary.best_wpm,
+                    best_accuracy=summary.best_accuracy,
+                )
+                for summary in summaries
+            ]
+
+    @strawberry.field(name="userStatsSummary")
+    async def user_stats_summary(self, info: Info, user_id: UUID) -> Optional[UserStatsSummaryType]:
+        async_session_maker = info.context["db"]
+        async with async_session_maker() as db:
+            summary = await get_user_stats_summary_by_user_id(db, user_id)
+            if not summary:
+                return None
+            return UserStatsSummaryType(
+                user_id=summary.user_id,
+                total_sessions=summary.total_sessions,
+                total_practice_duration=summary.total_practice_duration,
+                average_wpm=summary.average_wpm,
+                average_accuracy=summary.average_accuracy,
+                best_wpm=summary.best_wpm,
+                best_accuracy=summary.best_accuracy,
             )

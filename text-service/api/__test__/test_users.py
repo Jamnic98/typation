@@ -17,7 +17,8 @@ async def test_create_user(graphql_query_fixture: Callable[[str, Optional[dict]]
     """
     variables = {
         "userInput": {
-            "email": "newuser@example.com"
+            "email": "newuser@example.com",
+            "password": "secure_password123"
         }
     }
     response = await graphql_query_fixture(mutation, variables)
@@ -38,7 +39,10 @@ async def test_duplicate_email(graphql_query_fixture):
         }
     """
     variables = {
-        "userInput": {"email": "newuser@example.com"}
+        "userInput": {
+            "email": "newuser@example.com",
+            "password": "secure_password123"
+        }
     }
 
     res1 = await graphql_query_fixture(mutation, variables)
@@ -62,7 +66,7 @@ async def test_create_user_duplicate_email(graphql_query_fixture):
             }
         }
     """
-    variables = {"userInput": {"email": email}}
+    variables = {"userInput": {"email": email, "password": "secure_password123"}}
 
     res1 = await graphql_query_fixture(mutation, variables)
     assert res1.status_code == 200

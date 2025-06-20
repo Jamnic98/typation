@@ -1,8 +1,11 @@
 from uuid import UUID
 from typing import Optional
 import strawberry
+from passlib.context import CryptContext
 from strawberry.types import Info
 
+from ...controllers.user_stats_summary_controller import update_user_stats_summary, delete_user_stats_summary, \
+    get_user_stats_summary_by_user_id, create_user_stats_summary
 from ...controllers.users_controller import create_user, update_user, delete_user
 from ...controllers.user_stats_controller import create_user_stats_session, update_user_stats_session
 from ...schemas.user_graphql import UserType, UserCreateInput
@@ -10,6 +13,10 @@ from ...schemas.user_schema import UserCreate, UserUpdate
 from ...schemas.user_stats_session_graphql import UserStatsSessionType, UserStatsSessionInput, \
     UserStatsSessionUpdateInput
 from ...schemas.user_stats_session_schema import UserStatsSessionCreate
+from ...schemas.user_stats_summary_graphql import UserStatsSummaryType, UserStatsSummaryUpdateInput, \
+    UserStatsSummaryCreateInput
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @strawberry.type
@@ -18,10 +25,21 @@ class UsersMutation:
     async def create_user(self, info: Info, user_input: UserCreateInput) -> UserType:
         async_session_maker = info.context["db"]
         async with async_session_maker() as db:
-            # Convert Strawberry input to Pydantic model
-            user_in = UserCreate(**user_input.__dict__)
-            # Pass that to your DB creation logic
+            # Hash the incoming plaintext password
+            hashed_password = pwd_context.hash(user_input.password)
+
+            # Convert Strawberry input to dict, add hashed password
+            user_data = user_input.__dict__.copy()
+            user_data["hashed_password"] = hashed_password
+            del user_data["password"]  # Remove plaintext password
+
+            # Create your Pydantic model or ORM-compatible object
+            user_in = UserCreate(**user_data)  # <- this should match your expected DB input
+
+            # Save to database
             user = await create_user(db, user_in)
+
+            # Return GraphQL-safe user object (no hashed password)
             return UserType(
                 id=user.id,
                 user_name=user.user_name,
@@ -99,3 +117,63 @@ class UsersMutation:
         async with async_session_maker() as db:
             from ...controllers.user_stats_controller import delete_user_stats_session
             return await delete_user_stats_session(db, session_id)
+
+
+    @strawberry.mutation()
+    async def create_user_stats_summary(
+        self, info: Info, user_stats_summary_input: UserStatsSummaryCreateInput
+    ) -> UserStatsSummaryType:
+        async_session_maker = info.context["db"]
+        async with async_session_maker() as db:
+            created = await create_user_stats_summary(db, user_stats_summary_input)
+            return UserStatsSummaryType(
+                user_id=created.user_id,
+                total_sessions=created.total_sessions,
+                total_practice_duration=created.total_practice_duration,
+                average_wpm=created.average_wpm,
+                average_accuracy=created.average_accuracy,
+                best_wpm=created.best_wpm,
+                best_accuracy=created.best_accuracy,
+            )
+
+    @strawberry.mutation()
+    async def update_user_stats_summary(
+        self, info: Info, user_id: UUID, user_stats_summary_input: UserStatsSummaryUpdateInput
+    ) -> Optional[UserStatsSummaryType]:
+        async_session_maker = info.context["db"]
+        async with async_session_maker() as db:
+            updated = await update_user_stats_summary(db, user_id, user_stats_summary_input)
+            if not updated:
+                return None
+            return UserStatsSummaryType(
+                user_id=updated.user_id,
+                total_sessions=updated.total_sessions,
+                total_practice_duration=updated.total_practice_duration,
+                average_wpm=updated.average_wpm,
+                average_accuracy=updated.average_accuracy,
+                best_wpm=updated.best_wpm,
+                best_accuracy=updated.best_accuracy,
+            )
+
+    @strawberry.mutation()
+    async def delete_user_stats_summary(self, info: Info, user_id: UUID) -> bool:
+        async_session_maker = info.context["db"]
+        async with async_session_maker() as db:
+            return await delete_user_stats_summary(db, user_id)
+
+    @strawberry.field()
+    async def user_stats_summary(self, info: Info, user_id: UUID) -> Optional[UserStatsSummaryType]:
+        async_session_maker = info.context["db"]
+        async with async_session_maker() as db:
+            summary = await get_user_stats_summary_by_user_id(db, user_id)
+            if not summary:
+                return None
+            return UserStatsSummaryType(
+                user_id=summary.user_id,
+                total_sessions=summary.total_sessions,
+                total_practice_duration=summary.total_practice_duration,
+                average_wpm=summary.average_wpm,
+                average_accuracy=summary.average_accuracy,
+                best_wpm=summary.best_wpm,
+                best_accuracy=summary.best_accuracy,
+            )

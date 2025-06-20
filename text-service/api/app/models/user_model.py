@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import uuid4
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
@@ -18,6 +18,7 @@ class User(Base):
     first_name: Mapped[Optional[str]] = mapped_column(index=True)
     last_name: Mapped[Optional[str]] = mapped_column(index=True)
     email: Mapped[str] = mapped_column(unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
 
     sessions: Mapped[list["UserStatsSession"]] = relationship(
         "UserStatsSession", back_populates="user", cascade="all, delete"
@@ -25,6 +26,7 @@ class User(Base):
     summary: Mapped[Optional["UserStatsSummary"]] = relationship(
         "UserStatsSummary", uselist=False, back_populates="user", cascade="all, delete"
     )
+
 
 
 class UserStatsSession(Base):

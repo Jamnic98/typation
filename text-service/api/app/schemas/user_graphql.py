@@ -6,7 +6,7 @@ from sqlalchemy import select
 from strawberry import Info
 
 from .user_stats_session_graphql import UserStatsSessionType
-from .user_stats_summary_schema import UserStatsSummaryType
+from .user_stats_summary_graphql import UserStatsSummaryType
 from ..models.user_model import UserStatsSession
 
 
@@ -16,6 +16,7 @@ class UserCreateInput:
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: str
+    password: str
 
 
 @strawberry.type
