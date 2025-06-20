@@ -23,7 +23,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class UsersMutation:
     @strawberry.mutation()
     async def create_user(self, info: Info, user_input: UserCreateInput) -> UserType:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             # Hash the incoming plaintext password
             hashed_password = pwd_context.hash(user_input.password)
@@ -37,7 +37,7 @@ class UsersMutation:
             user_in = UserCreate(**user_data)  # <- this should match your expected DB input
 
             # Save to database
-            user = await create_user(db, user_in)
+            user = await create_user(user_in, db)
 
             # Return GraphQL-safe user object (no hashed password)
             return UserType(
@@ -55,10 +55,10 @@ class UsersMutation:
         user_id: UUID,
         user_name: str
     ) -> UserType | None:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             user_update = UserUpdate(user_name=user_name)
-            user = await update_user(db, user_id, user_update)
+            user = await update_user(user_update, user_id, db)
             return UserType(
                 id=user.id,
                 user_name=user.user_name,
@@ -69,19 +69,19 @@ class UsersMutation:
 
     @strawberry.mutation()
     async def delete_user(self, info: Info, user_id: UUID) -> bool:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            return await delete_user(db, user_id)
+            return await delete_user(user_id, db)
 
     @strawberry.mutation()
     async def create_user_stats_session(
         self, info: Info, user_stats_session_input: UserStatsSessionInput
     ) -> UserStatsSessionType:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             # convert to Pydantic model for DB logic
             session_data = UserStatsSessionCreate(**user_stats_session_input.__dict__)
-            created = await create_user_stats_session(db, session_data)
+            created = await create_user_stats_session(session_data, db)
             return UserStatsSessionType(
                 id=created.id,
                 user_id=created.user_id,
@@ -96,9 +96,9 @@ class UsersMutation:
     async def update_user_stats_session(
         self, info: Info, session_id: UUID, user_stats_session_input: UserStatsSessionUpdateInput
     ) -> Optional[UserStatsSessionType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            updated = await update_user_stats_session(db, session_id, user_stats_session_input)
+            updated = await update_user_stats_session(user_stats_session_input, session_id, db)
             if not updated:
                 return None
             return UserStatsSessionType(
@@ -113,19 +113,19 @@ class UsersMutation:
 
     @strawberry.mutation()
     async def delete_user_stats_session(self, info: Info, session_id: UUID) -> bool:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             from ...controllers.user_stats_controller import delete_user_stats_session
-            return await delete_user_stats_session(db, session_id)
+            return await delete_user_stats_session(session_id, db)
 
 
     @strawberry.mutation()
     async def create_user_stats_summary(
         self, info: Info, user_stats_summary_input: UserStatsSummaryCreateInput
     ) -> UserStatsSummaryType:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            created = await create_user_stats_summary(db, user_stats_summary_input)
+            created = await create_user_stats_summary(user_stats_summary_input, db)
             return UserStatsSummaryType(
                 user_id=created.user_id,
                 total_sessions=created.total_sessions,
@@ -140,9 +140,9 @@ class UsersMutation:
     async def update_user_stats_summary(
         self, info: Info, user_id: UUID, user_stats_summary_input: UserStatsSummaryUpdateInput
     ) -> Optional[UserStatsSummaryType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            updated = await update_user_stats_summary(db, user_id, user_stats_summary_input)
+            updated = await update_user_stats_summary(user_stats_summary_input, user_id, db)
             if not updated:
                 return None
             return UserStatsSummaryType(
@@ -157,15 +157,15 @@ class UsersMutation:
 
     @strawberry.mutation()
     async def delete_user_stats_summary(self, info: Info, user_id: UUID) -> bool:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            return await delete_user_stats_summary(db, user_id)
+            return await delete_user_stats_summary(user_id, db)
 
     @strawberry.field()
     async def user_stats_summary(self, info: Info, user_id: UUID) -> Optional[UserStatsSummaryType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            summary = await get_user_stats_summary_by_user_id(db, user_id)
+            summary = await get_user_stats_summary_by_user_id(user_id, db)
             if not summary:
                 return None
             return UserStatsSummaryType(

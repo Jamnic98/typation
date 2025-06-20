@@ -31,7 +31,7 @@ class UserType:
 
     @strawberry.field()
     async def sessions(self, info: Info) -> list[UserStatsSessionType]:
-        async_session = info.context["db"]
+        async_session = info.context["db_factory"]
 
         async with async_session() as db:  # <- Call it to get a session
             result = await db.execute(

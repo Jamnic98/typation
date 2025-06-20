@@ -3,11 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from .database import Base, init_db
+from .database import Base, db_engine, async_sessionmaker_instance
 from ..routers.graphql_router import create_graphql_router
 from ..routers.text_router import text_router
 from ..auth.routes import auth_router
-from ..settings import settings
 
 
 async def async_create_tables(engine: AsyncEngine):
@@ -24,9 +23,9 @@ def get_lifespan(engine: AsyncEngine):
     return lifespan
 
 
-def create_app(engine=None, async_session=None):
-    if engine is None or async_session is None:
-        engine, async_session = init_db(database_url=str(settings.DATABASE_URL))
+def create_app(engine=None, async_sessionmaker=None):
+    if engine is None or async_sessionmaker is None:
+        engine, async_sessionmaker = db_engine, async_sessionmaker_instance
 
     app = FastAPI(lifespan=get_lifespan(engine))
 
@@ -37,7 +36,7 @@ def create_app(engine=None, async_session=None):
         allow_headers=["*"],
     )
 
-    app.include_router(create_graphql_router(async_session), prefix="/graphql")
+    app.include_router(create_graphql_router(async_sessionmaker), prefix="/graphql")
     app.include_router(text_router)
     app.include_router(auth_router)
 

@@ -1,14 +1,20 @@
 from uuid import UUID
 from typing import  Optional,Sequence
+
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from ..factories.database import get_db
 from ..models.user_model import UserStatsSession
 from ..schemas.user_stats_session_graphql import UserStatsSessionUpdateInput
 from ..schemas.user_stats_session_schema import UserStatsSessionCreate
 
 
-async def create_user_stats_session(db: AsyncSession, session_data: UserStatsSessionCreate) -> UserStatsSession:
+async def create_user_stats_session(
+        session_data: UserStatsSessionCreate,
+        db: AsyncSession = Depends(get_db)
+) -> UserStatsSession:
     new_session = UserStatsSession(
         user_id=session_data.user_id,
         wpm=session_data.wpm,
@@ -23,20 +29,20 @@ async def create_user_stats_session(db: AsyncSession, session_data: UserStatsSes
 
 
 async def get_user_stats_session_by_id(
-    db: AsyncSession, session_id: UUID
+    session_id: UUID, db: AsyncSession = Depends(get_db)
 ) -> Optional[UserStatsSession]:
     return await db.get(UserStatsSession, session_id)
 
 
 async def get_all_user_stats_sessions(
-    db: AsyncSession
+    db: AsyncSession = Depends(get_db)
 ) -> Sequence[UserStatsSession]:
     result = await db.execute(select(UserStatsSession))
     return result.scalars().all()
 
 
 async def update_user_stats_session(
-    db: AsyncSession, session_id: UUID, update_data: UserStatsSessionUpdateInput
+    update_data: UserStatsSessionUpdateInput, session_id: UUID, db: AsyncSession = Depends(get_db)
 ) -> type[UserStatsSession] | None:
     session = await db.get(UserStatsSession, session_id)
     if not session:
@@ -55,7 +61,7 @@ async def update_user_stats_session(
 
 
 async def delete_user_stats_session(
-    db: AsyncSession, session_id: UUID
+    session_id: UUID, db: AsyncSession = Depends(get_db)
 ) -> bool:
     session = await db.get(UserStatsSession, session_id)
     if not session:

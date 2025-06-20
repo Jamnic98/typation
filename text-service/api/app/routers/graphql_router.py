@@ -10,15 +10,11 @@ from ..graphql.resolvers.user_queries import UsersQuery
 
 def create_graphql_router(session_maker: async_sessionmaker[AsyncSession]):
     async def get_context(request: Request):
-        # Create a new AsyncSession
-        db = session_maker
-
-        # Register cleanup
-        async def close_db():
-            await db.close()
-
-        request.state.db_cleanup = close_db
-        return {"db": db, "request": request}
+        # Just pass the factory; resolvers will open sessions as needed
+        return {
+            "db_factory": session_maker,
+            "request": request
+        }
 
     schema = strawberry.Schema(query=UsersQuery, mutation=UsersMutation)
     return GraphQLRouter(schema, context_getter=get_context)

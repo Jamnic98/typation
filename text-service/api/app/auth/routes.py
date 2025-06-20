@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.user_model import User
-from ..schemas.auth_schema import LoginRequest, RegisterRequest
+from ..schemas.auth_schema import LoginRequest, RegisterRequest, TokenResponse
 from ..schemas.user_schema import UserCreate, UserOut
 from ..factories.database import get_db
 from ..controllers.users_controller import create_user
@@ -25,11 +26,14 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
         last_name=data.last_name,
         hashed_password=hashed_password,
     )
-    user = await create_user(db, user_in)
+    try:
+        user = await create_user(user_in, db)
+    except IntegrityError as exc:
+        raise HTTPException(status_code=400, detail="Email or username already registered") from exc
     return user
 
 
-@auth_router.post("/login")
+@auth_router.post("/login", response_model=TokenResponse)
 async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalar_one_or_none()

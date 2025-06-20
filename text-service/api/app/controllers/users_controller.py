@@ -10,7 +10,7 @@ from ..models.user_model import User
 from ..schemas.user_schema import UserCreate, UserUpdate
 
 
-async def create_user(db: AsyncSession, user: UserCreate) -> User:
+async def create_user(user: UserCreate, db: AsyncSession) -> User:
     db_user = User(**user.model_dump())
     db.add(db_user)
     try:
@@ -29,7 +29,7 @@ async def create_user(db: AsyncSession, user: UserCreate) -> User:
     return db_user
 
 
-async def get_user_by_id(db: AsyncSession, user_id: UUID) -> User | None:
+async def get_user_by_id(user_id: UUID, db: AsyncSession) -> User | None:
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
     return user
@@ -41,8 +41,8 @@ async def get_all_users(db: AsyncSession) -> Sequence[User]:
     return users
 
 
-async def update_user(db: AsyncSession, user_id: UUID, user: UserUpdate) -> User | None:
-    existing_user = await get_user_by_id(db, user_id)
+async def update_user(user: UserUpdate, user_id: UUID, db: AsyncSession) -> User | None:
+    existing_user = await get_user_by_id(user_id, db)
     if not existing_user:
         return None
 
@@ -55,7 +55,7 @@ async def update_user(db: AsyncSession, user_id: UUID, user: UserUpdate) -> User
     return existing_user
 
 
-async def delete_user(db, user_id: UUID) -> bool:
+async def delete_user(user_id: UUID, db: AsyncSession) -> bool:
     user = await db.get(User, user_id)
     if not user:
         return False

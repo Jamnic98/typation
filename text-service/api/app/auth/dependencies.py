@@ -9,7 +9,6 @@ from ..models.user_model import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-
 def get_token_credentials(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

@@ -16,7 +16,7 @@ from ...schemas.user_stats_summary_graphql import UserStatsSummaryType
 class UsersQuery:
     @strawberry.field()
     async def users(self, info: Info) -> List[UserType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             users = await get_all_users(db)
             return [
@@ -32,7 +32,7 @@ class UsersQuery:
 
     @strawberry.field()
     async def user(self, info: Info, user_id: UUID) -> Optional[UserType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             user = await db.get(User, user_id)
             return UserType(
@@ -45,7 +45,7 @@ class UsersQuery:
 
     @strawberry.field(name="userStatsSessions")
     async def user_stats_sessions(self, info: Info) -> list[UserStatsSessionType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             sessions = await get_all_user_stats_sessions(db)
             return [
@@ -63,9 +63,9 @@ class UsersQuery:
 
     @strawberry.field()
     async def user_stats_session(self, info: Info, session_id: UUID) -> Optional[UserStatsSessionType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            session = await get_user_stats_session_by_id(db, session_id)
+            session = await get_user_stats_session_by_id(session_id, db)
             if not session:
                 return None
             return UserStatsSessionType(
@@ -80,7 +80,7 @@ class UsersQuery:
 
     @strawberry.field(name="userStatsSummaries")
     async def user_stats_summaries(self, info: Info) -> List[UserStatsSummaryType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             summaries = await get_all_user_stats_summaries(db)
             return [
@@ -98,9 +98,9 @@ class UsersQuery:
 
     @strawberry.field(name="userStatsSummary")
     async def user_stats_summary(self, info: Info, user_id: UUID) -> Optional[UserStatsSummaryType]:
-        async_session_maker = info.context["db"]
+        async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            summary = await get_user_stats_summary_by_user_id(db, user_id)
+            summary = await get_user_stats_summary_by_user_id(user_id, db)
             if not summary:
                 return None
             return UserStatsSummaryType(

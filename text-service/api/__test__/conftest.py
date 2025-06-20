@@ -18,7 +18,7 @@ async def app(
     async_engine: AsyncEngine,
     async_session_maker_fixture: AsyncSessionMaker[AsyncSession]
 ) -> AsyncGenerator:
-    app = create_app(engine=async_engine, async_session=async_session_maker_fixture)
+    app = create_app(engine=async_engine, async_sessionmaker=async_session_maker_fixture)
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
         async with async_session_maker_fixture() as session:

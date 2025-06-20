@@ -1,15 +1,18 @@
 from typing import Optional, Sequence
 from uuid import UUID
+
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from ..factories.database import get_db
 from ..models.user_model import UserStatsSummary
-from ..schemas.user_stats_summary_graphql import UserStatsSummaryCreateInput
-from ..schemas.user_stats_summary_schema import UserStatsSummaryUpdate
+from ..schemas.user_stats_summary_graphql import UserStatsSummaryCreateInput, UserStatsSummaryUpdateInput
 
 
 async def create_user_stats_summary(
-    db: AsyncSession, summary_data: UserStatsSummaryCreateInput
+    summary_data: UserStatsSummaryCreateInput,
+    db: AsyncSession = Depends(get_db)
 ) -> UserStatsSummary:
     new_summary = UserStatsSummary(
         user_id=summary_data.user_id,
@@ -27,20 +30,23 @@ async def create_user_stats_summary(
 
 
 async def get_user_stats_summary_by_user_id(
-    db: AsyncSession, user_id: UUID
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
 ) -> Optional[UserStatsSummary]:
     return await db.get(UserStatsSummary, user_id)
 
 
 async def get_all_user_stats_summaries(
-    db: AsyncSession,
+    db: AsyncSession = Depends(get_db),
 ) -> Sequence[UserStatsSummary]:
     result = await db.execute(select(UserStatsSummary))
     return result.scalars().all()
 
 
 async def update_user_stats_summary(
-    db: AsyncSession, user_id: UUID, update_data: UserStatsSummaryUpdate
+    update_data: UserStatsSummaryUpdateInput,
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
 ) -> type[UserStatsSummary] | None:
     summary = await db.get(UserStatsSummary, user_id)
     if not summary:
@@ -58,7 +64,8 @@ async def update_user_stats_summary(
 
 
 async def delete_user_stats_summary(
-    db: AsyncSession, user_id: UUID
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
 ) -> bool:
     summary = await db.get(UserStatsSummary, user_id)
     if not summary:

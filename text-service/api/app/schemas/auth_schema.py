@@ -14,3 +14,8 @@ class RegisterRequest(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
