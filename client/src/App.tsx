@@ -1,22 +1,26 @@
-import { Home } from 'pages/Home'
+import { Route, Routes } from 'react-router-dom'
+
+import { Layout } from 'components'
+import { Home, Login, Register } from 'pages'
 
 // user authentication
 
-window.addEventListener('keydown', function (e) {
-  if (e.key == 'Space' && e.target == document.body) {
-    e.preventDefault()
-  }
-})
+// window.addEventListener('keydown', function (e) {
+//   if (e.key == 'Space' && e.target == document.body) {
+//     e.preventDefault()
+//   }
+// })
 
 const App = () => {
   return (
-    <div className="w-full min-h-screen">
-      <main className="container max-w-(--breakpoint-xl) mx-auto px-8 py-20">
-        <Home />
-      </main>
-      {/* <Header /> */}
-      {/* <Footer /> */}
-    </div>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
+        {/* Add more pages here */}
+      </Route>
+    </Routes>
   )
 }
 

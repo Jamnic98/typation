@@ -7,6 +7,7 @@ import {
   LOCAL_STORAGE_COMPLETED_KEY,
   LOCAL_STORAGE_TEXT_KEY,
   AVERAGE_WORD_LENGTH,
+  MIN_ELAPSED_TIME_MS,
 } from 'utils/constants'
 // import { updateStats } from 'utils/helpers'
 import { type Action, type State, TypedStatus, type FontSettings } from 'types/global'
@@ -36,8 +37,6 @@ const reducer = (state: State, action: Action): State => {
       return state
   }
 }
-
-const MIN_ELAPSED_TIME_MS = 1000 // 1 second
 
 export interface TypingWidgetProps {}
 
@@ -114,7 +113,7 @@ export const TypingWidget = () => {
     saveStats({
       wpm: deferredWpm,
       accuracy: deferredAccuracy,
-      time: Number.parseFloat((state.stopWatchTime / 1000).toFixed(1)), // Convert ms to seconds
+      time: Number.parseFloat((state.stopWatchTime / 1000).toFixed(1)),
     })
     dispatch({ type: 'STOP' })
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
