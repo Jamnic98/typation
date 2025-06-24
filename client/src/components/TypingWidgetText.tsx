@@ -9,7 +9,7 @@ export interface TypingWidgetTextProps {
   fontSettings?: FontSettings
   onStart: () => void
   onComplete: () => Promise<void>
-  onType: (charObjArray: CharacterProps[], typedStatus: TypedStatus, cursorIndex: number) => void
+  onType: (charObjArray: CharacterProps[], cursorIndex: number, typedStatus?: TypedStatus) => void
   reset?: () => void
 }
 
@@ -147,7 +147,7 @@ export const TypingWidgetText = ({
 
       const updatedCharObjArray = updateCharObjArray(typedStatus, lastTypedStatus, key)
       if (updatedCharObjArray) {
-        onType(updatedCharObjArray, typedStatus, cursorIndex.current)
+        onType(updatedCharObjArray, cursorIndex.current, typedStatus)
         setCharObjArrayWithCursor(() => updatedCharObjArray)
       }
       if (cursorIndex.current === charObjArray.length - 1) {

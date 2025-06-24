@@ -100,10 +100,10 @@ export const TypingWidget = () => {
 
   const onType = (
     charObjArray: CharacterProps[],
-    typedStatus: TypedStatus,
+    // TODO: remove or update
+    // typedStatus: TypedStatus,
     cursorIndex: number
   ) => {
-    console.log(typedStatus)
     updateAccuracy(charObjArray, cursorIndex)
     updateWpm(charObjArray, cursorIndex)
   }
