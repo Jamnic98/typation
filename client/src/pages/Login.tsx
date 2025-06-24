@@ -4,8 +4,7 @@ import { useState } from 'react'
 import { useUser } from 'context/UserContext'
 
 export const Login = () => {
-  const { user, login, logout } = useUser()
-  console.log('Current user:', user) // Debugging line to check current user state
+  const { login } = useUser()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -17,9 +16,6 @@ export const Login = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
-      <button onClick={logout} className="bg-blue-400 m-4 p-4 hover:cursor-pointer">
-        Log Out
-      </button>
       <form onSubmit={handleLogin} className="space-y-4">
         <input
           type="email"

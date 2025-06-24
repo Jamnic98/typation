@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+
+import { useUser } from 'context/UserContext'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 export const Register = () => {
+  const { login } = useUser()
   const [form, setForm] = useState({
     user_name: '',
     first_name: '',
@@ -11,7 +14,6 @@ export const Register = () => {
     email: '',
     password: '',
   })
-  const navigate = useNavigate()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -20,7 +22,6 @@ export const Register = () => {
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
-      // TODO: move to api
       const response = await fetch(`${baseUrl}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -31,7 +32,9 @@ export const Register = () => {
 
       const data = await response.json()
       console.log('Registration success:', data)
-      navigate('/auth/login')
+
+      // ✅ Immediately login using credentials
+      await login({ email: form.email, password: form.password })
     } catch (err: unknown) {
       if (err instanceof Error) alert(err.message)
       else alert('An unexpected error occurred')
