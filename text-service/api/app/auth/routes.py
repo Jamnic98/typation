@@ -16,7 +16,7 @@ from .security import verify_password, pwd_context
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@auth_router.post("/register", response_model=UserOut)
+@auth_router.post("/register")
 async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     hashed_password = pwd_context.hash(data.password)
     user_in = UserCreate(
@@ -30,7 +30,12 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
         user = await create_user(user_in, db)
     except IntegrityError as exc:
         raise HTTPException(status_code=400, detail="Email or username already registered") from exc
-    return user
+
+    token = create_access_token(data={"sub": user.email})
+    return {
+        "user": UserOut.model_validate(user),
+        "access_token": token
+    }
 
 
 @auth_router.post("/login", response_model=TokenResponse)
