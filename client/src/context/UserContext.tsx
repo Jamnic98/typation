@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+// TODO: place elsewhere
 type User = {
   email: string
   user_name: string
@@ -39,7 +40,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (err) {
       console.warn('Failed to parse saved user from localStorage:', err)
-      localStorage.removeItem('user') // clean up bad value
+      localStorage.removeItem('user')
     }
   }, [])
 
@@ -69,7 +70,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const userData = await meRes.json()
       setUser(userData)
       localStorage.setItem('user', JSON.stringify(userData))
-
       navigate('/')
     } catch (err: unknown) {
       if (err instanceof Error) alert(err.message)

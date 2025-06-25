@@ -22,8 +22,12 @@ export const ForgotPassword = () => {
       if (!res.ok) throw new Error('Failed to send reset link')
 
       setSubmitted(true)
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong')
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Something went wrong')
+      }
     }
   }
 

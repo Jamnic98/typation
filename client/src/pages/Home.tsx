@@ -5,7 +5,7 @@ export const Home = () => {
   const { user } = useUser()
   return (
     <article className="justify-center items-center flex flex-col">
-      <div>{user?.user_name || 'N/A'}</div>
+      <div data-testid="home-user-name">{user?.user_name ?? 'LOADING_OR_NULL'}</div>
       <TypingWidget />
     </article>
   )
