@@ -73,6 +73,7 @@ export type Action =
   | { type: 'TICK' }
   | { type: 'SET_WPM'; payload: number }
   | { type: 'SET_ACCURACY'; payload: number }
+  | { type: 'SET_STOPWATCH_TIME'; payload: number }
 
 export type TypingStats = {
   wpm: number

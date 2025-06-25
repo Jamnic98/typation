@@ -1,10 +1,11 @@
 interface StopWatchProps {
-  time: number // time in milliseconds
+  time: number
 }
 
 export const StopWatch = ({ time }: StopWatchProps) => {
-  const totalSeconds = time / 1000
-  const seconds = totalSeconds % 60 // Includes decimal part
+  const secondsWithHundredths = (time / 1000).toFixed(2)
 
-  return <div className="text-xl font-mono tracking-widest select-none">{seconds.toFixed(1)}s</div>
+  return (
+    <div className="text-xl font-mono tracking-widest select-none">{secondsWithHundredths}s</div>
+  )
 }

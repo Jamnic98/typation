@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 
 import { Accuracy, StopWatch, TypingWidgetText, WordsPerMin, type CharacterProps } from 'components'
 import { fetchNewString, saveStats } from 'api'
@@ -6,11 +6,9 @@ import {
   defaultFontSettings,
   LOCAL_STORAGE_COMPLETED_KEY,
   LOCAL_STORAGE_TEXT_KEY,
-  AVERAGE_WORD_LENGTH,
-  MIN_ELAPSED_TIME_MS,
 } from 'utils/constants'
-// import { updateStats } from 'utils/helpers'
-import { type Action, type State, TypedStatus, type FontSettings } from 'types/global'
+import { type Action, type State, type FontSettings } from 'types/global'
+import { calculateAccuracy, calculateWpm } from 'utils/helpers'
 
 const initialState: State = {
   wpm: 0,
@@ -32,7 +30,9 @@ const reducer = (state: State, action: Action): State => {
     case 'SET_ACCURACY':
       return { ...state, accuracy: action.payload }
     case 'TICK':
-      return { ...state, stopWatchTime: state.stopWatchTime + 100 }
+      return { ...state, stopWatchTime: state.stopWatchTime + 10 }
+    case 'SET_STOPWATCH_TIME':
+      return { ...state, stopWatchTime: action.payload }
     default:
       return state
   }
@@ -44,12 +44,10 @@ export const TypingWidget = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   // const [isLoadingText, setIsLoadingText] = useState<boolean>(false)
-  const [text, setText] = useState<string | null>(null)
+  const [text, setText] = useState<string>('')
+  const [startTimestamp, setStartTimestamp] = useState<number | null>(null)
   const [showStats /* setShowStats */] = useState<boolean>(true)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
-
-  const deferredWpm = useDeferredValue(state.wpm)
-  const deferredAccuracy = useDeferredValue(state.accuracy)
 
   // Load persisted text from localStorage or fetch new text on mount
   useEffect(() => {
@@ -61,7 +59,7 @@ export const TypingWidget = () => {
     } else {
       // If no saved text or completed, fetch a new string
       // setIsLoadingText(true)
-      setText(null) // Clear text while fetching
+      setText('') // Clear text while fetching
       localStorage.removeItem(LOCAL_STORAGE_TEXT_KEY) // Clear old text
       localStorage.removeItem(LOCAL_STORAGE_COMPLETED_KEY) // Clear completed status
       // Get new text
@@ -80,7 +78,7 @@ export const TypingWidget = () => {
     let intervalId: NodeJS.Timeout | null = null
 
     if (state.runStopWatch) {
-      intervalId = setInterval(() => dispatch({ type: 'TICK' }), 100)
+      intervalId = setInterval(() => dispatch({ type: 'TICK' }), 10)
     }
 
     return () => {
@@ -94,68 +92,63 @@ export const TypingWidget = () => {
   }
 
   const onStart = () => {
-    dispatch({ type: 'RESET' })
+    reset()
+    setStartTimestamp(Date.now())
     dispatch({ type: 'START' })
   }
 
-  const onType = (
-    charObjArray: CharacterProps[],
-    // TODO: remove or update
-    // typedStatus: TypedStatus,
-    cursorIndex: number
-  ) => {
-    updateAccuracy(charObjArray, cursorIndex)
-    updateWpm(charObjArray, cursorIndex)
+  const onType = (charObjArray: CharacterProps[]) => {
+    if (!text) return
+
+    const typedText = charObjArray.map((obj) => obj.char).join('')
+    updateAccuracy(text, typedText)
+    updateWpm(text, typedText)
   }
 
-  const onComplete = async () => {
-    // setShowStats(true)
-    saveStats({
-      wpm: deferredWpm,
-      accuracy: deferredAccuracy,
-      time: Number.parseFloat((state.stopWatchTime / 1000).toFixed(1)),
-    })
+  const onComplete = async (charObjArray: CharacterProps[]) => {
+    if (!text) return
     dispatch({ type: 'STOP' })
-    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
+
+    const typedText = charObjArray.map((obj) => obj.char).join('')
+
+    const now = Date.now()
+    const elapsedTime = startTimestamp ? now - startTimestamp : state.stopWatchTime
+
+    // Update reducer time so UI matches final elapsedTime
+    dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
+
+    const latestWpm = calculateWpm(text, typedText, elapsedTime)
+    const latestAccuracy = calculateAccuracy(text, typedText)
+
+    dispatch({ type: 'SET_WPM', payload: latestWpm })
+    dispatch({ type: 'SET_ACCURACY', payload: latestAccuracy })
+
+    saveStats({
+      wpm: latestWpm,
+      accuracy: latestAccuracy,
+      time: Number.parseFloat((elapsedTime / 1000).toFixed(2)),
+    })
 
     const newText = await fetchNewString()
     setText(newText)
-
-    // Save new text and reset 'text completed' flag
     localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
-    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
   }
 
-  const updateAccuracy = (charObjArray: CharacterProps[], cursorIndex: number) => {
-    const typedChars = charObjArray.slice(0, cursorIndex + 1)
-    const correctChars = typedChars.reduce(
-      (count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0),
-      0
-    )
-
-    const totalTyped = cursorIndex + 1
-    const accuracy = totalTyped > 0 ? (correctChars / totalTyped) * 100 : 0
-
-    dispatch({ type: 'SET_ACCURACY', payload: Math.round(accuracy) })
+  const updateAccuracy = (targetText: string, typedText: string) => {
+    const accuracy = calculateAccuracy(targetText, typedText)
+    dispatch({ type: 'SET_ACCURACY', payload: accuracy })
   }
 
-  const updateWpm = (charObjArray: CharacterProps[], cursorIndex: number) => {
-    const elapsedTime = state.stopWatchTime || 1 // Avoid divide by zero
-    const correctChars = charObjArray
-      .slice(0, cursorIndex + 1)
-      .reduce((count, char) => count + (char.typedStatus !== TypedStatus.MISS ? 1 : 0), 0)
-
-    const safeElapsedTime = Math.max(elapsedTime, MIN_ELAPSED_TIME_MS)
-    const minutesElapsed = safeElapsedTime / (60 * 1000)
-
-    const wordsTyped = correctChars / AVERAGE_WORD_LENGTH
-
-    dispatch({ type: 'SET_WPM', payload: Math.round(wordsTyped / minutesElapsed) })
+  const updateWpm = (targetText: string, typedText: string) => {
+    const wpm = calculateWpm(targetText, typedText, state.stopWatchTime)
+    dispatch({ type: 'SET_WPM', payload: wpm })
   }
 
   return text ? (
     <div id="typing-widget" data-testid="typing-widget">
       <TypingWidgetText
+        // key={text}
         onStart={onStart}
         onComplete={onComplete}
         onType={onType}
@@ -166,8 +159,8 @@ export const TypingWidget = () => {
       <br />
       {showStats ? (
         <div id="stats" className="space-y-4">
-          <WordsPerMin wpm={deferredWpm} />
-          <Accuracy accuracy={deferredAccuracy} />
+          <WordsPerMin wpm={state.wpm} />
+          <Accuracy accuracy={state.accuracy} />
           <StopWatch time={state.stopWatchTime} />
         </div>
       ) : null}

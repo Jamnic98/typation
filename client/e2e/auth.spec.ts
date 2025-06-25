@@ -40,7 +40,7 @@ test.describe('Auth flow', () => {
     await page.fill('input[type="password"]', testPassword)
 
     await Promise.all([
-      page.waitForURL(`${baseUrl}/`, { waitUntil: 'networkidle', timeout: 5000}), // or 'commit'
+      page.waitForURL(`${baseUrl}/`, { waitUntil: 'networkidle', timeout: 5000}),
       page.click('button[type="submit"]'),
     ])
 

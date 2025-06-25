@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { Character, type CharacterProps } from 'components'
 import { defaultFontSettings } from 'utils/constants'
@@ -8,7 +8,7 @@ export interface TypingWidgetTextProps {
   textToType: string | null
   fontSettings?: FontSettings
   onStart: () => void
-  onComplete: () => Promise<void>
+  onComplete: (charObjArray: CharacterProps[], cursorIndex: number) => Promise<void>
   onType: (charObjArray: CharacterProps[], cursorIndex: number, typedStatus?: TypedStatus) => void
   reset?: () => void
 }
@@ -21,106 +21,54 @@ export const TypingWidgetText = ({
   onType,
   reset,
 }: TypingWidgetTextProps) => {
-  const cursorIndex = useRef<number>(-1)
-  const typingWidgetTextRef = useRef<HTMLDivElement>(null)
+  const [cursorIndex, setCursorIndex] = useState<number>(0)
+  const [charObjArray, setCharObjArray] = useState<CharacterProps[] | null>(null)
   const [isFocused, setIsFocused] = useState<boolean>(false)
 
-  const strToCharObjArray = useCallback(
-    (string: string, showCursor: boolean = false): CharacterProps[] => {
-      return string.split('').map((char, index) => ({
-        char,
-        typedStatus: TypedStatus.NONE,
-        isActive: showCursor && isFocused && index === cursorIndex.current,
-      }))
-    },
-    [isFocused]
-  )
-
-  const [charObjArray, setCharObjArray] = useState<CharacterProps[] | null>(
-    textToType ? strToCharObjArray(textToType) : null
-  )
-
-  const updateCharObjArrayManually = useCallback(
-    (cursorPosition: number = 0) => {
-      setCharObjArray((prev) =>
-        prev
-          ? prev.map((charObj, idx) => ({
-              ...charObj,
-              isActive: isFocused && cursorPosition === idx,
-            }))
-          : []
-      )
-    },
-    [isFocused, setCharObjArray] // dependencies
-  )
-
-  const readyState = isFocused && charObjArray && charObjArray.length > 0
-  useEffect(() => {
-    if (readyState) {
-      updateCharObjArrayManually(cursorIndex.current)
-    }
-  }, [readyState, updateCharObjArrayManually])
+  const strToCharObjArray = useCallback((string: string): CharacterProps[] => {
+    return string.split('').map((char) => ({
+      char,
+      typedStatus: TypedStatus.NONE,
+      isActive: false,
+    }))
+  }, [])
 
   useEffect(() => {
     if (textToType) {
-      cursorIndex.current = 0
-      setCharObjArray(strToCharObjArray(textToType, true))
+      setCursorIndex(0)
+      setCharObjArray(strToCharObjArray(textToType))
     }
   }, [textToType, strToCharObjArray])
 
-  const setCharObjArrayWithCursor = (
-    updater: (prev: CharacterProps[], index: number) => CharacterProps[],
-    indexOverride?: number
-  ) => {
-    setCharObjArray((previousCharArray) => {
-      if (!previousCharArray) return []
-
-      const activeIndex = indexOverride ?? cursorIndex.current
-
-      const updatedCharArray = updater(previousCharArray, activeIndex)
-
-      return updatedCharArray.map((character, idx) => ({
-        ...character,
-        isActive: isFocused && idx === activeIndex,
-      }))
-    })
-  }
-
   const handleFocus = () => {
     setIsFocused(true)
-    if (cursorIndex.current === -1) cursorIndex.current = 0
-    setCharObjArrayWithCursor((prev) => [...prev])
   }
 
   const handleBlur = () => {
+    reset?.()
+    setCursorIndex(0)
     setIsFocused(false)
-    reset && reset()
-    cursorIndex.current = -1
-    textToType && setCharObjArray(strToCharObjArray(textToType, false))
+    textToType && setCharObjArray(strToCharObjArray(textToType))
   }
 
-  const forceCursorUpdate = () => setCharObjArrayWithCursor((prev) => [...prev])
-
   const shiftCursor = (shift: number) => {
-    if (!charObjArray || charObjArray.length === 0) return
-    const len = charObjArray.length
-    let newIndex = (cursorIndex.current + shift) % len
-    if (newIndex < 0) newIndex += len
-    cursorIndex.current = newIndex
-    forceCursorUpdate()
+    if (!charObjArray) return
+    let newIndex = (cursorIndex + shift) % charObjArray.length
+    if (newIndex < 0) newIndex += charObjArray.length
+    setCursorIndex(newIndex)
   }
 
   const updateFunc = (typedStatus: TypedStatus, key?: string) => {
     if (!charObjArray) return charObjArray
-    return key && typedStatus === TypedStatus.MISS
-      ? [
-          ...charObjArray.slice(0, cursorIndex.current),
-          { char: key, typedStatus: TypedStatus.MISS, isActive: false },
-          ...charObjArray.slice(cursorIndex.current + 1),
-        ]
-      : charObjArray.map((obj, index) =>
-          index === cursorIndex.current ? { ...obj, typedStatus } : obj
-        )
+    return charObjArray.map((obj, index) =>
+      index === cursorIndex
+        ? {
+            ...obj,
+            typedStatus,
+            ...(typedStatus === TypedStatus.MISS && key ? { char: key } : {}),
+          }
+        : obj
+    )
   }
 
   const updateCharObjArray = (
@@ -129,9 +77,12 @@ export const TypingWidgetText = ({
     key: string
   ) => {
     try {
-      return typedStatus === TypedStatus.HIT && lastTypedStatus === TypedStatus.NONE
-        ? updateFunc(TypedStatus.HIT)
-        : updateFunc(TypedStatus.MISS, key)
+      const updated =
+        typedStatus === TypedStatus.HIT && lastTypedStatus === TypedStatus.NONE
+          ? updateFunc(TypedStatus.HIT)
+          : updateFunc(TypedStatus.MISS, key)
+      setCharObjArray(updated)
+      return updated
     } catch (error) {
       console.error('updateCharObjArray failed:', error)
       throw new Error('Error updating charObjArray')
@@ -139,92 +90,76 @@ export const TypingWidgetText = ({
   }
 
   const handleNormalKeyPress = async (key: string) => {
-    try {
-      if (!isFocused || !charObjArray) return
-      const highlightedCharacter = charObjArray?.[cursorIndex.current]
-      const typedStatus = highlightedCharacter?.char === key ? TypedStatus.HIT : TypedStatus.MISS
-      const lastTypedStatus = highlightedCharacter?.typedStatus
+    if (!isFocused || !charObjArray) return
 
-      const updatedCharObjArray = updateCharObjArray(typedStatus, lastTypedStatus, key)
-      if (updatedCharObjArray) {
-        onType(updatedCharObjArray, cursorIndex.current, typedStatus)
-        setCharObjArrayWithCursor(() => updatedCharObjArray)
-      }
-      if (cursorIndex.current === charObjArray.length - 1) {
-        cursorIndex.current = 0
-        await onComplete()
-        return
-      }
-      shiftCursor(1)
-    } catch (error) {
-      console.error('Error handling normal key press:', error)
-      throw new Error('Error handling normal key press')
+    const currentChar = charObjArray[cursorIndex]
+    const typedStatus = currentChar?.char === key ? TypedStatus.HIT : TypedStatus.MISS
+    const lastTypedStatus = currentChar?.typedStatus
+
+    const updated = updateCharObjArray(typedStatus, lastTypedStatus, key)
+    if (updated) {
+      onType(updated, cursorIndex, typedStatus)
     }
+
+    if (cursorIndex === charObjArray.length - 1) {
+      await onComplete(charObjArray, cursorIndex)
+      setCursorIndex(0)
+      return
+    }
+
+    shiftCursor(1)
   }
 
   const handleBackspace = (ctrl: boolean = false) => {
-    if (cursorIndex.current > 0 && charObjArray && textToType) {
-      const prevIndex = cursorIndex.current - 1
-      const prevChar = charObjArray[prevIndex]
-      // only allow missed chars to be deleted
-      if (prevChar.typedStatus === TypedStatus.MISS) {
-        if (ctrl) {
-          // Find position after last correctly typed char before cursor using recursion or a functional approach
-          const findDeleteFrom = (index: number): number =>
-            index < 0 || charObjArray[index].typedStatus !== TypedStatus.MISS
-              ? index + 1
-              : findDeleteFrom(index - 1)
+    if (!charObjArray || !textToType || cursorIndex === 0) return
 
-          const deleteFrom = findDeleteFrom(cursorIndex.current - 1)
+    const prevIndex = cursorIndex - 1
+    const prevChar = charObjArray[prevIndex]
 
-          // Reset missed chars in [deleteFrom, cursorIndex.current)
-          const updatedCharObjArray = charObjArray.map((obj, index) =>
-            index >= deleteFrom &&
-            index < cursorIndex.current &&
-            obj.typedStatus === TypedStatus.MISS
-              ? { ...obj, typedStatus: TypedStatus.NONE, char: textToType[index] }
-              : obj
-          )
+    if (prevChar.typedStatus === TypedStatus.MISS) {
+      let updated = [...charObjArray]
 
-          setCharObjArrayWithCursor(() => updatedCharObjArray)
-          shiftCursor(deleteFrom - cursorIndex.current)
-        } else {
-          const updatedCharObjArray = charObjArray.map((obj, index) =>
-            index === prevIndex
-              ? {
-                  ...obj,
-                  char: textToType[prevIndex],
-                  typedStatus: TypedStatus.NONE,
-                }
-              : obj
-          )
+      if (ctrl) {
+        const findDeleteFrom = (index: number): number =>
+          index < 0 || updated[index].typedStatus !== TypedStatus.MISS
+            ? index + 1
+            : findDeleteFrom(index - 1)
 
-          setCharObjArrayWithCursor(() => updatedCharObjArray)
-          shiftCursor(-1)
+        const deleteFrom = findDeleteFrom(prevIndex)
+
+        updated = updated.map((char, idx) =>
+          idx >= deleteFrom && idx <= prevIndex
+            ? { ...char, typedStatus: TypedStatus.NONE, char: textToType[idx] }
+            : char
+        )
+
+        setCharObjArray(updated)
+        setCursorIndex(deleteFrom)
+      } else {
+        updated[prevIndex] = {
+          ...updated[prevIndex],
+          char: textToType[prevIndex],
+          typedStatus: TypedStatus.NONE,
         }
+        setCharObjArray(updated)
+        setCursorIndex(prevIndex)
       }
     }
   }
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
-    try {
-      const { key, ctrlKey, metaKey } = e
+    const { key, ctrlKey, metaKey } = e
+    if (!ctrlKey) e.preventDefault()
+    if (ctrlKey && key === 'r') return
 
-      if (!ctrlKey) e.preventDefault()
-      if (ctrlKey && key === 'r') return
+    if (key === 'Backspace') {
+      handleBackspace(ctrlKey || metaKey)
+      return
+    }
 
-      if (key === 'Backspace') {
-        handleBackspace(ctrlKey || metaKey)
-        return
-      }
-
-      // one character key pressed
-      if (key.length === 1) {
-        if (isFocused && cursorIndex.current === 0) onStart()
-        await handleNormalKeyPress(key)
-      }
-    } catch (error) {
-      console.error('Error handling key press:', error)
+    if (key.length === 1) {
+      if (isFocused && cursorIndex === 0) onStart()
+      await handleNormalKeyPress(key)
     }
   }
 
@@ -233,38 +168,36 @@ export const TypingWidgetText = ({
     if (e.ctrlKey && e.key === 'r') return
   }
 
-  if (!textToType) return null
+  if (!textToType || !charObjArray) return null
+
   return (
     <div className="relative w-fit h-fit select-none">
-      {/* Overlay message when not focused */}
       {!isFocused && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none select-none text-lg font-medium text-neutral-500">
           Click here to start
         </div>
       )}
 
-      {/* Typing widget */}
       <div
         id="typing-widget-text"
         data-testid="typing-widget-text"
-        ref={typingWidgetTextRef}
         className={`w-fit h-fit font-mono outline-none transition duration-300 ease-in-out ${
           isFocused ? '' : 'blur-xs'
         }`}
-        onKeyUp={(e) => handleKeyUp(e)}
-        onKeyDown={async (e) => await handleKeyDown(e)}
+        tabIndex={0}
+        onKeyUp={handleKeyUp}
+        onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        tabIndex={0}
       >
-        {charObjArray &&
-          charObjArray.map((character, index) => (
-            <Character
-              {...character}
-              fontSettings={fontSettings}
-              key={`${character.char}-${index}`}
-            />
-          ))}
+        {charObjArray.map((character, index) => (
+          <Character
+            {...character}
+            fontSettings={fontSettings}
+            isActive={index === cursorIndex && isFocused}
+            key={`${character.char}-${index}`}
+          />
+        ))}
       </div>
     </div>
   )

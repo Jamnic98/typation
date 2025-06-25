@@ -40,5 +40,3 @@ export const CHAR_ARRAY_PAIRS = TYPABLE_CHARS_ARRAY.map((char1) =>
 // localStorage keys
 export const LOCAL_STORAGE_TEXT_KEY = 'typingText'
 export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
-
-export const MIN_ELAPSED_TIME_MS = 1000
