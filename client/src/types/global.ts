@@ -1,7 +1,6 @@
 export enum TypedStatus {
   HIT = 'hit',
   MISS = 'miss',
-  // STRIKE = 'strike',
   NONE = 'none',
 }
 
@@ -64,23 +63,39 @@ export type State = {
   accuracy: number
   stopWatchTime: number
   runStopWatch: boolean
+  text: string
 }
 
 export type Action =
-  | { type: 'RESET' }
   | { type: 'START' }
   | { type: 'STOP' }
   | { type: 'TICK' }
   | { type: 'SET_WPM'; payload: number }
   | { type: 'SET_ACCURACY'; payload: number }
   | { type: 'SET_STOPWATCH_TIME'; payload: number }
+  | { type: 'SET_TEXT'; payload: string }
+  | { type: 'RESET_SESSION' }
+  | { type: 'RESET_ALL' }
 
 export type TypingStats = {
   wpm: number
   accuracy: number
-  time: number
-  startTime?: number
-  endTime?: number
-  // textToType?: string
-  // textTyped?: string
+  startTime: number
+}
+
+// User types
+export type User = {
+  email: string
+  user_name: string
+}
+
+export type UserLogin = {
+  email: string
+  password: string
+}
+
+export type UserContextType = {
+  user: User | null
+  login: (userLogin: UserLogin) => Promise<void>
+  logout: () => void
 }

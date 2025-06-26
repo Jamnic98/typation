@@ -1,6 +1,6 @@
 import { type CharacterProps } from 'components/Character'
-import { CursorStyles, type TypedStatus, type TypingStats } from 'types/global'
-import { AVERAGE_WORD_LENGTH } from './constants'
+import { Action, CursorStyles, State, type TypedStatus, type TypingStats } from 'types/global'
+import { AVERAGE_WORD_LENGTH, TYPING_WIDGET_INITIAL_STATE } from './constants'
 
 export const randomRotation = Math.floor(Math.random() * 201) - 100
 
@@ -29,9 +29,6 @@ export const updateStats = (
   return {
     ...currentStats,
     startTime: Date.now(),
-    endTime: Date.now(),
-    // textToType: '',
-    // textTyped: '',
   }
 }
 
@@ -63,4 +60,44 @@ export const calculateWpm = (targetText: string, typedText: string, elapsedTime:
   const wordsTyped = correct / AVERAGE_WORD_LENGTH
 
   return Math.round(wordsTyped / minutesElapsed)
+}
+
+export const typingWidgetStateReducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case 'SET_TEXT':
+      return { ...state, text: action.payload }
+
+    case 'RESET_SESSION':
+      return {
+        ...state,
+        wpm: 0,
+        accuracy: 0,
+        stopWatchTime: 0,
+        runStopWatch: false,
+      }
+
+    case 'RESET_ALL':
+      return TYPING_WIDGET_INITIAL_STATE
+
+    case 'START':
+      return { ...state, runStopWatch: true, stopWatchTime: 0 }
+
+    case 'STOP':
+      return { ...state, runStopWatch: false }
+
+    case 'SET_WPM':
+      return { ...state, wpm: action.payload }
+
+    case 'SET_ACCURACY':
+      return { ...state, accuracy: action.payload }
+
+    case 'TICK':
+      return { ...state, stopWatchTime: state.stopWatchTime + 10 }
+
+    case 'SET_STOPWATCH_TIME':
+      return { ...state, stopWatchTime: action.payload }
+
+    default:
+      return state
+  }
 }

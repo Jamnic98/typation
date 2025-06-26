@@ -1,4 +1,4 @@
-import { CursorStyles, FontSizes, SpaceSymbols, type FontSettings } from 'types'
+import { CursorStyles, FontSizes, SpaceSymbols, State, type FontSettings } from 'types'
 
 export const defaultFontSettings: FontSettings = {
   textColor: 'black',
@@ -40,3 +40,15 @@ export const CHAR_ARRAY_PAIRS = TYPABLE_CHARS_ARRAY.map((char1) =>
 // localStorage keys
 export const LOCAL_STORAGE_TEXT_KEY = 'typingText'
 export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
+
+export const TYPING_WIDGET_INITIAL_STATE: State = {
+  wpm: 0,
+  accuracy: 0,
+  stopWatchTime: 0,
+  runStopWatch: false,
+  text: '',
+}
+
+// endpoints
+export const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
+export const authEndpoint = `${baseUrl}/auth`

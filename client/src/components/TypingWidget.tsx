@@ -1,51 +1,19 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 
 import { Accuracy, StopWatch, TypingWidgetText, WordsPerMin, type CharacterProps } from 'components'
 import { fetchNewString, saveStats } from 'api'
+import { type FontSettings } from 'types/global'
+import { calculateAccuracy, calculateWpm, typingWidgetStateReducer } from 'utils/helpers'
 import {
   defaultFontSettings,
   LOCAL_STORAGE_COMPLETED_KEY,
   LOCAL_STORAGE_TEXT_KEY,
+  TYPING_WIDGET_INITIAL_STATE,
 } from 'utils/constants'
-import { type Action, type State, type FontSettings } from 'types/global'
-import { calculateAccuracy, calculateWpm } from 'utils/helpers'
-
-const initialState: State = {
-  wpm: 0,
-  accuracy: 0,
-  stopWatchTime: 0,
-  runStopWatch: false,
-}
-
-const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case 'RESET':
-      return initialState
-    case 'START':
-      return { ...state, runStopWatch: true, stopWatchTime: 0 }
-    case 'STOP':
-      return { ...state, runStopWatch: false }
-    case 'SET_WPM':
-      return { ...state, wpm: action.payload }
-    case 'SET_ACCURACY':
-      return { ...state, accuracy: action.payload }
-    case 'TICK':
-      return { ...state, stopWatchTime: state.stopWatchTime + 10 }
-    case 'SET_STOPWATCH_TIME':
-      return { ...state, stopWatchTime: action.payload }
-    default:
-      return state
-  }
-}
-
-export interface TypingWidgetProps {}
 
 export const TypingWidget = () => {
-  const [state, dispatch] = useReducer(reducer, initialState)
-
-  // const [isLoadingText, setIsLoadingText] = useState<boolean>(false)
-  const [text, setText] = useState<string>('')
-  const [startTimestamp, setStartTimestamp] = useState<number | null>(null)
+  const startTimestamp = useRef<number>(0)
+  const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
   const [showStats /* setShowStats */] = useState<boolean>(true)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
 
@@ -54,22 +22,25 @@ export const TypingWidget = () => {
     const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
     const completed = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY)
 
-    if (savedText && completed === 'false') {
-      setText(savedText)
-    } else {
-      // If no saved text or completed, fetch a new string
-      // setIsLoadingText(true)
-      setText('') // Clear text while fetching
-      localStorage.removeItem(LOCAL_STORAGE_TEXT_KEY) // Clear old text
-      localStorage.removeItem(LOCAL_STORAGE_COMPLETED_KEY) // Clear completed status
-      // Get new text
-      const getText = async () => {
-        const newText = await fetchNewString()
-        setText(newText)
-        localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
-        localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+    try {
+      if (savedText && completed === 'false') {
+        dispatch({ type: 'SET_TEXT', payload: savedText })
+      } else {
+        // If no saved text or completed, fetch a new string
+        // setIsLoadingText(true)
+        localStorage.removeItem(LOCAL_STORAGE_TEXT_KEY) // Clear old text
+        localStorage.removeItem(LOCAL_STORAGE_COMPLETED_KEY) // Clear completed status
+        // Get new text
+        const getText = async () => {
+          const newText = await fetchNewString()
+          dispatch({ type: 'SET_TEXT', payload: newText })
+          localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
+          localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+        }
+        getText()
       }
-      getText()
+    } catch (error) {
+      console.error('Error loading text from localStorage:', error)
     }
   }, [])
 
@@ -87,38 +58,39 @@ export const TypingWidget = () => {
   }, [state.runStopWatch])
 
   const reset = () => {
-    dispatch({ type: 'RESET' })
+    dispatch({ type: 'RESET_SESSION' })
+    startTimestamp.current = 0
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
   }
 
   const onStart = () => {
     reset()
-    setStartTimestamp(Date.now())
+    startTimestamp.current = Date.now()
     dispatch({ type: 'START' })
   }
 
   const onType = (charObjArray: CharacterProps[]) => {
-    if (!text) return
+    if (!state.text) return
 
     const typedText = charObjArray.map((obj) => obj.char).join('')
-    updateAccuracy(text, typedText)
-    updateWpm(text, typedText)
+    updateAccuracy(state.text, typedText)
+    updateWpm(state.text, typedText)
   }
 
   const onComplete = async (charObjArray: CharacterProps[]) => {
-    if (!text) return
+    if (!state.text) return
     dispatch({ type: 'STOP' })
 
     const typedText = charObjArray.map((obj) => obj.char).join('')
 
     const now = Date.now()
-    const elapsedTime = startTimestamp ? now - startTimestamp : state.stopWatchTime
+    const elapsedTime = startTimestamp ? now - startTimestamp.current : state.stopWatchTime
 
     // Update reducer time so UI matches final elapsedTime
     dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
 
-    const latestWpm = calculateWpm(text, typedText, elapsedTime)
-    const latestAccuracy = calculateAccuracy(text, typedText)
+    const latestWpm = calculateWpm(state.text, typedText, elapsedTime)
+    const latestAccuracy = calculateAccuracy(state.text, typedText)
 
     dispatch({ type: 'SET_WPM', payload: latestWpm })
     dispatch({ type: 'SET_ACCURACY', payload: latestAccuracy })
@@ -126,11 +98,11 @@ export const TypingWidget = () => {
     saveStats({
       wpm: latestWpm,
       accuracy: latestAccuracy,
-      time: Number.parseFloat((elapsedTime / 1000).toFixed(2)),
+      startTime: startTimestamp.current,
     })
 
     const newText = await fetchNewString()
-    setText(newText)
+    dispatch({ type: 'SET_TEXT', payload: newText })
     localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
   }
@@ -145,7 +117,7 @@ export const TypingWidget = () => {
     dispatch({ type: 'SET_WPM', payload: wpm })
   }
 
-  return text ? (
+  return state.text ? (
     <div id="typing-widget" data-testid="typing-widget">
       <TypingWidgetText
         // key={text}
@@ -153,7 +125,7 @@ export const TypingWidget = () => {
         onComplete={onComplete}
         onType={onType}
         reset={reset}
-        textToType={text}
+        textToType={state.text}
         fontSettings={fontSettings}
       />
       <br />

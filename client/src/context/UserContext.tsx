@@ -1,24 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-// TODO: place elsewhere
-type User = {
-  email: string
-  user_name: string
-}
-
-type UserLogin = {
-  email: string
-  password: string
-}
-
-type UserContextType = {
-  user: User | null
-  login: (userLogin: UserLogin) => Promise<void>
-  logout: () => void
-}
+import { User, UserContextType, UserLogin } from 'types/global'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
+const authEndpoint = `${baseUrl}/auth`
 
 const UserContext = createContext<UserContextType | null>(null)
 
@@ -33,11 +19,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user')
     try {
-      if (savedUser && savedUser !== 'undefined') {
-        setUser(JSON.parse(savedUser))
-      }
+      const savedUser = localStorage.getItem('user')
+      if (savedUser && savedUser !== 'undefined') setUser(JSON.parse(savedUser))
     } catch (err) {
       console.warn('Failed to parse saved user from localStorage:', err)
       localStorage.removeItem('user')
@@ -49,7 +33,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const { email, password } = userLogin
       if (!email || !password) throw new Error('Email and password are required')
 
-      const res = await fetch(`${baseUrl}/auth/login`, {
+      const res = await fetch(`${authEndpoint}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -61,7 +45,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('token', access_token)
 
       // fetch user profile
-      const meRes = await fetch(`${baseUrl}/auth/me`, {
+      const meRes = await fetch(`${authEndpoint}/me`, {
         headers: { Authorization: `Bearer ${access_token}` },
       })
 
