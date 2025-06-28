@@ -3,8 +3,8 @@ from typing import List, Optional
 import strawberry
 from strawberry.types import Info
 
-from ...controllers.user_stats_controller import get_all_user_stats_sessions, get_user_stats_session_by_id
-from ...controllers.user_stats_summary_controller import get_all_user_stats_summaries, get_user_stats_summary_by_user_id
+from ...controllers.user_stats_session_controller import get_all_user_stats_sessions, get_user_stats_session_by_id
+from ...controllers.user_stats_summary_controller import get_user_stats_summary_by_user_id, get_all_user_stats_summaries
 from ...controllers.users_controller import get_all_users
 from ...models.user_model import User
 from ...schemas.user_graphql import UserType
@@ -31,10 +31,11 @@ class UsersQuery:
             ]
 
     @strawberry.field()
-    async def user(self, info: Info, user_id: UUID) -> Optional[UserType]:
+    async def user(self, info: Info) -> Optional[UserType]:
+        user = info.context["user"]
         async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            user = await db.get(User, user_id)
+            user = await db.get(User, user.id)
             return UserType(
                 id=user.id,
                 user_name=user.user_name,
@@ -97,7 +98,8 @@ class UsersQuery:
             ]
 
     @strawberry.field(name="userStatsSummary")
-    async def user_stats_summary(self, info: Info, user_id: UUID) -> Optional[UserStatsSummaryType]:
+    async def user_stats_summary(self, info: Info) -> Optional[UserStatsSummaryType]:
+        user_id = info.context["user"].id
         async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
             summary = await get_user_stats_summary_by_user_id(user_id, db)

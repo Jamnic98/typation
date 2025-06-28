@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -7,6 +8,7 @@ from .database import Base, db_engine, async_sessionmaker_instance
 from ..routers.graphql_router import create_graphql_router
 from ..routers.text_router import text_router
 from ..auth.routes import auth_router
+from ..settings import settings
 
 
 async def async_create_tables(engine: AsyncEngine):
@@ -36,7 +38,7 @@ def create_app(engine=None, async_sessionmaker=None):
         allow_headers=["*"],
     )
 
-    app.include_router(create_graphql_router(async_sessionmaker), prefix="/graphql")
+    app.include_router(create_graphql_router(async_sessionmaker), prefix=settings.GRAPHQL_ENDPOINT)
     app.include_router(text_router)
     app.include_router(auth_router)
 

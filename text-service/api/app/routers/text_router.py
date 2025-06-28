@@ -14,10 +14,7 @@ async def generate_practice_text():
         'jackdaws love my big sphinx of quartz jackdaws love my big sphinx of quartz',
         'how vexingly quick daft zebras jump how vexingly quick daft zebras jump'
     ]
-
-
     random_text = choice(input_texts)
     words = random_text.split(' ')
     shuffle(words)
-    output_text = ' '.join(words)
-    return {'text': output_text}
+    return {'text': ' '.join(words)}

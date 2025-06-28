@@ -1,13 +1,18 @@
 from uuid import UUID
 from typing import Optional
 import strawberry
+from graphql import GraphQLError
 from passlib.context import CryptContext
+from pydantic import ValidationError
+from sqlalchemy.exc import SQLAlchemyError
 from strawberry.types import Info
 
+from ...auth.helpers import auth_required
 from ...controllers.user_stats_summary_controller import update_user_stats_summary, delete_user_stats_summary, \
     get_user_stats_summary_by_user_id, create_user_stats_summary
 from ...controllers.users_controller import create_user, update_user, delete_user
-from ...controllers.user_stats_controller import create_user_stats_session, update_user_stats_session
+from ...controllers.user_stats_session_controller import create_user_stats_session, update_user_stats_session, \
+    delete_user_stats_session
 from ...schemas.user_graphql import UserType, UserCreateInput
 from ...schemas.user_schema import UserCreate, UserUpdate
 from ...schemas.user_stats_session_graphql import UserStatsSessionType, UserStatsSessionInput, \
@@ -49,131 +54,304 @@ class UsersMutation:
             )
 
     @strawberry.mutation()
+    @auth_required
     async def update_user(
         self,
         info: Info,
-        user_id: UUID,
         user_name: str
     ) -> UserType | None:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            user_update = UserUpdate(user_name=user_name)
-            user = await update_user(user_update, user_id, db)
-            return UserType(
-                id=user.id,
-                user_name=user.user_name,
-                first_name=user.first_name,
-                last_name=user.last_name,
-                email=user.email,
-            ) if user else None
+        try:
+            user_id = info.context["user"].id
+            async_session_maker = info.context["db_factory"]
+            async with async_session_maker() as db:
+                user_update = UserUpdate(user_name=user_name)
+                user = await update_user(user_update, user_id, db)
+                return UserType(
+                    id=user_id,
+                    user_name=user.user_name,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    email=user.email,
+                ) if user else None
+
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
+
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
-    async def delete_user(self, info: Info, user_id: UUID) -> bool:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            return await delete_user(user_id, db)
+    @auth_required
+    async def delete_user(self, info: Info) -> bool:
+        try:
+            user_id = info.context["user"].id
+            async_session_maker = info.context["db_factory"]
+            async with async_session_maker() as db:
+                return await delete_user(user_id, db)
+
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
+
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
+    @auth_required
     async def create_user_stats_session(
         self, info: Info, user_stats_session_input: UserStatsSessionInput
     ) -> UserStatsSessionType:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            # convert to Pydantic model for DB logic
-            session_data = UserStatsSessionCreate(**user_stats_session_input.__dict__)
-            created = await create_user_stats_session(session_data, db)
-            return UserStatsSessionType(
-                id=created.id,
-                user_id=created.user_id,
-                wpm=created.wpm,
-                accuracy=created.accuracy,
-                practice_duration=created.practice_duration,
-                created_at=created.created_at,
-                ended_at=created.ended_at,
-            )
+        try:
+            user_id = info.context["user"].id
+            async_session_maker = info.context["db_factory"]
+            async with async_session_maker() as db:
+                # convert to Pydantic model for DB logic
+                session_data = UserStatsSessionCreate(**user_stats_session_input.__dict__)
+                created = await create_user_stats_session(session_data, db)
+                return UserStatsSessionType(
+                    id=created.id,
+                    user_id=user_id,
+                    wpm=created.wpm,
+                    accuracy=created.accuracy,
+                    practice_duration=created.practice_duration,
+                    created_at=created.created_at,
+                    ended_at=created.ended_at,
+                )
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
+
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
+    @auth_required
     async def update_user_stats_session(
         self, info: Info, session_id: UUID, user_stats_session_input: UserStatsSessionUpdateInput
     ) -> Optional[UserStatsSessionType]:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            updated = await update_user_stats_session(user_stats_session_input, session_id, db)
-            if not updated:
-                return None
-            return UserStatsSessionType(
-                id=updated.id,
-                user_id=updated.user_id,
-                wpm=updated.wpm,
-                accuracy=updated.accuracy,
-                practice_duration=updated.practice_duration,
-                created_at=updated.created_at,
-                ended_at=updated.ended_at,
-            )
+        try:
+            async_session_maker = info.context["db_factory"]
+            async with async_session_maker() as db:
+                updated = await update_user_stats_session(user_stats_session_input, session_id, db)
+                if not updated:
+                    return None
+                return UserStatsSessionType(
+                    id=updated.id,
+                    user_id=updated.user_id,
+                    wpm=updated.wpm,
+                    accuracy=updated.accuracy,
+                    practice_duration=updated.practice_duration,
+                    created_at=updated.created_at,
+                    ended_at=updated.ended_at,
+                )
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
+
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
+    @auth_required
     async def delete_user_stats_session(self, info: Info, session_id: UUID) -> bool:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            from ...controllers.user_stats_controller import delete_user_stats_session
-            return await delete_user_stats_session(session_id, db)
+        try:
+            async_session_maker = info.context["db_factory"]
+            async with async_session_maker() as db:
+                return await delete_user_stats_session(session_id, db)
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
 
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
+    @auth_required
     async def create_user_stats_summary(
-        self, info: Info, user_stats_summary_input: UserStatsSummaryCreateInput
+            self, info: Info, user_stats_summary_input: UserStatsSummaryCreateInput
     ) -> UserStatsSummaryType:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            created = await create_user_stats_summary(user_stats_summary_input, db)
-            return UserStatsSummaryType(
-                user_id=created.user_id,
-                total_sessions=created.total_sessions,
-                total_practice_duration=created.total_practice_duration,
-                average_wpm=created.average_wpm,
-                average_accuracy=created.average_accuracy,
-                best_wpm=created.best_wpm,
-                best_accuracy=created.best_accuracy,
-            )
+        try:
+            user = info.context["user"]  # from your auth middleware
+            async_session_maker = info.context["db_factory"]
+
+            async with async_session_maker() as db:
+                created = await create_user_stats_summary(
+                    summary_data=user_stats_summary_input,
+                    user_id=user.id,
+                    db=db,
+                )
+                return UserStatsSummaryType(
+                    user_id=created.user_id,
+                    total_sessions=created.total_sessions,
+                    total_practice_duration=created.total_practice_duration,
+                    average_wpm=created.average_wpm,
+                    average_accuracy=created.average_accuracy,
+                    best_wpm=created.best_wpm,
+                    best_accuracy=created.best_accuracy,
+                )
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
+
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
+    @auth_required
     async def update_user_stats_summary(
-        self, info: Info, user_id: UUID, user_stats_summary_input: UserStatsSummaryUpdateInput
+        self, info: Info, user_stats_summary_input: UserStatsSummaryUpdateInput
     ) -> Optional[UserStatsSummaryType]:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            updated = await update_user_stats_summary(user_stats_summary_input, user_id, db)
-            if not updated:
-                return None
-            return UserStatsSummaryType(
-                user_id=updated.user_id,
-                total_sessions=updated.total_sessions,
-                total_practice_duration=updated.total_practice_duration,
-                average_wpm=updated.average_wpm,
-                average_accuracy=updated.average_accuracy,
-                best_wpm=updated.best_wpm,
-                best_accuracy=updated.best_accuracy,
-            )
+        try:
+            user_id = info.context["user"].id
+            async_session_maker = info.context["db_factory"]
+            async with async_session_maker() as db:
+                updated = await update_user_stats_summary(user_id, user_stats_summary_input, db)
+                if not updated:
+                    return None
+                return UserStatsSummaryType(
+                    user_id=updated.user_id,
+                    total_sessions=updated.total_sessions,
+                    total_practice_duration=updated.total_practice_duration,
+                    average_wpm=updated.average_wpm,
+                    average_accuracy=updated.average_accuracy,
+                    best_wpm=updated.best_wpm,
+                    best_accuracy=updated.best_accuracy,
+                )
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
+
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
-    async def delete_user_stats_summary(self, info: Info, user_id: UUID) -> bool:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            return await delete_user_stats_summary(user_id, db)
+    @auth_required
+    async def delete_user_stats_summary(self, info: Info) -> bool:
+        try:
+            user_id = info.context["user"].id
+            async_session_maker = info.context["db_factory"]
+            async with async_session_maker() as db:
+                return await delete_user_stats_summary(user_id, db)
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
+
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e
 
     @strawberry.field()
-    async def user_stats_summary(self, info: Info, user_id: UUID) -> Optional[UserStatsSummaryType]:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            summary = await get_user_stats_summary_by_user_id(user_id, db)
-            if not summary:
-                return None
-            return UserStatsSummaryType(
-                user_id=summary.user_id,
-                total_sessions=summary.total_sessions,
-                total_practice_duration=summary.total_practice_duration,
-                average_wpm=summary.average_wpm,
-                average_accuracy=summary.average_accuracy,
-                best_wpm=summary.best_wpm,
-                best_accuracy=summary.best_accuracy,
-            )
+    @auth_required
+    async def user_stats_summary(self, info: Info) -> Optional[UserStatsSummaryType]:
+        try:
+            user_id = info.context["user"].id
+            async_session_maker = info.context["db_factory"]
+            async with async_session_maker() as db:
+                summary = await get_user_stats_summary_by_user_id(user_id, db)
+                if not summary:
+                    return None
+                return UserStatsSummaryType(
+                    user_id=summary.user_id,
+                    total_sessions=summary.total_sessions,
+                    total_practice_duration=summary.total_practice_duration,
+                    average_wpm=summary.average_wpm,
+                    average_accuracy=summary.average_accuracy,
+                    best_wpm=summary.best_wpm,
+                    best_accuracy=summary.best_accuracy,
+                )
+        except ValidationError as e:
+            # TODO: make print statements logs
+            print(f"Validation error: {e}")
+            raise GraphQLError("Invalid input") from e
+
+        except SQLAlchemyError as e:
+            print(f"DB error: {e}")
+            raise GraphQLError("Database failure") from e
+
+        except (KeyError, AttributeError) as e:
+            print(f"Context error: {e}")
+            raise GraphQLError("User not authenticated") from e
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise GraphQLError("Something went wrong") from e

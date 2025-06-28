@@ -2,7 +2,8 @@ import pytest
 
 
 @pytest.mark.anyio
-async def test_create_stats_session(graphql_query_fixture, test_users):
+async def test_create_stats_session(graphql_query_fixture, test_users, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     mutation = """
         mutation CreateStatsSession($userStatsSessionInput: UserStatsSessionInput!) {
             createUserStatsSession(userStatsSessionInput: $userStatsSessionInput) {
@@ -22,7 +23,7 @@ async def test_create_stats_session(graphql_query_fixture, test_users):
         }
     }
 
-    response = await graphql_query_fixture(mutation, variables)
+    response = await graphql_query_fixture(mutation, variables, headers)
     assert response.status_code == 200
     json_data = response.json()
     assert "errors" not in json_data
@@ -34,10 +35,11 @@ async def test_create_stats_session(graphql_query_fixture, test_users):
 
 
 @pytest.mark.anyio
-async def test_get_all_stats_sessions(graphql_query_fixture, test_users):
+async def test_get_all_stats_sessions(graphql_query_fixture, test_users, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     # Assumes session(s) created in fixture or earlier test
     query = """query { userStatsSessions { id wpm accuracy } }"""
-    response = await graphql_query_fixture(query, None)
+    response = await graphql_query_fixture(query, None, headers)
     assert response.status_code == 200
     json_data = response.json()
     assert "errors" not in json_data
@@ -45,7 +47,8 @@ async def test_get_all_stats_sessions(graphql_query_fixture, test_users):
 
 
 @pytest.mark.anyio
-async def test_get_stats_session_by_id(graphql_query_fixture, test_users):
+async def test_get_stats_session_by_id(graphql_query_fixture, test_users, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     # First create one to retrieve
     mutation = """
         mutation CreateStatsSession($userStatsSessionInput: UserStatsSessionInput!) {
@@ -63,7 +66,7 @@ async def test_get_stats_session_by_id(graphql_query_fixture, test_users):
             "practiceDuration": 10000
         }
     }
-    res = await graphql_query_fixture(mutation, variables)
+    res = await graphql_query_fixture(mutation, variables, headers)
     session_id = res.json()["data"]["createUserStatsSession"]["id"]
 
     query = """
@@ -75,14 +78,15 @@ async def test_get_stats_session_by_id(graphql_query_fixture, test_users):
             }
         }
     """
-    response = await graphql_query_fixture(query, {"sessionId": session_id})
+    response = await graphql_query_fixture(query, {"sessionId": session_id}, headers)
     assert response.status_code == 200
     data = response.json()["data"]["userStatsSession"]
     assert data["id"] == session_id
 
 
 @pytest.mark.anyio
-async def test_update_stats_session(graphql_query_fixture, test_user_stats_sessions):
+async def test_update_stats_session(graphql_query_fixture, test_user_stats_sessions, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     # First create one
     create_mutation = """
         mutation CreateStatsSession($userStatsSessionInput: UserStatsSessionInput!) {
@@ -100,7 +104,7 @@ async def test_update_stats_session(graphql_query_fixture, test_user_stats_sessi
             "practiceDuration": 60000
         }
     }
-    res = await graphql_query_fixture(create_mutation, variables)
+    res = await graphql_query_fixture(create_mutation, variables, headers)
     session_id = res.json()["data"]["createUserStatsSession"]["id"]
 
     update_mutation = """
@@ -119,7 +123,7 @@ async def test_update_stats_session(graphql_query_fixture, test_user_stats_sessi
             "accuracy": 95
         }
     }
-    res = await graphql_query_fixture(update_mutation, update_vars)
+    res = await graphql_query_fixture(update_mutation, update_vars, headers)
     assert res.status_code == 200
     data = res.json()["data"]["updateUserStatsSession"]
     assert data["wpm"] == 70
@@ -127,7 +131,8 @@ async def test_update_stats_session(graphql_query_fixture, test_user_stats_sessi
 
 
 @pytest.mark.anyio
-async def test_delete_stats_session(graphql_query_fixture, test_users):
+async def test_delete_stats_session(graphql_query_fixture, test_users, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     # Create first
     mutation = """
         mutation CreateStatsSession($userStatsSessionInput: UserStatsSessionInput!) {
@@ -144,7 +149,7 @@ async def test_delete_stats_session(graphql_query_fixture, test_users):
             "practiceDuration": 5000
         }
     }
-    res = await graphql_query_fixture(mutation, variables)
+    res = await graphql_query_fixture(mutation, variables, headers)
     session_id = res.json()["data"]["createUserStatsSession"]["id"]
 
     delete_mutation = """
@@ -152,7 +157,7 @@ async def test_delete_stats_session(graphql_query_fixture, test_users):
             deleteUserStatsSession(sessionId: $sessionId)
         }
     """
-    del_res = await graphql_query_fixture(delete_mutation, {"sessionId": session_id})
+    del_res = await graphql_query_fixture(delete_mutation, {"sessionId": session_id}, headers)
     assert del_res.status_code == 200
     assert del_res.json()["data"]["deleteUserStatsSession"] is True
 
@@ -164,6 +169,6 @@ async def test_delete_stats_session(graphql_query_fixture, test_users):
             }
         }
     """
-    check = await graphql_query_fixture(query, {"sessionId": session_id})
+    check = await graphql_query_fixture(query, {"sessionId": session_id}, headers)
     assert check.status_code == 200
     assert check.json()["data"]["userStatsSession"] is None

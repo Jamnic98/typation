@@ -12,9 +12,9 @@ from ..models.user_model import UserStatsSession
 
 @strawberry.input
 class UserCreateInput:
-    user_name: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    user_name: Optional[str] = strawberry.field(name="userName", default=None)
+    first_name: Optional[str] = strawberry.field(name="firstName", default=None)
+    last_name: Optional[str] = strawberry.field(name="lastName", default=None)
     email: str
     password: str
 
@@ -22,18 +22,19 @@ class UserCreateInput:
 @strawberry.type
 class UserType:
     id: UUID
-    user_name: Optional[str]
-    first_name: Optional[str]
-    last_name: Optional[str]
+
+    user_name: Optional[str] = strawberry.field(name="userName")
+    first_name: Optional[str] = strawberry.field(name="firstName")
+    last_name: Optional[str] = strawberry.field(name="lastName")
     email: str
-    # sessions: Optional[list[UserStatsSessionType]] = None
+
     summary: Optional[UserStatsSummaryType] = None
 
     @strawberry.field()
     async def sessions(self, info: Info) -> list[UserStatsSessionType]:
         async_session = info.context["db_factory"]
 
-        async with async_session() as db:  # <- Call it to get a session
+        async with async_session() as db:
             result = await db.execute(
                 select(UserStatsSession).where(UserStatsSession.user_id == self.id)
             )

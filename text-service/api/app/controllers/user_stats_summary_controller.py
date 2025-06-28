@@ -1,21 +1,20 @@
 from typing import Optional, Sequence
 from uuid import UUID
 
-from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from ..factories.database import get_db
 from ..models.user_model import UserStatsSummary
 from ..schemas.user_stats_summary_graphql import UserStatsSummaryCreateInput, UserStatsSummaryUpdateInput
 
 
 async def create_user_stats_summary(
+    user_id: UUID,
     summary_data: UserStatsSummaryCreateInput,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession
 ) -> UserStatsSummary:
     new_summary = UserStatsSummary(
-        user_id=summary_data.user_id,
+        user_id=user_id,
         total_sessions=summary_data.total_sessions,
         total_practice_duration=summary_data.total_practice_duration,
         average_wpm=summary_data.average_wpm,
@@ -31,30 +30,37 @@ async def create_user_stats_summary(
 
 async def get_user_stats_summary_by_user_id(
     user_id: UUID,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession
 ) -> Optional[UserStatsSummary]:
-    return await db.get(UserStatsSummary, user_id)
+    result = await db.execute(
+        select(UserStatsSummary).where(UserStatsSummary.user_id == user_id)
+    )
+    return result.scalar_one_or_none()
 
 
 async def get_all_user_stats_summaries(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession
 ) -> Sequence[UserStatsSummary]:
     result = await db.execute(select(UserStatsSummary))
     return result.scalars().all()
 
 
 async def update_user_stats_summary(
-    update_data: UserStatsSummaryUpdateInput,
     user_id: UUID,
-    db: AsyncSession = Depends(get_db)
-) -> type[UserStatsSummary] | None:
-    summary = await db.get(UserStatsSummary, user_id)
+    update_data: UserStatsSummaryUpdateInput,
+    db: AsyncSession
+) -> Optional[UserStatsSummary]:
+    result = await db.execute(
+        select(UserStatsSummary).where(UserStatsSummary.user_id == user_id)
+    )
+    summary = result.scalar_one_or_none()
     if not summary:
         return None
 
     update_fields = {
         field: value for field, value in update_data.__dict__.items() if value is not None
     }
+
     for field, value in update_fields.items():
         setattr(summary, field, value)
 
@@ -65,9 +71,12 @@ async def update_user_stats_summary(
 
 async def delete_user_stats_summary(
     user_id: UUID,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession
 ) -> bool:
-    summary = await db.get(UserStatsSummary, user_id)
+    result = await db.execute(
+        select(UserStatsSummary).where(UserStatsSummary.user_id == user_id)
+    )
+    summary = result.scalar_one_or_none()
     if not summary:
         return False
 

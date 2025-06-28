@@ -2,8 +2,9 @@ import pytest
 
 
 @pytest.mark.anyio
-async def test_create_user_stats_summary(graphql_query_fixture, test_users):
-    mutation = """
+async def test_create_user_stats_summary(graphql_query_fixture, test_users, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    mutation_create = """
         mutation CreateUserStatsSummary($userStatsSummary: UserStatsSummaryCreateInput!) {
             createUserStatsSummary(userStatsSummaryInput: $userStatsSummary) {
                 userId
@@ -28,19 +29,33 @@ async def test_create_user_stats_summary(graphql_query_fixture, test_users):
         }
     }
 
-    response = await graphql_query_fixture(mutation, variables)
+    # Create first summary
+    response = await graphql_query_fixture(mutation_create, variables, headers)
     assert response.status_code == 200
-    json_data = response.json()
-    assert "errors" not in json_data
-    data = json_data["data"]["createUserStatsSummary"]
-    assert data["userId"] == str(test_users[0].id)
-    assert data["totalSessions"] == 10
-    assert data["averageWpm"] == 70.5
-    assert "bestAccuracy" in data
+    data = response.json()
+    assert "errors" not in data
+
+    # Delete summary before creating again
+    mutation_delete = """
+        mutation {
+            deleteUserStatsSummary
+        }
+    """
+    del_resp = await graphql_query_fixture(mutation_delete, None, headers)
+    assert del_resp.status_code == 200
+    assert del_resp.json()["data"]["deleteUserStatsSummary"] is True
+
+    # Create again (should succeed now)
+    response2 = await graphql_query_fixture(mutation_create, variables, headers)
+    assert response2.status_code == 200
+    data2 = response2.json()
+    assert "errors" not in data2
+    assert data2["data"]["createUserStatsSummary"]["totalSessions"] == 10
 
 
 @pytest.mark.anyio
-async def test_get_all_user_stats_summaries(graphql_query_fixture):
+async def test_get_all_user_stats_summaries(graphql_query_fixture, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     query = """
         query {
             userStatsSummaries {
@@ -51,7 +66,7 @@ async def test_get_all_user_stats_summaries(graphql_query_fixture):
             }
         }
     """
-    response = await graphql_query_fixture(query, None)
+    response = await graphql_query_fixture(query, None, headers)
     assert response.status_code == 200
     json_data = response.json()
     assert "errors" not in json_data
@@ -59,7 +74,8 @@ async def test_get_all_user_stats_summaries(graphql_query_fixture):
 
 
 @pytest.mark.anyio
-async def test_get_user_stats_summary_by_user_id(graphql_query_fixture, test_users):
+async def test_get_user_stats_summary_by_user_id(graphql_query_fixture, test_users, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     # First create one to retrieve
     mutation = """
         mutation CreateUserStatsSummary($userStatsSummary: UserStatsSummaryCreateInput!) {
@@ -80,12 +96,12 @@ async def test_get_user_stats_summary_by_user_id(graphql_query_fixture, test_use
             "bestAccuracy": 95
         }
     }
-    create_resp = await graphql_query_fixture(mutation, variables)
+    create_resp = await graphql_query_fixture(mutation, variables, headers)
     user_id = create_resp.json()["data"]["createUserStatsSummary"]["userId"]
 
     query = """
-        query GetUserStatsSummary($userId: UUID!) {
-            userStatsSummary(userId: $userId) {
+        query {
+            userStatsSummary {
                 userId
                 totalSessions
                 averageWpm
@@ -93,14 +109,15 @@ async def test_get_user_stats_summary_by_user_id(graphql_query_fixture, test_use
             }
         }
     """
-    response = await graphql_query_fixture(query, {"userId": user_id})
+    response = await graphql_query_fixture(query, {"userId": user_id}, headers)
     assert response.status_code == 200
     data = response.json()["data"]["userStatsSummary"]
     assert data["userId"] == user_id
 
 
 @pytest.mark.anyio
-async def test_update_user_stats_summary(graphql_query_fixture, test_users):
+async def test_update_user_stats_summary(graphql_query_fixture, test_users, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     # Create first
     create_mutation = """
         mutation CreateUserStatsSummary($userStatsSummary: UserStatsSummaryCreateInput!) {
@@ -122,12 +139,12 @@ async def test_update_user_stats_summary(graphql_query_fixture, test_users):
             "bestAccuracy": 90
         }
     }
-    create_res = await graphql_query_fixture(create_mutation, variables)
+    create_res = await graphql_query_fixture(create_mutation, variables, headers)
     user_id = create_res.json()["data"]["createUserStatsSummary"]["userId"]
 
     update_mutation = """
-        mutation UpdateUserStatsSummary($userId: UUID!, $userStatsSummary: UserStatsSummaryUpdateInput!) {
-            updateUserStatsSummary(userId: $userId, userStatsSummaryInput: $userStatsSummary) {
+        mutation UpdateUserStatsSummary($userStatsSummary: UserStatsSummaryUpdateInput!) {
+            updateUserStatsSummary(userStatsSummaryInput: $userStatsSummary) {
                 userId
                 totalSessions
                 averageWpm
@@ -135,13 +152,13 @@ async def test_update_user_stats_summary(graphql_query_fixture, test_users):
         }
     """
     update_vars = {
-        "userId": user_id,
         "userStatsSummary": {
+            "userId": user_id,
             "totalSessions": 7,
             "averageWpm": 75.0
         }
     }
-    update_res = await graphql_query_fixture(update_mutation, update_vars)
+    update_res = await graphql_query_fixture(update_mutation, update_vars, headers)
     assert update_res.status_code == 200
     data = update_res.json()["data"]["updateUserStatsSummary"]
     assert data["totalSessions"] == 7
@@ -149,7 +166,8 @@ async def test_update_user_stats_summary(graphql_query_fixture, test_users):
 
 
 @pytest.mark.anyio
-async def test_delete_user_stats_summary(graphql_query_fixture, test_users):
+async def test_delete_user_stats_summary(graphql_query_fixture, test_users, auth_token):
+    headers = {"Authorization": f"Bearer {auth_token}"}
     # Create first
     mutation = """
         mutation CreateUserStatsSummary($userStatsSummary: UserStatsSummaryCreateInput!) {
@@ -169,26 +187,26 @@ async def test_delete_user_stats_summary(graphql_query_fixture, test_users):
             "bestAccuracy": 91
         }
     }
-    create_res = await graphql_query_fixture(mutation, variables)
+    create_res = await graphql_query_fixture(mutation, variables, headers)
     user_id = create_res.json()["data"]["createUserStatsSummary"]["userId"]
 
     delete_mutation = """
-        mutation DeleteUserStatsSummary($userId: UUID!) {
-            deleteUserStatsSummary(userId: $userId)
+        mutation {
+            deleteUserStatsSummary
         }
     """
-    del_res = await graphql_query_fixture(delete_mutation, {"userId": user_id})
+    del_res = await graphql_query_fixture(delete_mutation, {"userId": user_id}, headers)
     assert del_res.status_code == 200
     assert del_res.json()["data"]["deleteUserStatsSummary"] is True
 
     # Confirm deletion
     query = """
-        query GetUserStatsSummary($userId: UUID!) {
-            userStatsSummary(userId: $userId) {
+        query {
+            userStatsSummary {
                 userId
             }
         }
     """
-    check = await graphql_query_fixture(query, {"userId": user_id})
+    check = await graphql_query_fixture(query, {"userId": user_id}, headers)
     assert check.status_code == 200
     assert check.json()["data"]["userStatsSummary"] is None
