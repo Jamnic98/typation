@@ -1,6 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.asyncio
 async def test_register_user(async_client: AsyncClient):
     response = await async_client.post("/auth/register", json={
@@ -14,8 +15,6 @@ async def test_register_user(async_client: AsyncClient):
     assert response.status_code == 200
     data = response.json()
     assert data["user"]["email"] == "test@example.com"
-    print(data)
-    # assert "id" in data
 
 
 @pytest.mark.asyncio

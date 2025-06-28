@@ -31,9 +31,10 @@ export const Register = () => {
       if (!response.ok) throw new Error('Registration failed')
 
       const data = await response.json()
+      // TODO: remove console.log in production
       console.log('Registration success:', data)
 
-      // ✅ Immediately login using credentials
+      // login using credentials
       await login({ email: form.email, password: form.password })
     } catch (err: unknown) {
       if (err instanceof Error) alert(err.message)

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { User, UserContextType, UserLogin } from 'types/global'
+import { type User, type UserContextType, type UserLogin } from 'types/global'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 const authEndpoint = `${baseUrl}/auth`

@@ -1,7 +1,8 @@
 from functools import wraps
 
+from graphql import GraphQLError
 from strawberry.types import Info
-from strawberry.exceptions import GraphQLError
+
 
 
 def require_auth(info: Info):

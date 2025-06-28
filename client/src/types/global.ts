@@ -99,3 +99,21 @@ export type UserContextType = {
   login: (userLogin: UserLogin) => Promise<void>
   logout: () => void
 }
+
+export type GraphQLResponse<T> = {
+  data: T
+  errors?: { message: string }[]
+}
+
+export type UpdateUserResponse = {
+  updateUser: {
+    id: string
+    user_name: string
+    name: string
+    email: string
+  }
+}
+
+export type DeleteUserResponse = {
+  deleteUser: boolean
+}

@@ -1,4 +1,4 @@
-import { CursorStyles, FontSizes, SpaceSymbols, State, type FontSettings } from 'types'
+import { CursorStyles, FontSizes, SpaceSymbols, type State, type FontSettings } from 'types'
 
 export const defaultFontSettings: FontSettings = {
   textColor: 'black',

@@ -1,5 +1,11 @@
 import { type CharacterProps } from 'components/Character'
-import { Action, CursorStyles, State, type TypedStatus, type TypingStats } from 'types/global'
+import {
+  CursorStyles,
+  type Action,
+  type State,
+  type TypedStatus,
+  type TypingStats,
+} from 'types/global'
 import { AVERAGE_WORD_LENGTH, TYPING_WIDGET_INITIAL_STATE } from './constants'
 
 export const randomRotation = Math.floor(Math.random() * 201) - 100
