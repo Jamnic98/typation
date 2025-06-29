@@ -1,10 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { loginUser, logoutUser } from 'utils/auth'
 import { type User, type UserContextType, type UserLogin } from 'types/global'
-
-const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
-const authEndpoint = `${baseUrl}/auth`
+import { useAlert } from 'components/AlertContext'
 
 const UserContext = createContext<UserContextType | null>(null)
 
@@ -16,7 +15,11 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate()
+  const { showAlert } = useAlert()
   const [user, setUser] = useState<User | null>(null)
+  const [authError] = useState<string | null>(null)
+  // const [isLoading, setIsLoading] = useState<boolean>(false)
+  // const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
 
   useEffect(() => {
     try {
@@ -33,38 +36,26 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const { email, password } = userLogin
       if (!email || !password) throw new Error('Email and password are required')
 
-      const res = await fetch(`${authEndpoint}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (!res.ok) throw new Error('Login failed')
-
-      const { access_token } = await res.json()
-      localStorage.setItem('token', access_token)
-
-      // fetch user profile
-      const meRes = await fetch(`${authEndpoint}/me`, {
-        headers: { Authorization: `Bearer ${access_token}` },
-      })
-
-      if (!meRes.ok) throw new Error('Failed to fetch user profile')
-
-      const userData = await meRes.json()
+      // Attempt to login the user
+      const userData = await loginUser(userLogin)
       setUser(userData)
       localStorage.setItem('user', JSON.stringify(userData))
       navigate('/')
     } catch (err: unknown) {
-      if (err instanceof Error) alert(err.message)
-      else alert('Unexpected login error')
+      const message = err instanceof Error ? err.message : 'Unexpected login error'
+      showAlert({
+        type: 'error',
+        title: 'Login Failed',
+        message,
+      })
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('user')
-  }
+  const logout = () => logoutUser()
 
-  return <UserContext.Provider value={{ user, login, logout }}>{children}</UserContext.Provider>
+  return (
+    <UserContext.Provider value={{ user, login, logout, authError }}>
+      {children}
+    </UserContext.Provider>
+  )
 }

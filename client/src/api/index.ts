@@ -1,2 +1,2 @@
-export * from './textGeneration'
-export * from './userStatistics'
+export * from './rest/textGeneration'
+export * from './graphql/userStatistics'

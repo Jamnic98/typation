@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useUser } from 'context/UserContext'
+import { useUser } from 'api/context/UserContext'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 

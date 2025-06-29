@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
 
 import { Header, Footer } from 'components'
-import { useUser } from 'context/UserContext'
+import { useUser } from 'api/context/UserContext'
 
 export const Layout = () => {
   const { user } = useUser()

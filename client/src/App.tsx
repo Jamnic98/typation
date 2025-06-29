@@ -2,26 +2,31 @@ import { Route, Routes } from 'react-router-dom'
 
 import { Layout } from 'components'
 import { Home, Login, ForgotPassword, Register, ResetPassword } from 'pages'
-import { UserProvider } from 'context/UserContext'
+import { UserProvider } from 'api/context/UserContext'
+import { AlertProvider } from 'components/AlertContext'
+import { AlertBanner } from 'components/AlertBanner'
 
 const App = () => {
   return (
-    <UserProvider>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-        </Route>
+    <AlertProvider>
+      <AlertBanner position="bottom-right" />
+      <UserProvider>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+          </Route>
 
-        <Route path="/auth" element={<Layout />}>
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-          <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="reset-password/:token" element={<ResetPassword />} />
-        </Route>
+          <Route path="/auth" element={<Layout />}>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password/:token" element={<ResetPassword />} />
+          </Route>
 
-        <Route path="*" element={<div>Not Found</div>} />
-      </Routes>
-    </UserProvider>
+          <Route path="*" element={<div>Not Found</div>} />
+        </Routes>
+      </UserProvider>
+    </AlertProvider>
   )
 }
 

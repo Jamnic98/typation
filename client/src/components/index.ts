@@ -1,3 +1,4 @@
+export * from './Alert'
 export * from './Accuracy'
 export * from './Character'
 export * from './Footer'

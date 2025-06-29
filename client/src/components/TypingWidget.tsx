@@ -58,13 +58,16 @@ export const TypingWidget = () => {
   }, [state.runStopWatch])
 
   const reset = () => {
-    dispatch({ type: 'RESET_SESSION' })
     startTimestamp.current = 0
+    dispatch({ type: 'RESET_SESSION' })
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
   }
 
   const onStart = () => {
     reset()
+    dispatch({ type: 'SET_STOPWATCH_TIME', payload: 0 }) // reset stopwatch time here
+    dispatch({ type: 'SET_WPM', payload: 0 }) // reset WPM
+    dispatch({ type: 'SET_ACCURACY', payload: 0 }) // reset accuracy
     startTimestamp.current = Date.now()
     dispatch({ type: 'START' })
   }
@@ -113,14 +116,15 @@ export const TypingWidget = () => {
   }
 
   const updateWpm = (targetText: string, typedText: string) => {
-    const wpm = calculateWpm(targetText, typedText, state.stopWatchTime)
+    const now = Date.now()
+    const elapsed = startTimestamp.current ? now - startTimestamp.current : 0
+    const wpm = calculateWpm(targetText, typedText, elapsed)
     dispatch({ type: 'SET_WPM', payload: wpm })
   }
 
   return state.text ? (
     <div id="typing-widget" data-testid="typing-widget">
       <TypingWidgetText
-        // key={text}
         onStart={onStart}
         onComplete={onComplete}
         onType={onType}

@@ -1,4 +1,4 @@
-import { makeGraphQLRequest } from './helpers'
+import { makeGraphQLRequest } from '../helpers'
 import { type DeleteUserResponse, type UpdateUserResponse, type User } from 'types/global'
 
 // TODO: Uncomment when needed

@@ -98,6 +98,7 @@ export type UserContextType = {
   user: User | null
   login: (userLogin: UserLogin) => Promise<void>
   logout: () => void
+  authError: string | null
 }
 
 export type GraphQLResponse<T> = {

@@ -52,6 +52,15 @@ export const calculateAccuracy = (targetText: string, typedText: string) => {
 }
 
 export const calculateWpm = (targetText: string, typedText: string, elapsedTime: number) => {
+  console.log(
+    '[calculateWpm] targetText:',
+    targetText,
+    'typedText:',
+    typedText,
+    'elapsedTime:',
+    elapsedTime
+  )
+
   const len = Math.min(targetText.length, typedText.length)
   let correct = 0
 
@@ -75,11 +84,8 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
 
     case 'RESET_SESSION':
       return {
-        ...state,
-        wpm: 0,
-        accuracy: 0,
-        stopWatchTime: 0,
-        runStopWatch: false,
+        ...TYPING_WIDGET_INITIAL_STATE,
+        text: state.text,
       }
 
     case 'RESET_ALL':
