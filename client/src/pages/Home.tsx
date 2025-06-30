@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router-dom'
 export const Home = () => {
   const { user, logout } = useUser()
   const navigate = useNavigate()
-  // TODO: remove this console log in production
-  console.log('[Home] user:', user)
+
   return (
     <article className="justify-center items-center flex flex-col">
       <div data-testid="home-user-name">{user?.user_name ?? 'n/a'}</div>
       <TypingWidget />
+
+      {/* LOGIN / LOGOUT */}
       {user ? (
         <button
           onClick={logout}

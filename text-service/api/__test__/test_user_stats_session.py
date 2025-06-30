@@ -10,13 +10,11 @@ async def test_create_stats_session(graphql_query_fixture, test_users, auth_toke
                 id
                 wpm
                 accuracy
-                createdAt
             }
         }
     """
     variables = {
         "userStatsSessionInput": {
-            "userId": str(test_users[0].id),
             "wpm": 75,
             "accuracy": 96,
             "practiceDuration": 120000
@@ -31,7 +29,6 @@ async def test_create_stats_session(graphql_query_fixture, test_users, auth_toke
     assert data["wpm"] == 75
     assert data["accuracy"] == 96
     assert "id" in data
-    assert "createdAt" in data
 
 
 @pytest.mark.anyio
@@ -60,7 +57,6 @@ async def test_get_stats_session_by_id(graphql_query_fixture, test_users, auth_t
     """
     variables = {
         "userStatsSessionInput": {
-            "userId": str(test_users[0].id),
             "wpm": 90,
             "accuracy": 99,
             "practiceDuration": 10000
@@ -98,7 +94,6 @@ async def test_update_stats_session(graphql_query_fixture, test_user_stats_sessi
     """
     variables = {
         "userStatsSessionInput": {
-            "userId": str(test_user_stats_sessions[0].user_id),
             "wpm": 55,
             "accuracy": 85,
             "practiceDuration": 60000
@@ -143,7 +138,6 @@ async def test_delete_stats_session(graphql_query_fixture, test_users, auth_toke
     """
     variables = {
         "userStatsSessionInput": {
-            "userId": str(test_users[0].id),
             "wpm": 100,
             "accuracy": 100,
             "practiceDuration": 5000

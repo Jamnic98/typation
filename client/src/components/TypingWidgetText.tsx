@@ -1,24 +1,27 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type RefObject } from 'react'
 
 import { Character, type CharacterProps } from 'components'
 import { defaultFontSettings } from 'utils/constants'
-import { type FontSettings, TypedStatus } from 'types'
+import { TypedStatus, type FontSettings, type KeyEvent } from 'types'
+import { findDeleteFrom } from 'utils/helpers'
 
 export interface TypingWidgetTextProps {
   textToType: string | null
+  keyEventQueue: RefObject<KeyEvent[]>
   fontSettings?: FontSettings
   onStart: () => void
-  onComplete: (charObjArray: CharacterProps[], cursorIndex: number) => Promise<void>
-  onType: (charObjArray: CharacterProps[], cursorIndex: number, typedStatus?: TypedStatus) => void
-  reset?: () => void
+  onComplete: () => Promise<void>
+  onType?: () => void
+  reset: () => void
 }
 
 export const TypingWidgetText = ({
   textToType,
   fontSettings = defaultFontSettings,
+  keyEventQueue,
   onStart,
   onComplete,
-  onType,
+  // onType,
   reset,
 }: TypingWidgetTextProps) => {
   const [cursorIndex, setCursorIndex] = useState<number>(0)
@@ -45,7 +48,7 @@ export const TypingWidgetText = ({
   }
 
   const handleBlur = () => {
-    reset?.()
+    reset()
     setCursorIndex(0)
     setIsFocused(false)
     textToType && setCharObjArray(strToCharObjArray(textToType))
@@ -98,13 +101,18 @@ export const TypingWidgetText = ({
 
     const updated = updateCharObjArray(typedStatus, lastTypedStatus, key)
     if (updated) {
-      onType(updated, cursorIndex, typedStatus)
-    }
-
-    if (cursorIndex === charObjArray.length - 1) {
-      await onComplete(charObjArray, cursorIndex)
-      setCursorIndex(0)
-      return
+      keyEventQueue.current.push({
+        timestamp: Date.now(),
+        key,
+        typedStatus,
+        cursorIndex,
+      })
+      // onType()
+      if (cursorIndex === charObjArray.length - 1) {
+        setCursorIndex(0)
+        await onComplete()
+        return
+      }
     }
 
     shiftCursor(1)
@@ -115,35 +123,40 @@ export const TypingWidgetText = ({
 
     const prevIndex = cursorIndex - 1
     const prevChar = charObjArray[prevIndex]
+    if (!prevChar || prevChar.typedStatus !== TypedStatus.MISS) return
 
-    if (prevChar.typedStatus === TypedStatus.MISS) {
-      let updated = [...charObjArray]
+    let updated = [...charObjArray]
 
-      if (ctrl) {
-        const findDeleteFrom = (index: number): number =>
-          index < 0 || updated[index].typedStatus !== TypedStatus.MISS
-            ? index + 1
-            : findDeleteFrom(index - 1)
+    if (ctrl) {
+      // Find start index of consecutive mistyped characters backward (iterative)
+      const deleteFrom = findDeleteFrom(updated, prevIndex)
+      const deleteCount = prevIndex - deleteFrom + 1
 
-        const deleteFrom = findDeleteFrom(prevIndex)
-
-        updated = updated.map((char, idx) =>
-          idx >= deleteFrom && idx <= prevIndex
-            ? { ...char, typedStatus: TypedStatus.NONE, char: textToType[idx] }
-            : char
-        )
-
-        setCharObjArray(updated)
-        setCursorIndex(deleteFrom)
-      } else {
-        updated[prevIndex] = {
-          ...updated[prevIndex],
-          char: textToType[prevIndex],
-          typedStatus: TypedStatus.NONE,
-        }
-        setCharObjArray(updated)
-        setCursorIndex(prevIndex)
+      // Remove corresponding key events from queue
+      for (let i = 0; i < deleteCount; i++) {
+        keyEventQueue.current.pop()
       }
+
+      // Reset chars in the range to initial state
+      updated = updated.map((char, idx) =>
+        idx >= deleteFrom && idx <= prevIndex
+          ? { ...char, typedStatus: TypedStatus.NONE, char: textToType[idx] }
+          : char
+      )
+
+      setCharObjArray(updated)
+      setCursorIndex(deleteFrom)
+    } else {
+      // Remove last key event for single backspace
+      keyEventQueue.current.pop()
+
+      updated[prevIndex] = {
+        ...updated[prevIndex],
+        char: textToType[prevIndex],
+        typedStatus: TypedStatus.NONE,
+      }
+      setCharObjArray(updated)
+      setCursorIndex(prevIndex)
     }
   }
 

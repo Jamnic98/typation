@@ -1,4 +1,6 @@
-from random import shuffle, choice
+from functools import lru_cache
+from pathlib import Path
+from random import shuffle, sample
 
 from fastapi import APIRouter
 
@@ -7,14 +9,13 @@ text_router = APIRouter(prefix='/text')
 
 @text_router.post('/generate-practice-text')
 async def generate_practice_text():
-    input_texts = [
-        'the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog',
-        'waltz bad nymph for quick jigs vex waltz bad nymph for quick jigs vex',
-        'the five boxing wizards jump quickly the five boxing wizards jump quickly',
-        'jackdaws love my big sphinx of quartz jackdaws love my big sphinx of quartz',
-        'how vexingly quick daft zebras jump how vexingly quick daft zebras jump'
-    ]
-    random_text = choice(input_texts)
-    words = random_text.split(' ')
-    shuffle(words)
-    return {'text': ' '.join(words)}
+    word_list = sample(load_word_list(), 25)
+    shuffle(word_list)
+    return {'text': ' '.join(word_list)}
+
+
+@lru_cache()
+def load_word_list():
+    root_path = Path(__file__).resolve().parent.parent.parent.parent
+    word_file = root_path / 'text.txt'
+    return [line.strip() for line in word_file.read_text(encoding='utf-8').splitlines() if line.strip()]

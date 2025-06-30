@@ -1,9 +1,9 @@
-import { makeGraphQLRequest } from '../helpers'
-import { type DeleteUserResponse, type UpdateUserResponse, type User } from 'types/global'
+// import { useGraphQLRequest } from '../helpers'
+// import { type DeleteUserResponse, type UpdateUserResponse, type User } from 'types/global'
 
 // TODO: Uncomment when needed
 // export const fetchAllUsers = async (): Promise<User[]> => {
-//   const response = await makeGraphQLRequest(`
+//   const response = await useGraphQLRequest(`
 //     query GetAllUsers {
 //       users {
 //         id
@@ -18,7 +18,7 @@ import { type DeleteUserResponse, type UpdateUserResponse, type User } from 'typ
 
 // TODO: Uncomment when needed
 // export const createUser = async (userData: User): Promise<User> => {
-//   const response = await makeGraphQLRequest(
+//   const response = await useGraphQLRequest(
 //     `
 //       mutation CreateUser($input: UserCreateInput!) {
 //         createUser(input: $input) {
@@ -34,35 +34,37 @@ import { type DeleteUserResponse, type UpdateUserResponse, type User } from 'typ
 //   return response.data.createUser
 // }
 
-export const updateUser = async (userData: Partial<User>): Promise<User> => {
-  const response = await makeGraphQLRequest<UpdateUserResponse, { input: Partial<User> }>(
-    `
-      mutation UpdateUser($input: UserUpdateInput!) {
-        updateUser(input: $input) {
-          id
-        }
-      }
-    `,
-    {
-      input: {
-        ...userData,
-      },
-    }
-  )
+// export const updateUser = async (
+//   token: string | undefined,
+//   userData: Partial<User>
+// ): Promise<User> => {
+//   const response = await useGraphQLRequest<UpdateUserResponse, { input: Partial<User> }>(
+//     `
+//       mutation UpdateUser($input: UserUpdateInput!) {
+//         updateUser(input: $input) {
+//           id
+//         }
+//       }
+//     `,
+//     { input: userData },
+//     token
+//   )
 
-  return response.updateUser
-}
+//   return response.updateUser
+// }
 
-export const deleteUser = async (): Promise<void> => {
-  const response = await makeGraphQLRequest<DeleteUserResponse>(
-    `
-      mutation {
-        deleteUser
-      }
-    `
-  )
+// export const deleteUser = async (token: string | undefined): Promise<void> => {
+//   const response = await useGraphQLRequest<DeleteUserResponse>(
+//     `
+//       mutation {
+//         deleteUser
+//       }
+//     `,
+//     undefined,
+//     token
+//   )
 
-  if (!response.deleteUser) {
-    throw new Error('Failed to delete user.')
-  }
-}
+//   if (!response.deleteUser) {
+//     throw new Error('Failed to delete user.')
+//   }
+// }

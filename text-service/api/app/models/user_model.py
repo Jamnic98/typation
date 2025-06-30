@@ -4,7 +4,7 @@ from uuid import uuid4
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.types import Integer, Float, DateTime
 
 from ..factories.database import Base
@@ -28,7 +28,6 @@ class User(Base):
     )
 
 
-
 class UserStatsSession(Base):
     __tablename__ = "user_stats_session"
 
@@ -37,10 +36,11 @@ class UserStatsSession(Base):
     wpm: Mapped[Optional[int]] = mapped_column(Integer)
     accuracy: Mapped[Optional[int]] = mapped_column(Integer)
     practice_duration: Mapped[Optional[int]] = mapped_column(Integer)  # milliseconds
-    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())  # pylint: disable=not-callable
-    ended_at: Mapped[Optional[DateTime]] = mapped_column(DateTime)
+    start_time: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # pylint: disable=not-callable
+    end_time: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship("User", back_populates="sessions")
+    details: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
 
 class UserStatsSummary(Base):

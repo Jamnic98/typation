@@ -12,16 +12,30 @@ from ..schemas.user_stats_session_schema import UserStatsSessionCreate
 
 
 async def create_user_stats_session(
-        session_data: UserStatsSessionCreate,
-        db: AsyncSession = Depends(get_db)
+    user_id: UUID,
+    input_data: UserStatsSessionCreate,
+    db: AsyncSession = Depends(get_db)
 ) -> UserStatsSession:
+    # Create full model with user_id from context
+    session_data = UserStatsSessionCreate(
+        wpm=input_data.wpm,
+        accuracy=input_data.accuracy,
+        practice_duration=input_data.practice_duration,
+        start_time=input_data.start_time,
+        end_time=input_data.end_time,
+        details=input_data.details
+    )
+
     new_session = UserStatsSession(
-        user_id=session_data.user_id,
+        user_id=user_id,
         wpm=session_data.wpm,
         accuracy=session_data.accuracy,
         practice_duration=session_data.practice_duration,
-        ended_at=getattr(session_data, "ended_at", None),  # Optional
+        start_time=session_data.start_time,
+        end_time=session_data.end_time,
+        details=session_data.details.model_dump() if session_data.details else None
     )
+
     db.add(new_session)
     await db.commit()
     await db.refresh(new_session)

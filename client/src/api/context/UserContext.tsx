@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { loginUser, logoutUser } from 'utils/auth'
+import { loginUser } from 'utils/auth'
 import { type User, type UserContextType, type UserLogin } from 'types/global'
 import { useAlert } from 'components/AlertContext'
 
@@ -17,17 +17,18 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate()
   const { showAlert } = useAlert()
   const [user, setUser] = useState<User | null>(null)
-  const [authError] = useState<string | null>(null)
-  // const [isLoading, setIsLoading] = useState<boolean>(false)
-  // const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [token, setToken] = useState<string | null>(null)
 
   useEffect(() => {
     try {
       const savedUser = localStorage.getItem('user')
+      const savedToken = localStorage.getItem('token')
       if (savedUser && savedUser !== 'undefined') setUser(JSON.parse(savedUser))
+      if (savedToken) setToken(savedToken)
     } catch (err) {
       console.warn('Failed to parse saved user from localStorage:', err)
       localStorage.removeItem('user')
+      localStorage.removeItem('token')
     }
   }, [])
 
@@ -36,9 +37,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const { email, password } = userLogin
       if (!email || !password) throw new Error('Email and password are required')
 
-      // Attempt to login the user
       const userData = await loginUser(userLogin)
       setUser(userData)
+
+      // **also set token state here from localStorage or return token from loginUser**
+      const savedToken = localStorage.getItem('token')
+      if (savedToken) setToken(savedToken)
+
       localStorage.setItem('user', JSON.stringify(userData))
       navigate('/')
     } catch (err: unknown) {
@@ -51,10 +56,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
-  const logout = () => logoutUser()
+  const logout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setUser(null)
+    setToken(null)
+    window.location.reload()
+  }
 
   return (
-    <UserContext.Provider value={{ user, login, logout, authError }}>
+    <UserContext.Provider value={{ user, token, login, logout, authError: null }}>
       {children}
     </UserContext.Provider>
   )

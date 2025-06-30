@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from strawberry.types import Info
 
-from ...auth.helpers import auth_required
+from ...auth.helpers import auth_required, normalise_user_stats_input
 from ...controllers.user_stats_summary_controller import update_user_stats_summary, delete_user_stats_summary, \
     get_user_stats_summary_by_user_id, create_user_stats_summary
 from ...controllers.users_controller import create_user, update_user, delete_user
@@ -28,8 +28,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class UsersMutation:
     @strawberry.mutation()
     async def create_user(self, info: Info, user_input: UserCreateInput) -> UserType:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
+        async with info.context["db_factory"]() as db:
             # Hash the incoming plaintext password
             hashed_password = pwd_context.hash(user_input.password)
 
@@ -62,8 +61,7 @@ class UsersMutation:
     ) -> UserType | None:
         try:
             user_id = info.context["user"].id
-            async_session_maker = info.context["db_factory"]
-            async with async_session_maker() as db:
+            async with info.context["db_factory"]() as db:
                 user_update = UserUpdate(user_name=user_name)
                 user = await update_user(user_update, user_id, db)
                 return UserType(
@@ -96,8 +94,7 @@ class UsersMutation:
     async def delete_user(self, info: Info) -> bool:
         try:
             user_id = info.context["user"].id
-            async_session_maker = info.context["db_factory"]
-            async with async_session_maker() as db:
+            async with info.context["db_factory"]() as db:
                 return await delete_user(user_id, db)
 
         except ValidationError as e:
@@ -117,26 +114,37 @@ class UsersMutation:
             print(f"Unexpected error: {e}")
             raise GraphQLError("Something went wrong") from e
 
-    @strawberry.mutation()
+    @strawberry.mutation(name="createUserStatsSession")
     @auth_required
-    async def create_user_stats_session(
+    async def create_user_stats_session_resolver(
         self, info: Info, user_stats_session_input: UserStatsSessionInput
     ) -> UserStatsSessionType:
+        def to_dict(obj):
+            if isinstance(obj, list):
+                return [to_dict(item) for item in obj]
+            if hasattr(obj, "__dict__"):
+                return {k: to_dict(v) for k, v in obj.__dict__.items() if not k.startswith("_")}
+            return obj
+
         try:
-            user_id = info.context["user"].id
-            async_session_maker = info.context["db_factory"]
-            async with async_session_maker() as db:
+            user = info.context["user"]
+            if not user:
+                raise GraphQLError("User not authenticated")
+
+            async with info.context["db_factory"]() as db:
                 # convert to Pydantic model for DB logic
-                session_data = UserStatsSessionCreate(**user_stats_session_input.__dict__)
-                created = await create_user_stats_session(session_data, db)
+                input_dict = to_dict(user_stats_session_input)
+                cleaned_input = normalise_user_stats_input(input_dict)
+                session_data = UserStatsSessionCreate(**cleaned_input)
+                created = await create_user_stats_session(user.id, session_data, db)
                 return UserStatsSessionType(
                     id=created.id,
-                    user_id=user_id,
+                    user_id=user.id,
                     wpm=created.wpm,
                     accuracy=created.accuracy,
                     practice_duration=created.practice_duration,
-                    created_at=created.created_at,
-                    ended_at=created.ended_at,
+                    start_time=created.start_time,
+                    end_time=created.end_time,
                 )
         except ValidationError as e:
             # TODO: make print statements logs
@@ -161,8 +169,7 @@ class UsersMutation:
         self, info: Info, session_id: UUID, user_stats_session_input: UserStatsSessionUpdateInput
     ) -> Optional[UserStatsSessionType]:
         try:
-            async_session_maker = info.context["db_factory"]
-            async with async_session_maker() as db:
+            async with info.context["db_factory"]() as db:
                 updated = await update_user_stats_session(user_stats_session_input, session_id, db)
                 if not updated:
                     return None
@@ -172,9 +179,10 @@ class UsersMutation:
                     wpm=updated.wpm,
                     accuracy=updated.accuracy,
                     practice_duration=updated.practice_duration,
-                    created_at=updated.created_at,
-                    ended_at=updated.ended_at,
+                    start_time=updated.start_time,
+                    end_time=updated.end_time
                 )
+
         except ValidationError as e:
             # TODO: make print statements logs
             print(f"Validation error: {e}")
@@ -196,8 +204,7 @@ class UsersMutation:
     @auth_required
     async def delete_user_stats_session(self, info: Info, session_id: UUID) -> bool:
         try:
-            async_session_maker = info.context["db_factory"]
-            async with async_session_maker() as db:
+            async with info.context["db_factory"]() as db:
                 return await delete_user_stats_session(session_id, db)
         except ValidationError as e:
             # TODO: make print statements logs
@@ -223,9 +230,7 @@ class UsersMutation:
     ) -> UserStatsSummaryType:
         try:
             user = info.context["user"]  # from your auth middleware
-            async_session_maker = info.context["db_factory"]
-
-            async with async_session_maker() as db:
+            async with info.context["db_factory"]() as db:
                 created = await create_user_stats_summary(
                     summary_data=user_stats_summary_input,
                     user_id=user.id,
@@ -264,8 +269,7 @@ class UsersMutation:
     ) -> Optional[UserStatsSummaryType]:
         try:
             user_id = info.context["user"].id
-            async_session_maker = info.context["db_factory"]
-            async with async_session_maker() as db:
+            async with info.context["db_factory"]() as db:
                 updated = await update_user_stats_summary(user_id, user_stats_summary_input, db)
                 if not updated:
                     return None
@@ -300,8 +304,7 @@ class UsersMutation:
     async def delete_user_stats_summary(self, info: Info) -> bool:
         try:
             user_id = info.context["user"].id
-            async_session_maker = info.context["db_factory"]
-            async with async_session_maker() as db:
+            async with info.context["db_factory"]() as db:
                 return await delete_user_stats_summary(user_id, db)
         except ValidationError as e:
             # TODO: make print statements logs
@@ -325,8 +328,7 @@ class UsersMutation:
     async def user_stats_summary(self, info: Info) -> Optional[UserStatsSummaryType]:
         try:
             user_id = info.context["user"].id
-            async_session_maker = info.context["db_factory"]
-            async with async_session_maker() as db:
+            async with info.context["db_factory"]() as db:
                 summary = await get_user_stats_summary_by_user_id(user_id, db)
                 if not summary:
                     return None

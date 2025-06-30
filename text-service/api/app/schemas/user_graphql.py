@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from uuid import UUID
 
@@ -5,7 +6,7 @@ import strawberry
 from sqlalchemy import select
 from strawberry import Info
 
-from .user_stats_session_graphql import UserStatsSessionType
+from .user_stats_session_graphql import UserStatsSessionType, UserStatsDetailType
 from .user_stats_summary_graphql import UserStatsSummaryType
 from ..models.user_model import UserStatsSession
 
@@ -42,13 +43,14 @@ class UserType:
 
             return [
                 UserStatsSessionType(
-                    id=s.id,
-                    user_id=s.user_id,
-                    wpm=s.wpm,
-                    accuracy=s.accuracy,
-                    practice_duration=s.practice_duration,
-                    created_at=s.created_at,
-                    ended_at=s.ended_at,
+                    id=session.id,
+                    user_id=session.user_id,
+                    wpm=session.wpm,
+                    accuracy=session.accuracy,
+                    practice_duration=session.practice_duration,
+                    start_time=session.start_time,
+                    end_time=session.end_time,
+                    details=UserStatsDetailType(**json.loads(session.details)) if session.details else None
                 )
-                for s in sessions
+                for session in sessions
             ]

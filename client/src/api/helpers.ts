@@ -1,16 +1,12 @@
-const GRAPHQL_ENDPOINT = '/graphql'
+import { type TypingSessionStats } from 'types/global'
 
-const getAuthToken = () => {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('token')
-}
+export const GRAPHQL_ENDPOINT = '/graphql'
 
-export const makeGraphQLRequest = async <T, V = undefined>(
+export const useGraphQLRequest = async <T, V = undefined>(
   query: string,
-  variables?: V
+  variables?: V,
+  token?: string
 ): Promise<T> => {
-  const token = getAuthToken()
-
   const response = await fetch(GRAPHQL_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -27,5 +23,40 @@ export const makeGraphQLRequest = async <T, V = undefined>(
     throw new Error(`GraphQL error: ${msg}`)
   }
 
-  return data
+  return data.data
+}
+
+export const convertToGraphQLInput = (stats: TypingSessionStats) => {
+  return {
+    wpm: stats.wpm,
+    accuracy: stats.accuracy,
+    practiceDuration: stats.practiceDuration,
+    startTime: stats.startTime,
+    endTime: stats.endTime,
+
+    details: {
+      correctedCharCount: stats.correctedCharCount,
+      deletedCharCount: stats.deletedCharCount,
+      typedCharCount: stats.typedCharCount,
+      totalCharCount: stats.totalCharCount,
+      errorCharCount: stats.errorCharCount,
+
+      digraphTimings: Object.entries(stats.digraphTimings).map(([key, interval]) => ({
+        key,
+        intervals: [interval],
+      })),
+
+      unigraphStats: stats.unigraphStats.map((u) => ({
+        key: u.key,
+        count: u.count,
+        accuracy: u.accuracy,
+      })),
+
+      digraphStats: stats.digraphStats.map((d) => ({
+        key: d.firstKey + d.secondKey,
+        count: d.count,
+        accuracy: d.accuracy,
+      })),
+    },
+  }
 }

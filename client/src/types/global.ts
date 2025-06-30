@@ -66,22 +66,90 @@ export type State = {
   text: string
 }
 
+type UpdateStatsPayload = {
+  wpm?: number
+  accuracy?: number
+  errorCount?: number
+  startTime?: number // Unix timestamp in ms
+  endTime?: number // Unix timestamp in ms
+  practiceDuration?: number // Duration of session in seconds
+  correctedCharCount?: number // Times user fixed an error (e.g., backspace presses)
+  deletedCharCount?: number // Total characters deleted
+  typedCharCount?: number // Characters typed correctly
+  totalCharCount?: number // All typed characters including errors
+  errorCharCount?: number // Incorrect characters typed
+  unigraphStats?: Record<string, UnigraphStatistic> // e.g., { "a": { count: 12, accuracy: 91 } }
+  digraphStats?: Record<string, DigraphStatistic> // e.g., { "th": { count: 5, accuracy: 80 } }
+}
+
 export type Action =
   | { type: 'START' }
   | { type: 'STOP' }
   | { type: 'TICK' }
-  | { type: 'SET_WPM'; payload: number }
-  | { type: 'SET_ACCURACY'; payload: number }
+  | { type: 'UPDATE_STATS'; payload: UpdateStatsPayload }
   | { type: 'SET_STOPWATCH_TIME'; payload: number }
   | { type: 'SET_TEXT'; payload: string }
   | { type: 'RESET_SESSION' }
   | { type: 'RESET_ALL' }
 
-export type TypingStats = {
+export type BaseTypingStats = {
   wpm: number
   accuracy: number
-  startTime: number
+  errorCount: number
+  startTime: number // Unix timestamp in ms
+  endTime: number // Unix timestamp in ms
+  practiceDuration?: number // Duration of session in seconds
 }
+
+export interface TypingSessionStats extends BaseTypingStats {
+  correctedCharCount: number // Times user fixed an error (e.g., backspace presses)
+  deletedCharCount: number // Total characters deleted
+
+  typedCharCount: number // Characters typed correctly
+  totalCharCount: number // All typed characters including errors
+  errorCharCount: number // Incorrect characters typed
+
+  // Keypress timings as dictionary:
+  // - For unigraphs: key → array of Unix timestamps (ms)
+  // unigraphTimings: UnigraphTimings
+
+  // - For digraphs: digraph string (e.g., "th") → array of intervals in ms between keys
+  digraphTimings: DigraphTimingAverage[]
+
+  // Frequency + accuracy stats per key/digraph
+  unigraphStats: UnigraphStatistic[]
+  digraphStats: DigraphStatistic[]
+}
+
+export interface TypingStatsSummary extends BaseTypingStats {
+  sessionCount: number
+
+  averageWpm: number
+  averageAccuracy: number
+
+  averageDeletedCharCount: number
+  averageCorrectedCharCount: number
+
+  // Optional aggregated stats for personalisation
+  unigraphStats: UnigraphStatistic[]
+  digraphStats: DigraphStatistic[]
+}
+
+export type UnigraphStatistic = {
+  key: string
+  count: number // Number of times key was typed
+  accuracy: number // % correct uses of key (0–100)
+}
+
+export type DigraphStatistic = {
+  firstKey: string
+  secondKey: string
+  count: number // Number of times digraph was typed
+  accuracy: number // % correct uses of digraph (0–100)
+}
+
+// type DigraphTiming = { key: string; intervals: number[] }
+// export type DigraphTimings = DigraphTiming[]
 
 // User types
 export type User = {
@@ -98,6 +166,7 @@ export type UserContextType = {
   user: User | null
   login: (userLogin: UserLogin) => Promise<void>
   logout: () => void
+  token: string | null
   authError: string | null
 }
 
@@ -117,4 +186,16 @@ export type UpdateUserResponse = {
 
 export type DeleteUserResponse = {
   deleteUser: boolean
+}
+
+export type KeyEvent = {
+  timestamp: number
+  key: string
+  typedStatus: TypedStatus
+  cursorIndex: number
+}
+
+export type DigraphTimingAverage = {
+  key: string
+  averageInterval: number
 }

@@ -56,8 +56,8 @@ class UsersQuery:
                     wpm=session.wpm,
                     accuracy=session.accuracy,
                     practice_duration=session.practice_duration,
-                    created_at=session.created_at,
-                    ended_at=session.ended_at,
+                    start_time=session.start_time,
+                    end_time=session.end_time,
                 )
                 for session in sessions
             ]
@@ -75,8 +75,8 @@ class UsersQuery:
                 wpm=session.wpm,
                 accuracy=session.accuracy,
                 practice_duration=session.practice_duration,
-                created_at=session.created_at,
-                ended_at=session.ended_at,
+                start_time=session.start_time,
+                end_time=session.end_time
             )
 
     @strawberry.field(name="userStatsSummaries")
