@@ -34,6 +34,7 @@ def create_app(engine=None, async_sessionmaker=None):
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
+        allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )

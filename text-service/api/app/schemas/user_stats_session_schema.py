@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Dict, List
+from typing import Optional, Dict
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -24,7 +24,7 @@ class UserStatsDetails(BaseModel):
 
     unigraph_stats: Optional[Dict[str, UnigraphStatistic]] = None
     digraph_stats: Optional[Dict[str, DigraphStatistic]] = None
-    digraph_timings: Optional[Dict[str, List[int]]] = None
+    digraph_timings: Optional[Dict[str, int]] = None
 
 
 class UserStatsSessionCreate(BaseModel):

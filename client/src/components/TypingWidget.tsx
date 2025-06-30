@@ -125,7 +125,7 @@ export const TypingWidget = () => {
           errorCharCount: sessionStats.errorCharCount,
 
           // Intervals (in ms) between each digraph grouped by digraph string
-          digraphTimings: sessionStats.digraphTimings,
+          aveDigraphTimings: sessionStats.aveDigraphTimings,
 
           // Frequency + accuracy per key
           unigraphStats: sessionStats.unigraphStats,

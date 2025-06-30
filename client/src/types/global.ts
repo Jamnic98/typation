@@ -109,12 +109,8 @@ export interface TypingSessionStats extends BaseTypingStats {
   totalCharCount: number // All typed characters including errors
   errorCharCount: number // Incorrect characters typed
 
-  // Keypress timings as dictionary:
-  // - For unigraphs: key → array of Unix timestamps (ms)
-  // unigraphTimings: UnigraphTimings
-
   // - For digraphs: digraph string (e.g., "th") → array of intervals in ms between keys
-  digraphTimings: DigraphTimingAverage[]
+  aveDigraphTimings: DigraphTiming[]
 
   // Frequency + accuracy stats per key/digraph
   unigraphStats: UnigraphStatistic[]
@@ -148,8 +144,7 @@ export type DigraphStatistic = {
   accuracy: number // % correct uses of digraph (0–100)
 }
 
-// type DigraphTiming = { key: string; intervals: number[] }
-// export type DigraphTimings = DigraphTiming[]
+export type DigraphTiming = { key: string; intervals: number[] }
 
 // User types
 export type User = {

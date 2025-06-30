@@ -16,6 +16,6 @@ async def generate_practice_text():
 
 @lru_cache()
 def load_word_list():
-    root_path = Path(__file__).resolve().parent.parent.parent.parent
+    root_path = Path(__file__).resolve().parent.parent.parent
     word_file = root_path / 'text.txt'
     return [line.strip() for line in word_file.read_text(encoding='utf-8').splitlines() if line.strip()]

@@ -6,7 +6,6 @@ import {
   type Action,
   type State,
   type TypingSessionStats,
-  type DigraphTimingAverage,
 } from 'types/global'
 import { AVERAGE_WORD_LENGTH, TYPING_WIDGET_INITIAL_STATE } from './constants'
 
@@ -155,17 +154,11 @@ export const calculateTypingSessionStats = (
     accuracy: Math.round((hit / count) * 100),
   }))
 
-  // Average digraph timings
-  const averageDigraphTimings: Record<string, number> = {}
-  for (const digraph in digraphTimings) {
-    const times = digraphTimings[digraph]
-    const avg = times.reduce((a, b) => a + b, 0) / times.length
-    averageDigraphTimings[digraph] = Math.round(avg)
-  }
-
-  const averageDigraphTimingsArray: DigraphTimingAverage[] = Object.entries(
-    averageDigraphTimings
-  ).map(([digraph, timing]) => ({ key: digraph, averageInterval: timing }))
+  // Digraph timings as required by DigraphTiming[]
+  const digraphTimingsArray = Object.entries(digraphTimings).map(([digraph, intervals]) => ({
+    key: digraph,
+    intervals,
+  }))
 
   const practiceDuration = Math.round((endTime - startTime) / 1000)
   const elapsed = endTime - startTime
@@ -186,7 +179,7 @@ export const calculateTypingSessionStats = (
     totalCharCount,
     errorCharCount,
 
-    digraphTimings: averageDigraphTimingsArray,
+    aveDigraphTimings: digraphTimingsArray,
 
     unigraphStats: finalUnigraphStats,
     digraphStats: finalDigraphStats,

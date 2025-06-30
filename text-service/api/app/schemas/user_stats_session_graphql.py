@@ -46,7 +46,7 @@ class DigraphStatEntryInput:
 @strawberry.input
 class DigraphTimingEntryInput:
     key: str
-    intervals: List[int]
+    average_interval: int = strawberry.field(name="averageInterval")
 
 
 @strawberry.type
@@ -74,7 +74,10 @@ class UserStatsDetailInput:
     digraph_stats: Optional[List[DigraphStatEntryInput]] = strawberry.field(name="digraphStats", default=None)
 
     # Dict for timings (string → list of intervals)
-    digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(name="digraphTimings", default=None)
+    ave_digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(
+        name="aveDigraphTimings",
+        default=None
+    )
 
 
 @strawberry.type
@@ -96,7 +99,10 @@ class UserStatsSessionInput:
     wpm: Optional[int] = None
     accuracy: Optional[int] = None
     digraph_stats: Optional[List[DigraphStatEntryInput]] = strawberry.field(name="digraphStats", default=None)
-    digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(name="digraphTimings", default=None)
+    ave_digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(
+        name="aveDigraphTimings",
+        default=None
+    )
     start_time: Optional[float] = strawberry.field(name="startTime", default=None)  # Unix timestamp in ms
     end_time: Optional[float] = strawberry.field(name="endTime", default=None)
     practice_duration: Optional[int] = strawberry.field(name="practiceDuration", default=None)
@@ -112,6 +118,9 @@ class UserStatsDetailType:
     total_char_count: Optional[int] = strawberry.field(name="totalCharCount")
     error_char_count: Optional[int] = strawberry.field(name="errorCharCount")
 
-    digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(name="digraphTimings", default=None)
+    ave_digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(
+        name="aveDigraphTimings",
+        default=None
+    )
     unigraph_stats: Optional[List[UnigraphStatisticType]] = strawberry.field(name="unigraphStats", default=None)
     digraph_stats: Optional[List[DigraphStatisticType]] = strawberry.field(name="digraphStats", default=None)
