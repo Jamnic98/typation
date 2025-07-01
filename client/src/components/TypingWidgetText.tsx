@@ -1,27 +1,25 @@
-import { useCallback, useEffect, useState, type RefObject } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { Character, type CharacterProps } from 'components'
 import { defaultFontSettings } from 'utils/constants'
-import { TypedStatus, type FontSettings, type KeyEvent } from 'types'
 import { findDeleteFrom } from 'utils/helpers'
+import { TypedStatus, TypingAction, type OnTypeParams, type FontSettings } from 'types'
 
 export interface TypingWidgetTextProps {
   textToType: string | null
-  keyEventQueue: RefObject<KeyEvent[]>
   fontSettings?: FontSettings
   onStart: () => void
   onComplete: () => Promise<void>
-  onType?: () => void
+  onType: (params: OnTypeParams) => void
   reset: () => void
 }
 
 export const TypingWidgetText = ({
   textToType,
   fontSettings = defaultFontSettings,
-  keyEventQueue,
   onStart,
   onComplete,
-  // onType,
+  onType,
   reset,
 }: TypingWidgetTextProps) => {
   const [cursorIndex, setCursorIndex] = useState<number>(0)
@@ -43,74 +41,78 @@ export const TypingWidgetText = ({
     }
   }, [textToType, strToCharObjArray])
 
-  const handleFocus = () => {
+  const handleFocus = (): void => {
     setIsFocused(true)
   }
 
-  const handleBlur = () => {
+  const handleBlur = (): void => {
     reset()
     setCursorIndex(0)
     setIsFocused(false)
     textToType && setCharObjArray(strToCharObjArray(textToType))
   }
 
-  const shiftCursor = (shift: number) => {
+  const shiftCursor = (shift: number): void => {
     if (!charObjArray) return
     let newIndex = (cursorIndex + shift) % charObjArray.length
     if (newIndex < 0) newIndex += charObjArray.length
     setCursorIndex(newIndex)
   }
 
-  const updateFunc = (typedStatus: TypedStatus, key?: string) => {
+  const updateCharStatusAtCursor = (
+    typedStatus: TypedStatus,
+    key?: string
+  ): CharacterProps[] | null => {
     if (!charObjArray) return charObjArray
-    return charObjArray.map((obj, index) =>
-      index === cursorIndex
-        ? {
-            ...obj,
-            typedStatus,
-            ...(typedStatus === TypedStatus.MISS && key ? { char: key } : {}),
-          }
-        : obj
-    )
+
+    return charObjArray.map((obj, index) => {
+      if (index !== cursorIndex) return obj
+
+      let newStatus = typedStatus
+
+      // When correcting from MISS or PENDING to HIT
+      if (
+        typedStatus === TypedStatus.HIT &&
+        (obj.typedStatus === TypedStatus.MISS || obj.typedStatus === TypedStatus.PENDING)
+      ) {
+        newStatus = TypedStatus.CORRECTED
+      }
+
+      return {
+        ...obj,
+        typedStatus: newStatus,
+        ...(newStatus === TypedStatus.MISS && key ? { char: key } : {}),
+      }
+    })
   }
 
-  const updateCharObjArray = (
-    typedStatus: TypedStatus,
-    lastTypedStatus: TypedStatus,
-    key: string
-  ) => {
+  const applyTypingUpdate = (typedStatus: TypedStatus, key: string) => {
     try {
-      const updated =
-        typedStatus === TypedStatus.HIT && lastTypedStatus === TypedStatus.NONE
-          ? updateFunc(TypedStatus.HIT)
-          : updateFunc(TypedStatus.MISS, key)
+      const updated = updateCharStatusAtCursor(typedStatus, key)
       setCharObjArray(updated)
       return updated
     } catch (error) {
-      console.error('updateCharObjArray failed:', error)
+      console.error('applyTypingUpdate failed:', error)
       throw new Error('Error updating charObjArray')
     }
   }
 
-  const handleNormalKeyPress = async (key: string) => {
+  const handleCharInput = async (key: string): Promise<void> => {
     if (!isFocused || !charObjArray) return
-
-    const currentChar = charObjArray[cursorIndex]
-    const typedStatus = currentChar?.char === key ? TypedStatus.HIT : TypedStatus.MISS
-    const lastTypedStatus = currentChar?.typedStatus
-
-    const updated = updateCharObjArray(typedStatus, lastTypedStatus, key)
+    const typedStatus = charObjArray[cursorIndex]?.char === key ? TypedStatus.HIT : TypedStatus.MISS
+    const updated = applyTypingUpdate(typedStatus, key)
     if (updated) {
-      keyEventQueue.current.push({
-        timestamp: Date.now(),
+      onType({
         key,
         typedStatus,
         cursorIndex,
+        timestamp: Date.now(),
+        action: TypingAction.AddKey,
       })
-      // onType()
+
       if (cursorIndex === charObjArray.length - 1) {
-        setCursorIndex(0)
         await onComplete()
+        setCursorIndex(0)
         return
       }
     }
@@ -118,7 +120,7 @@ export const TypingWidgetText = ({
     shiftCursor(1)
   }
 
-  const handleBackspace = (ctrl: boolean = false) => {
+  const handleBackspace = (ctrl: boolean = false): void => {
     if (!charObjArray || !textToType || cursorIndex === 0) return
 
     const prevIndex = cursorIndex - 1
@@ -128,35 +130,52 @@ export const TypingWidgetText = ({
     let updated = [...charObjArray]
 
     if (ctrl) {
-      // Find start index of consecutive mistyped characters backward (iterative)
       const deleteFrom = findDeleteFrom(updated, prevIndex)
       const deleteCount = prevIndex - deleteFrom + 1
 
-      // Remove corresponding key events from queue
-      for (let i = 0; i < deleteCount; i++) {
-        keyEventQueue.current.pop()
-      }
+      onType({
+        key: 'Backspace',
+        typedStatus: TypedStatus.NONE,
+        cursorIndex: prevIndex,
+        timestamp: Date.now(),
+        action: TypingAction.ClearMissRange,
+        deleteCount,
+      })
 
-      // Reset chars in the range to initial state
       updated = updated.map((char, idx) =>
         idx >= deleteFrom && idx <= prevIndex
-          ? { ...char, typedStatus: TypedStatus.NONE, char: textToType[idx] }
+          ? {
+              ...char,
+              typedStatus:
+                char.typedStatus === TypedStatus.MISS ? TypedStatus.PENDING : TypedStatus.NONE,
+              char: textToType[idx], // reset displayed char as before
+            }
           : char
       )
 
       setCharObjArray(updated)
       setCursorIndex(deleteFrom)
     } else {
-      // Remove last key event for single backspace
-      keyEventQueue.current.pop()
+      // Single backspace — tell onType to pop last event
+      onType({
+        key: 'Backspace',
+        typedStatus: TypedStatus.NONE,
+        cursorIndex: prevIndex,
+        timestamp: Date.now(),
+        action: TypingAction.BackspaceSingle,
+      })
 
       updated[prevIndex] = {
         ...updated[prevIndex],
         char: textToType[prevIndex],
-        typedStatus: TypedStatus.NONE,
+        typedStatus:
+          updated[prevIndex].typedStatus === TypedStatus.MISS
+            ? TypedStatus.PENDING
+            : TypedStatus.NONE,
       }
+
       setCharObjArray(updated)
-      setCursorIndex(prevIndex)
+      shiftCursor(-1)
     }
   }
 
@@ -172,7 +191,7 @@ export const TypingWidgetText = ({
 
     if (key.length === 1) {
       if (isFocused && cursorIndex === 0) onStart()
-      await handleNormalKeyPress(key)
+      await handleCharInput(key)
     }
   }
 

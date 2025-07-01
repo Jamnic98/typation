@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 
 import { Character, type CharacterProps } from 'components'
 import { CursorStyles, FontSizes, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
+import { STYLE_HIT, STYLE_MISS, STYLE_NONE } from 'utils'
 
 // const dataTestId = 'character'
 const defaultProps: CharacterProps = {
@@ -57,19 +58,19 @@ describe('Character displays correct styles', () => {
   test('should display hit style', () => {
     renderCharacter({ typedStatus: TypedStatus.HIT })
     const character = screen.getByTestId('background-character')
-    expect(character).toHaveClass('text-green-500')
+    expect(character).toHaveClass(STYLE_HIT)
   })
 
   test('should display miss style', () => {
     renderCharacter({ typedStatus: TypedStatus.MISS })
     const character = screen.getByTestId('foreground-character')
-    expect(character).toHaveClass('text-red-500')
+    expect(character).toHaveClass(STYLE_MISS)
   })
 
   test('should display none style', () => {
     renderCharacter()
     const character = screen.getByTestId('foreground-character')
-    expect(character).toHaveClass('text-black')
+    expect(character).toHaveClass(STYLE_NONE)
   })
 
   test('should display highlighted style', () => {

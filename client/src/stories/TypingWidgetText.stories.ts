@@ -20,14 +20,10 @@ type Story = StoryObj<typeof meta>
 export const TypingWidgetTextStory: Story = {
   args: {
     textToType: 'Testing! 123',
-    // fetchNewString: async () => {
-    //   return 'The quick brown fox jumps over the lazy dog'
-    // },
     fontSettings: {
       spaceSymbol: SpaceSymbols.DOT,
       cursorStyle: CursorStyles.UNDERSCORE,
     },
-    keyEventQueue: { current: [] },
     onStart: () => {},
     onComplete: async () => {},
     onType: () => {},

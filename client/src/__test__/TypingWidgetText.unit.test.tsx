@@ -4,6 +4,7 @@ import { userEvent } from '@testing-library/user-event'
 
 import { TypingWidgetText, type TypingWidgetTextProps } from 'components'
 import { CursorStyles, SpaceSymbols, spaceSymbolMap } from 'types/global'
+import { STYLE_HIT, STYLE_MISS, STYLE_NONE } from 'utils'
 
 const textToType = 'hi me'
 
@@ -19,8 +20,6 @@ const defaultOnTypeFunc = vi.fn().mockResolvedValue(null)
 
 let currentProps: TypingWidgetTextProps
 
-const defaultKeyEventQueue = { current: [] }
-
 const renderTypingWidgetText = (props?: TypingWidgetTextProps) => {
   currentProps = {
     textToType: textToType,
@@ -29,7 +28,6 @@ const renderTypingWidgetText = (props?: TypingWidgetTextProps) => {
     onType: defaultOnTypeFunc,
     reset: props && typeof props.reset === 'function' ? props.reset : () => {},
     ...props,
-    keyEventQueue: props && props.keyEventQueue ? props.keyEventQueue : defaultKeyEventQueue,
   }
   const typingWidget = <TypingWidgetText {...currentProps} />
   render(typingWidget)
@@ -57,7 +55,6 @@ describe('Test Rendering', () => {
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      keyEventQueue: { current: [] },
       reset: function (): void {},
     })
     const typingWidget = screen.queryByTestId('typing-widget-text')
@@ -71,7 +68,6 @@ describe('Test Rendering', () => {
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      keyEventQueue: { current: [] },
       reset: function (): void {},
     })
 
@@ -104,7 +100,6 @@ describe('Test functionality', () => {
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      keyEventQueue: { current: [] },
       reset: function (): void {},
     })
 
@@ -116,25 +111,25 @@ describe('Test functionality', () => {
     expect(typingWidgetText).toHaveFocus()
 
     // check initial state
-    expect(characters[0]).toHaveClass('text-black')
+    expect(characters[0]).toHaveClass(STYLE_NONE)
 
     // 1st hit
     await user.keyboard(textToType[0])
-    expect(characters[0]).toHaveClass('text-green-500')
+    expect(characters[0]).toHaveClass(STYLE_HIT)
 
     // 2nd hit
     await user.keyboard(textToType[1])
-    expect(characters[1]).toHaveClass('text-green-500')
+    expect(characters[1]).toHaveClass(STYLE_HIT)
 
     // 1st miss
     await user.keyboard('z')
     const character = screen.getAllByText('z')[1]
-    expect(character).toHaveClass('text-red-500 line-through')
-    expect(characters[3]).toHaveClass('text-black')
+    expect(character).toHaveClass(STYLE_MISS)
+    expect(characters[3]).toHaveClass(STYLE_NONE)
 
     // subsequent hit after miss
     await user.keyboard(textToType[3])
-    expect(characters[3]).toHaveClass('text-green-500')
+    expect(characters[3]).toHaveClass(STYLE_HIT)
   })
 
   test('Updates cursor position correctly', async () => {
@@ -145,7 +140,6 @@ describe('Test functionality', () => {
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      keyEventQueue: { current: [] },
       reset: function (): void {},
     })
 

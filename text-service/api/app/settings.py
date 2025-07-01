@@ -23,7 +23,8 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = None
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    # TODO: reduce to 60 and implement refresh tokens
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200
 
     @cached_property
     def database_url(self) -> str:
@@ -37,6 +38,5 @@ class Settings(BaseSettings):
         env_file=f".env.{os.getenv('ENV', 'dev')}",
         case_sensitive=True
     )
-
 
 settings = Settings()

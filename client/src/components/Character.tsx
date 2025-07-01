@@ -1,7 +1,14 @@
 import { memo, useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { defaultFontSettings } from 'utils/constants'
+import {
+  defaultFontSettings,
+  STYLE_CORRECTED,
+  STYLE_HIT,
+  STYLE_MISS,
+  STYLE_NONE,
+  STYLE_PENDING,
+} from 'utils/constants'
 import { getCursorStyle, randomRotation } from 'utils/helpers'
 import { type FontSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 
@@ -12,10 +19,12 @@ export interface CharacterProps {
   fontSettings?: FontSettings
 }
 
-const typedStatusStyles: Record<TypedStatus, string> = {
-  [TypedStatus.MISS]: 'text-red-500 line-through',
-  [TypedStatus.HIT]: 'text-green-500',
-  [TypedStatus.NONE]: 'text-black',
+export const typedStatusStyles: Record<TypedStatus, string> = {
+  [TypedStatus.MISS]: STYLE_MISS,
+  [TypedStatus.CORRECTED]: STYLE_CORRECTED,
+  [TypedStatus.PENDING]: STYLE_PENDING,
+  [TypedStatus.HIT]: STYLE_HIT,
+  [TypedStatus.NONE]: STYLE_NONE,
 }
 
 export const CharacterComponent = ({
@@ -28,9 +37,8 @@ export const CharacterComponent = ({
     return Object.entries(fontSettings)
       .map(([key, value]) => {
         // if (key === 'textColor') return `text-${value}`
-        // if (key === 'fontSize') return `text-${value}`
+        if (key === 'fontSize') return `text-${value}`
         // if (key === 'fontFamily') return `font-${value}`
-        if (key === 'fontWeight') return `font-${value}`
         // if (key === 'textAlign') return `text-${value}`
         // if (key === 'textDecoration') return `decoration-${value}`
         // if (key === 'textTransform') return `uppercase`

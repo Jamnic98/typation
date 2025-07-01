@@ -1,12 +1,14 @@
 export enum TypedStatus {
   HIT = 'hit',
   MISS = 'miss',
+  CORRECTED = 'corrected',
+  PENDING = 'pending',
   NONE = 'none',
 }
 
 export enum SpaceSymbols {
   UNDERSCORE = 'underscore',
-  DOT = 'DOT',
+  DOT = 'dot',
   NONE = 'none',
 }
 
@@ -193,4 +195,19 @@ export type KeyEvent = {
 export type DigraphTimingAverage = {
   key: string
   averageInterval: number
+}
+
+export enum TypingAction {
+  BackspaceSingle = 'backspace-single',
+  ClearMissRange = 'clear-miss-range',
+  AddKey = 'add-key', // default action for normal keys
+}
+
+export interface OnTypeParams {
+  key: string
+  typedStatus: TypedStatus
+  cursorIndex: number
+  timestamp: number
+  action: TypingAction
+  deleteCount?: number // optional, only for ClearMissRange
 }

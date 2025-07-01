@@ -1,10 +1,10 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
 
 import {
-  /*  Accuracy, StopWatch, */ TypingWidgetText /* , WordsPerMin, type CharacterProps */,
+  TypingWidgetText /*  Accuracy, StopWatch, WordsPerMin, type CharacterProps */,
 } from 'components'
 import { fetchNewString, saveStats } from 'api'
-import { type KeyEvent, type FontSettings } from 'types/global'
+import { type KeyEvent, type FontSettings, type OnTypeParams, TypingAction } from 'types/global'
 import { calculateTypingSessionStats, typingWidgetStateReducer } from 'utils/helpers'
 import {
   defaultFontSettings,
@@ -62,23 +62,42 @@ export const TypingWidget = () => {
     }
   }, [state.runStopWatch])
 
-  const reset = () => {
+  const reset = (): void => {
     dispatch({ type: 'RESET_SESSION' })
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
     keyEventQueue.current = []
   }
 
-  const onStart = () => {
+  const onStart = (): void => {
     reset()
     dispatch({ type: 'START' })
     startTimestamp.current = Date.now()
   }
 
-  // const onType = () => {
-  //   if (!state.text) return
-  // }
+  const onType = ({
+    key,
+    typedStatus,
+    cursorIndex,
+    timestamp,
+    action,
+    deleteCount = 0,
+  }: OnTypeParams) => {
+    switch (action) {
+      case TypingAction.BackspaceSingle:
+        keyEventQueue.current.pop()
+        break
+      case TypingAction.ClearMissRange:
+        for (let i = 0; i < deleteCount; i++) {
+          keyEventQueue.current.pop()
+        }
+        break
+      case TypingAction.AddKey:
+      default:
+        keyEventQueue.current.push({ key, typedStatus, cursorIndex, timestamp })
+    }
+  }
 
-  const onComplete = async () => {
+  const onComplete = async (): Promise<void> => {
     if (!state.text) return
     dispatch({ type: 'STOP' })
 
@@ -111,7 +130,7 @@ export const TypingWidget = () => {
         {
           wpm: sessionStats.wpm,
           accuracy: sessionStats.accuracy,
-          startTime: startTimestamp.current, // e.g. Unix ms timestamp
+          startTime: startTimestamp.current,
           endTime: now,
           practiceDuration: 60, // in seconds
 
@@ -147,18 +166,17 @@ export const TypingWidget = () => {
       <TypingWidgetText
         onStart={onStart}
         onComplete={onComplete}
-        // onType={onType}
+        onType={onType}
         reset={reset}
         textToType={state.text}
         fontSettings={fontSettings}
-        keyEventQueue={keyEventQueue}
       />
       <br />
       {showStats ? (
         <div id="stats" className="space-y-4">
           {/* <WordsPerMin wpm={state.wpm} />
-          <Accuracy accuracy={state.accuracy} /> */}
-          {/* <StopWatch time={state.stopWatchTime} /> */}
+          <Accuracy accuracy={state.accuracy} /> 
+          <StopWatch time={state.stopWatchTime} /> */}
         </div>
       ) : null}
     </div>

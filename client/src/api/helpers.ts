@@ -53,7 +53,7 @@ export const convertToGraphQLInput = (stats: TypingSessionStats) => {
       totalCharCount: stats.totalCharCount,
       errorCharCount: stats.errorCharCount,
 
-      digraphTimings: aggregateDigraphTimings(stats.aveDigraphTimings),
+      aveDigraphTimings: aggregateDigraphTimings(stats.aveDigraphTimings),
 
       unigraphStats: stats.unigraphStats.map((u) => ({
         key: u.key,

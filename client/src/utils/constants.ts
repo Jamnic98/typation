@@ -2,7 +2,7 @@ import { CursorStyles, FontSizes, SpaceSymbols, type State, type FontSettings } 
 
 export const defaultFontSettings: FontSettings = {
   textColor: 'black',
-  fontSize: FontSizes.FOUR_XL,
+  fontSize: FontSizes.MD,
   spaceSymbol: SpaceSymbols.DOT,
   cursorStyle: CursorStyles.UNDERSCORE,
 
@@ -52,3 +52,10 @@ export const TYPING_WIDGET_INITIAL_STATE: State = {
 // endpoints
 export const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 export const authEndpoint = `${baseUrl}/auth`
+
+// Character styles
+export const STYLE_MISS = 'text-red-600 line-through'
+export const STYLE_CORRECTED = 'text-green-400 italic'
+export const STYLE_PENDING = 'text-yellow-600 italic'
+export const STYLE_HIT = 'text-green-600 font-bold'
+export const STYLE_NONE = 'text-black'
