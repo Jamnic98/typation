@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import {
@@ -33,6 +33,14 @@ export const CharacterComponent = ({
   typedStatus = TypedStatus.NONE,
   fontSettings = defaultFontSettings,
 }: CharacterProps) => {
+  const [wasTyped, setWasTyped] = useState(false)
+
+  useEffect(() => {
+    if (typedStatus !== TypedStatus.NONE && !wasTyped) {
+      setWasTyped(true)
+    }
+  }, [typedStatus, wasTyped])
+
   const fontSettingsClass = useMemo(() => {
     return Object.entries(fontSettings)
       .map(([key, value]) => {
@@ -58,9 +66,6 @@ export const CharacterComponent = ({
   const cursorClass = isActive ? getCursorStyle(fontSettings?.cursorStyle) : ''
   const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
 
-  // Decide if the letter should be visible or falling (typed)
-  const isVisible = typedStatus !== TypedStatus.HIT
-
   return (
     <span data-testid="character-cursor" className={`${cursorClass}`}>
       <span className={`w-[1ch] inline-block relative h-4`}>
@@ -75,8 +80,9 @@ export const CharacterComponent = ({
 
         {/* Foreground animated letter */}
         <AnimatePresence mode="popLayout">
-          {isVisible && (
+          {
             <motion.span
+              key={typedStatus}
               className={`${typedStatusClass} ${fontSettingsClass} z-10`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -90,7 +96,7 @@ export const CharacterComponent = ({
             >
               {char === ' ' && spaceSymbol ? spaceSymbol : char}
             </motion.span>
-          )}
+          }
         </AnimatePresence>
       </span>
     </span>
