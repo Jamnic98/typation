@@ -1,9 +1,12 @@
+import { useAlert } from 'components/AlertContext'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { AlertType } from 'types/global'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 export const ResetPassword = () => {
+  const { showAlert } = useAlert()
   const { token } = useParams()
   const [password, setPassword] = useState('')
   const [success, setSuccess] = useState(false)
@@ -17,7 +20,10 @@ export const ResetPassword = () => {
     })
 
     if (res.ok) setSuccess(true)
-    else alert('Reset failed')
+    showAlert({
+      title: 'Password reset failed, please try again',
+      type: AlertType.ERROR,
+    })
   }
 
   return success ? (

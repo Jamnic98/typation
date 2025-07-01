@@ -69,3 +69,6 @@ export const convertToGraphQLInput = (stats: TypingSessionStats) => {
     },
   }
 }
+
+export const getReadableErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : String(err)

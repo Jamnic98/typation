@@ -211,3 +211,25 @@ export interface OnTypeParams {
   action: TypingAction
   deleteCount?: number // optional, only for ClearMissRange
 }
+
+// Define enum
+export enum AlertType {
+  SUCCESS = 'success',
+  ERROR = 'error',
+  INFO = 'info',
+  WARNING = 'warning',
+}
+
+// Use the enum in the types
+export type AlertData = {
+  id: string
+  type: AlertType
+  title?: string
+  message?: string
+}
+
+export type AlertContextType = {
+  alerts: AlertData[]
+  showAlert: (alert: Omit<AlertData, 'id'>) => void
+  removeAlert: (id: string) => void
+}

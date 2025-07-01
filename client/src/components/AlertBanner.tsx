@@ -26,7 +26,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({ position = 'top-center
           <Alert
             type={alert.type}
             title={alert.title}
-            message={alert.message}
+            message={alert?.message}
             onClose={() => removeAlert(alert.id)}
           />
         </div>

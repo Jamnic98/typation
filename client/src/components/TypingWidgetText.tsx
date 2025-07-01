@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { Character, type CharacterProps } from 'components'
-import { defaultFontSettings } from 'utils/constants'
+import { defaultFontSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
 import { findDeleteFrom } from 'utils/helpers'
 import { TypedStatus, TypingAction, type OnTypeParams, type FontSettings } from 'types'
 
@@ -9,7 +9,7 @@ export interface TypingWidgetTextProps {
   textToType: string | null
   fontSettings?: FontSettings
   onStart: () => void
-  onComplete: () => Promise<void>
+  onComplete: (correctedCharCount: number) => Promise<void>
   onType: (params: OnTypeParams) => void
   reset: () => void
 }
@@ -87,20 +87,17 @@ export const TypingWidgetText = ({
   }
 
   const applyTypingUpdate = (typedStatus: TypedStatus, key: string) => {
-    try {
-      const updated = updateCharStatusAtCursor(typedStatus, key)
-      setCharObjArray(updated)
-      return updated
-    } catch (error) {
-      console.error('applyTypingUpdate failed:', error)
-      throw new Error('Error updating charObjArray')
-    }
+    const updated = updateCharStatusAtCursor(typedStatus, key)
+    setCharObjArray(updated)
+    return updated
   }
 
   const handleCharInput = async (key: string): Promise<void> => {
     if (!isFocused || !charObjArray) return
+
     const typedStatus = charObjArray[cursorIndex]?.char === key ? TypedStatus.HIT : TypedStatus.MISS
     const updated = applyTypingUpdate(typedStatus, key)
+
     if (updated) {
       onType({
         key,
@@ -111,8 +108,14 @@ export const TypingWidgetText = ({
       })
 
       if (cursorIndex === charObjArray.length - 1) {
-        await onComplete()
-        setCursorIndex(0)
+        try {
+          await onComplete(
+            charObjArray.filter((charObj) => charObj.typedStatus === TypedStatus.CORRECTED).length
+          )
+          setCursorIndex(0)
+        } catch (err) {
+          console.error('Failed to complete typing session:', err)
+        }
         return
       }
     }
@@ -189,7 +192,7 @@ export const TypingWidgetText = ({
       return
     }
 
-    if (key.length === 1) {
+    if (key.length === 1 && TYPABLE_CHARS_ARRAY.indexOf(key) !== -1) {
       if (isFocused && cursorIndex === 0) onStart()
       await handleCharInput(key)
     }

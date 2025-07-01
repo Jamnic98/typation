@@ -4,7 +4,13 @@ import {
   TypingWidgetText /*  Accuracy, StopWatch, WordsPerMin, type CharacterProps */,
 } from 'components'
 import { fetchNewString, saveStats } from 'api'
-import { type KeyEvent, type FontSettings, type OnTypeParams, TypingAction } from 'types/global'
+import {
+  TypingAction,
+  AlertType,
+  type KeyEvent,
+  type FontSettings,
+  type OnTypeParams,
+} from 'types/global'
 import { calculateTypingSessionStats, typingWidgetStateReducer } from 'utils/helpers'
 import {
   defaultFontSettings,
@@ -13,14 +19,18 @@ import {
   TYPING_WIDGET_INITIAL_STATE,
 } from 'utils/constants'
 import { useUser } from 'api/context/UserContext'
+import { useAlert } from './AlertContext'
+import { getReadableErrorMessage } from 'api/helpers'
 
 export const TypingWidget = () => {
   const token = useUser().token
   const startTimestamp = useRef<number>(0)
+  const deletedCharCount = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
   const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
   const [showStats /* setShowStats */] = useState<boolean>(true)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
+  const { showAlert } = useAlert()
 
   // Load persisted text from localStorage or fetch new text on mount
   useEffect(() => {
@@ -65,6 +75,7 @@ export const TypingWidget = () => {
   const reset = (): void => {
     dispatch({ type: 'RESET_SESSION' })
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+    deletedCharCount.current = 0
     keyEventQueue.current = []
   }
 
@@ -82,6 +93,7 @@ export const TypingWidget = () => {
     action,
     deleteCount = 0,
   }: OnTypeParams) => {
+    deletedCharCount.current += deleteCount
     switch (action) {
       case TypingAction.BackspaceSingle:
         keyEventQueue.current.pop()
@@ -97,22 +109,20 @@ export const TypingWidget = () => {
     }
   }
 
-  const onComplete = async (): Promise<void> => {
+  const onComplete = async (correctedCharCount: number): Promise<void> => {
     if (!state.text) return
     dispatch({ type: 'STOP' })
 
     const now = Date.now()
     const elapsedTime = startTimestamp ? now - startTimestamp.current : state.stopWatchTime
 
-    // Update reducer time so UI matches final elapsedTime
     dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
 
     const sessionStats = calculateTypingSessionStats(
       keyEventQueue.current,
       state.text,
-      // TODO: update to use actual values
-      0,
-      0,
+      correctedCharCount,
+      deletedCharCount.current,
       startTimestamp.current,
       now
     )
@@ -122,43 +132,53 @@ export const TypingWidget = () => {
       payload: { wpm: sessionStats.wpm, accuracy: sessionStats.accuracy },
     })
 
-    // TODO: Replace with actual stats calculation logic
-    // This is a placeholder for the actual stats you would calculate
-    // based on the typedText and state.text
-    token &&
-      saveStats(
-        {
-          wpm: sessionStats.wpm,
-          accuracy: sessionStats.accuracy,
-          startTime: startTimestamp.current,
-          endTime: now,
-          practiceDuration: 60, // in seconds
+    // Save stats to server – handle failure gracefully
+    try {
+      if (token) {
+        await saveStats(
+          {
+            wpm: sessionStats.wpm,
+            accuracy: sessionStats.accuracy,
+            startTime: startTimestamp.current,
+            endTime: now,
+            practiceDuration: 60,
+            errorCount: sessionStats.errorCount,
+            correctedCharCount: sessionStats.correctedCharCount,
+            deletedCharCount: sessionStats.deletedCharCount,
+            typedCharCount: sessionStats.typedCharCount,
+            totalCharCount: sessionStats.totalCharCount,
+            errorCharCount: sessionStats.errorCharCount,
+            aveDigraphTimings: sessionStats.aveDigraphTimings,
+            unigraphStats: sessionStats.unigraphStats,
+            digraphStats: sessionStats.digraphStats,
+          },
+          token
+        )
+      }
+    } catch (err) {
+      console.error('Failed to save stats:', err)
+      showAlert({
+        title: 'Failed to save stats',
+        message: err instanceof Error ? err.message : String(err),
+        type: AlertType.ERROR,
+      })
+    }
 
-          errorCount: sessionStats.errorCount,
-
-          correctedCharCount: sessionStats.correctedCharCount,
-          deletedCharCount: sessionStats.deletedCharCount,
-
-          typedCharCount: sessionStats.typedCharCount,
-          totalCharCount: sessionStats.totalCharCount,
-          errorCharCount: sessionStats.errorCharCount,
-
-          // Intervals (in ms) between each digraph grouped by digraph string
-          aveDigraphTimings: sessionStats.aveDigraphTimings,
-
-          // Frequency + accuracy per key
-          unigraphStats: sessionStats.unigraphStats,
-
-          // Frequency + accuracy per key pair
-          digraphStats: sessionStats.digraphStats,
-        },
-        token
-      )
-
-    const newText = await fetchNewString()
-    dispatch({ type: 'SET_TEXT', payload: newText })
-    localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
-    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
+    // Fetch new text for the next session – handle failure
+    try {
+      const newText = await fetchNewString()
+      dispatch({ type: 'SET_TEXT', payload: newText })
+      localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
+      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
+    } catch (err) {
+      const errorMsg = 'Could not load new text'
+      console.error(errorMsg, err)
+      showAlert({
+        title: errorMsg,
+        message: getReadableErrorMessage(err),
+        type: AlertType.ERROR,
+      })
+    }
   }
 
   return state.text ? (

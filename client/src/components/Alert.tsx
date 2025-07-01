@@ -5,7 +5,7 @@ type AlertType = 'success' | 'error' | 'info' | 'warning'
 type AlertProps = {
   type: AlertType
   title?: string
-  message: string
+  message?: string
   onClose?: () => void
 }
 

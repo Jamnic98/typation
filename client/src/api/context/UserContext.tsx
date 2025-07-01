@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { loginUser } from 'utils/auth'
-import { type User, type UserContextType, type UserLogin } from 'types/global'
+import { AlertType, type User, type UserContextType, type UserLogin } from 'types/global'
 import { useAlert } from 'components/AlertContext'
 
 const UserContext = createContext<UserContextType | null>(null)
@@ -49,7 +49,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unexpected login error'
       showAlert({
-        type: 'error',
+        type: AlertType.ERROR,
         title: 'Login Failed',
         message,
       })

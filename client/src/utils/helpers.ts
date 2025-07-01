@@ -44,7 +44,7 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
       return { ...state, runStopWatch: true, stopWatchTime: 0 }
 
     case 'STOP':
-      return { ...state, runStopWatch: false }
+      return { ...state, runStopWatch: false, text: '' }
 
     case 'UPDATE_STATS':
       return {

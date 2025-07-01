@@ -1,19 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-
-type AlertType = 'success' | 'error' | 'info' | 'warning'
-
-export type AlertData = {
-  id: string
-  type: AlertType
-  title?: string
-  message: string
-}
-
-type AlertContextType = {
-  alerts: AlertData[]
-  showAlert: (alert: Omit<AlertData, 'id'>) => void
-  removeAlert: (id: string) => void
-}
+import { type AlertData, type AlertContextType } from 'types/global'
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined)
 

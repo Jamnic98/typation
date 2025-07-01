@@ -29,7 +29,7 @@ const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 const ALPHABET_UPPERCASE = ALPHABET.toUpperCase()
 const SPECIAL_CHARS = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
 
-const TYPABLE_CHARS_ARRAY =
+export const TYPABLE_CHARS_ARRAY =
   `${SPACE}${NUMBERS}${ALPHABET}${ALPHABET_UPPERCASE}${SPECIAL_CHARS}`.split('')
 
 // create an array of all possible char pair combinations from CHAR_ARRAY

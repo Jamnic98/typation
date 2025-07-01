@@ -13,7 +13,6 @@ export const fetchNewString = async (): Promise<string> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error(errorMessage)
-    alert(errorMessage)
     throw new Error(errorMessage)
   }
 }
