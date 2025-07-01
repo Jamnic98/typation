@@ -5,6 +5,19 @@ import { defaultFontSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
 import { findDeleteFrom } from 'utils/helpers'
 import { TypedStatus, TypingAction, type OnTypeParams, type FontSettings } from 'types'
 
+// TODO MOVE
+const resetTypedStatus = (chars: CharacterProps[] | string): CharacterProps[] => {
+  if (typeof chars === 'string') {
+    return chars.split('').map((char) => ({
+      char,
+      typedStatus: TypedStatus.NONE,
+      isActive: false,
+    }))
+  }
+
+  return chars.map((c) => ({ ...c, typedStatus: TypedStatus.NONE }))
+}
+
 export interface TypingWidgetTextProps {
   textToType: string | null
   fontSettings?: FontSettings
@@ -26,30 +39,25 @@ export const TypingWidgetText = ({
   const [charObjArray, setCharObjArray] = useState<CharacterProps[] | null>(null)
   const [isFocused, setIsFocused] = useState<boolean>(false)
 
-  const strToCharObjArray = useCallback((string: string): CharacterProps[] => {
-    return string.split('').map((char) => ({
-      char,
-      typedStatus: TypedStatus.NONE,
-      isActive: false,
-    }))
-  }, [])
+  const resetTyping = useCallback(() => {
+    if (typeof textToType === 'string') {
+      setCharObjArray(resetTypedStatus(textToType))
+      setCursorIndex(0)
+    }
+  }, [textToType])
 
   useEffect(() => {
-    if (textToType) {
-      setCursorIndex(0)
-      setCharObjArray(strToCharObjArray(textToType))
-    }
-  }, [textToType, strToCharObjArray])
+    resetTyping()
+  }, [textToType, resetTyping])
 
-  const handleFocus = (): void => {
+  const handleFocus = () => {
     setIsFocused(true)
   }
 
   const handleBlur = (): void => {
     reset()
-    setCursorIndex(0)
     setIsFocused(false)
-    textToType && setCharObjArray(strToCharObjArray(textToType))
+    resetTyping()
   }
 
   const shiftCursor = (shift: number): void => {
@@ -67,21 +75,26 @@ export const TypingWidgetText = ({
 
     return charObjArray.map((obj, index) => {
       if (index !== cursorIndex) return obj
-
       let newStatus = typedStatus
-
       // When correcting from MISS or PENDING to HIT
       if (
         typedStatus === TypedStatus.HIT &&
         (obj.typedStatus === TypedStatus.MISS || obj.typedStatus === TypedStatus.PENDING)
       ) {
         newStatus = TypedStatus.CORRECTED
+      } else if (
+        typedStatus === TypedStatus.MISS &&
+        (obj.typedStatus === TypedStatus.MISS || obj.typedStatus === TypedStatus.PENDING)
+      ) {
+        newStatus = TypedStatus.NON_FIX_DELETE
       }
 
       return {
         ...obj,
         typedStatus: newStatus,
-        ...(newStatus === TypedStatus.MISS && key ? { char: key } : {}),
+        ...((newStatus === TypedStatus.MISS || newStatus === TypedStatus.NON_FIX_DELETE) && key
+          ? { char: key }
+          : {}),
       }
     })
   }
@@ -135,7 +148,6 @@ export const TypingWidgetText = ({
     if (ctrl) {
       const deleteFrom = findDeleteFrom(updated, prevIndex)
       const deleteCount = prevIndex - deleteFrom + 1
-
       onType({
         key: 'Backspace',
         typedStatus: TypedStatus.NONE,
@@ -166,6 +178,7 @@ export const TypingWidgetText = ({
         cursorIndex: prevIndex,
         timestamp: Date.now(),
         action: TypingAction.BackspaceSingle,
+        deleteCount: 1,
       })
 
       updated[prevIndex] = {
@@ -230,7 +243,7 @@ export const TypingWidgetText = ({
             {...character}
             fontSettings={fontSettings}
             isActive={index === cursorIndex && isFocused}
-            key={`${character.char}-${index}`}
+            key={`${character.char ?? ''}-${index}`}
           />
         ))}
       </div>

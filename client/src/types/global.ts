@@ -4,6 +4,7 @@ export enum TypedStatus {
   CORRECTED = 'corrected',
   PENDING = 'pending',
   NONE = 'none',
+  NON_FIX_DELETE = 'nonFixDelete',
 }
 
 export enum SpaceSymbols {
@@ -77,8 +78,8 @@ type UpdateStatsPayload = {
   practiceDuration?: number // Duration of session in seconds
   correctedCharCount?: number // Times user fixed an error (e.g., backspace presses)
   deletedCharCount?: number // Total characters deleted
-  typedCharCount?: number // Characters typed correctly
-  totalCharCount?: number // All typed characters including errors
+  correctCharsTyped?: number // Characters typed correctly as per the target text
+  totalCharsTyped?: number // All characters typed by the user, including errors and corrections
   errorCharCount?: number // Incorrect characters typed
   unigraphStats?: Record<string, UnigraphStatistic> // e.g., { "a": { count: 12, accuracy: 91 } }
   digraphStats?: Record<string, DigraphStatistic> // e.g., { "th": { count: 5, accuracy: 80 } }
@@ -97,18 +98,11 @@ export type Action =
 export type BaseTypingStats = {
   wpm: number
   accuracy: number
-  errorCount: number
-  startTime: number // Unix timestamp in ms
-  endTime: number // Unix timestamp in ms
-  practiceDuration?: number // Duration of session in seconds
-}
 
-export interface TypingSessionStats extends BaseTypingStats {
   correctedCharCount: number // Times user fixed an error (e.g., backspace presses)
+  correctCharsTyped: number // Typed characters that matched target text
   deletedCharCount: number // Total characters deleted
-
-  typedCharCount: number // Characters typed correctly
-  totalCharCount: number // All typed characters including errors
+  totalCharsTyped: number // All typed characters including errors
   errorCharCount: number // Incorrect characters typed
 
   // - For digraphs: digraph string (e.g., "th") → array of intervals in ms between keys
@@ -119,18 +113,18 @@ export interface TypingSessionStats extends BaseTypingStats {
   digraphStats: DigraphStatistic[]
 }
 
+export interface TypingSessionStats extends BaseTypingStats {
+  startTime: number // Unix timestamp in ms
+  endTime: number // Unix timestamp in ms
+
+  practiceDuration?: number // Duration of session in seconds
+}
+
 export interface TypingStatsSummary extends BaseTypingStats {
   sessionCount: number
 
   averageWpm: number
   averageAccuracy: number
-
-  averageDeletedCharCount: number
-  averageCorrectedCharCount: number
-
-  // Optional aggregated stats for personalisation
-  unigraphStats: UnigraphStatistic[]
-  digraphStats: DigraphStatistic[]
 }
 
 export type UnigraphStatistic = {

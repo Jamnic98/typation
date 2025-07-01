@@ -44,7 +44,7 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
       return { ...state, runStopWatch: true, stopWatchTime: 0 }
 
     case 'STOP':
-      return { ...state, runStopWatch: false, text: '' }
+      return { ...state, runStopWatch: false }
 
     case 'UPDATE_STATS':
       return {
@@ -101,9 +101,9 @@ export const calculateTypingSessionStats = (
   endTime: number
 ): TypingSessionStats => {
   const typedText = keyEvents.map((keyEvent) => keyEvent.key).join('')
-  const typedCharCount = keyEvents.filter((e) => e.typedStatus === TypedStatus.HIT).length
+  const correctCharsTyped = keyEvents.filter((e) => e.typedStatus === TypedStatus.HIT).length
   const errorCharCount = keyEvents.filter((e) => e.typedStatus === TypedStatus.MISS).length
-  const totalCharCount = keyEvents.length
+  const totalCharsTyped = keyEvents.length
 
   const digraphTimings: Record<string, number[]> = {}
   const digraphStats: Record<string, { count: number; hit: number }> = {}
@@ -139,14 +139,12 @@ export const calculateTypingSessionStats = (
     }
   }
 
-  // Convert unigraphStats to array
   const finalUnigraphStats = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
     key,
     count,
     accuracy: Math.round((hit / count) * 100),
   }))
 
-  // Convert digraphStats to array with separate first/second key
   const finalDigraphStats = Object.entries(digraphStats).map(([digraph, { count, hit }]) => ({
     firstKey: digraph[0],
     secondKey: digraph[1],
@@ -154,14 +152,13 @@ export const calculateTypingSessionStats = (
     accuracy: Math.round((hit / count) * 100),
   }))
 
-  // Digraph timings as required by DigraphTiming[]
   const digraphTimingsArray = Object.entries(digraphTimings).map(([digraph, intervals]) => ({
     key: digraph,
     intervals,
   }))
 
-  const practiceDuration = Math.round((endTime - startTime) / 1000)
   const elapsed = endTime - startTime
+  const practiceDuration = Math.round(elapsed / 1000)
   const wpm = calculateWpm(targetText, typedText, elapsed)
   const accuracy = calculateAccuracy(targetText, typedText)
 
@@ -171,16 +168,14 @@ export const calculateTypingSessionStats = (
     practiceDuration,
     wpm,
     accuracy,
-    errorCount: errorCharCount,
 
     correctedCharCount,
     deletedCharCount,
-    typedCharCount,
-    totalCharCount,
+    correctCharsTyped,
+    totalCharsTyped,
     errorCharCount,
 
     aveDigraphTimings: digraphTimingsArray,
-
     unigraphStats: finalUnigraphStats,
     digraphStats: finalDigraphStats,
   }

@@ -65,8 +65,8 @@ class DigraphStatisticType:
 class UserStatsDetailInput:
     corrected_char_count: Optional[int] = strawberry.field(name="correctedCharCount", default=None)
     deleted_char_count: Optional[int] = strawberry.field(name="deletedCharCount", default=None)
-    typed_char_count: Optional[int] = strawberry.field(name="typedCharCount", default=None)
-    total_char_count: Optional[int] = strawberry.field(name="totalCharCount", default=None)
+    typed_char_count: Optional[int] = strawberry.field(name="correctCharsTyped", default=None)
+    total_chars_typed: Optional[int] = strawberry.field(name="totalCharsTyped", default=None)
     error_char_count: Optional[int] = strawberry.field(name="errorCharCount", default=None)
 
     # Dicts for stats
@@ -114,8 +114,8 @@ class UserStatsSessionInput:
 class UserStatsDetailType:
     corrected_char_count: Optional[int] = strawberry.field(name="correctedCharCount")
     deleted_char_count: Optional[int] = strawberry.field(name="deletedCharCount")
-    typed_char_count: Optional[int] = strawberry.field(name="typedCharCount")
-    total_char_count: Optional[int] = strawberry.field(name="totalCharCount")
+    typed_char_count: Optional[int] = strawberry.field(name="correctCharsTyped")
+    total_char_count: Optional[int] = strawberry.field(name="totalCharsTyped")
     error_char_count: Optional[int] = strawberry.field(name="errorCharCount")
 
     ave_digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(

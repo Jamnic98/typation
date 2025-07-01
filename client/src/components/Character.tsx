@@ -6,6 +6,7 @@ import {
   STYLE_CORRECTED,
   STYLE_HIT,
   STYLE_MISS,
+  STYLE_NON_FIX_DELETE,
   STYLE_NONE,
   STYLE_PENDING,
 } from 'utils/constants'
@@ -22,6 +23,7 @@ export interface CharacterProps {
 export const typedStatusStyles: Record<TypedStatus, string> = {
   [TypedStatus.MISS]: STYLE_MISS,
   [TypedStatus.CORRECTED]: STYLE_CORRECTED,
+  [TypedStatus.NON_FIX_DELETE]: STYLE_NON_FIX_DELETE,
   [TypedStatus.PENDING]: STYLE_PENDING,
   [TypedStatus.HIT]: STYLE_HIT,
   [TypedStatus.NONE]: STYLE_NONE,
@@ -36,8 +38,13 @@ export const CharacterComponent = ({
   const [wasTyped, setWasTyped] = useState(false)
 
   useEffect(() => {
-    if (typedStatus !== TypedStatus.NONE && !wasTyped) {
+    // Animate when status becomes HIT or CORRECTED
+    if ((typedStatus === TypedStatus.HIT || typedStatus === TypedStatus.CORRECTED) && !wasTyped) {
       setWasTyped(true)
+    }
+    // Reset wasTyped if typedStatus moves away, so animation can trigger again
+    if (typedStatus !== TypedStatus.HIT && typedStatus !== TypedStatus.CORRECTED && wasTyped) {
+      setWasTyped(false)
     }
   }, [typedStatus, wasTyped])
 
@@ -69,7 +76,6 @@ export const CharacterComponent = ({
   return (
     <span data-testid="character-cursor" className={`${cursorClass}`}>
       <span className={`w-[1ch] inline-block relative h-4`}>
-        {/* Background "ghost" letter to avoid layout shift */}
         <span
           data-testid="background-character"
           aria-hidden="true"
@@ -80,7 +86,7 @@ export const CharacterComponent = ({
 
         {/* Foreground animated letter */}
         <AnimatePresence mode="popLayout">
-          {
+          {!wasTyped && (
             <motion.span
               key={typedStatus}
               className={`${typedStatusClass} ${fontSettingsClass} z-10`}
@@ -96,7 +102,7 @@ export const CharacterComponent = ({
             >
               {char === ' ' && spaceSymbol ? spaceSymbol : char}
             </motion.span>
-          }
+          )}
         </AnimatePresence>
       </span>
     </span>

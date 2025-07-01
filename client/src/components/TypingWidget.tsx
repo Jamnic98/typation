@@ -3,7 +3,7 @@ import { useEffect, useReducer, useRef, useState } from 'react'
 import {
   TypingWidgetText /*  Accuracy, StopWatch, WordsPerMin, type CharacterProps */,
 } from 'components'
-import { fetchNewString, saveStats } from 'api'
+import { fetchTypingString, saveStats } from 'api'
 import {
   TypingAction,
   AlertType,
@@ -32,30 +32,22 @@ export const TypingWidget = () => {
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
   const { showAlert } = useAlert()
 
-  // Load persisted text from localStorage or fetch new text on mount
+  const fetchAndSetText = async () => {
+    const newText = await fetchTypingString()
+    dispatch({ type: 'SET_TEXT', payload: newText })
+    localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
+    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+  }
+
+  // On mount
   useEffect(() => {
     const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
     const completed = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY)
 
-    try {
-      if (savedText && completed === 'false') {
-        dispatch({ type: 'SET_TEXT', payload: savedText })
-      } else {
-        // If no saved text or completed, fetch a new string
-        // setIsLoadingText(true)
-        localStorage.removeItem(LOCAL_STORAGE_TEXT_KEY) // Clear old text
-        localStorage.removeItem(LOCAL_STORAGE_COMPLETED_KEY) // Clear completed status
-        // Get new text
-        const getText = async () => {
-          const newText = await fetchNewString()
-          dispatch({ type: 'SET_TEXT', payload: newText })
-          localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
-          localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
-        }
-        getText()
-      }
-    } catch (error) {
-      console.error('Error loading text from localStorage:', error)
+    if (savedText && completed === 'false') {
+      dispatch({ type: 'SET_TEXT', payload: savedText })
+    } else {
+      fetchAndSetText()
     }
   }, [])
 
@@ -114,7 +106,7 @@ export const TypingWidget = () => {
     dispatch({ type: 'STOP' })
 
     const now = Date.now()
-    const elapsedTime = startTimestamp ? now - startTimestamp.current : state.stopWatchTime
+    const elapsedTime = now - startTimestamp.current
 
     dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
 
@@ -134,47 +126,32 @@ export const TypingWidget = () => {
 
     // Save stats to server – handle failure gracefully
     try {
-      if (token) {
-        await saveStats(
+      token &&
+        (await saveStats(
           {
             wpm: sessionStats.wpm,
             accuracy: sessionStats.accuracy,
             startTime: startTimestamp.current,
             endTime: now,
             practiceDuration: 60,
-            errorCount: sessionStats.errorCount,
             correctedCharCount: sessionStats.correctedCharCount,
             deletedCharCount: sessionStats.deletedCharCount,
-            typedCharCount: sessionStats.typedCharCount,
-            totalCharCount: sessionStats.totalCharCount,
+            correctCharsTyped: sessionStats.correctCharsTyped,
+            totalCharsTyped: sessionStats.totalCharsTyped,
             errorCharCount: sessionStats.errorCharCount,
             aveDigraphTimings: sessionStats.aveDigraphTimings,
             unigraphStats: sessionStats.unigraphStats,
             digraphStats: sessionStats.digraphStats,
           },
           token
-        )
-      }
+        ))
+
+      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
+      await fetchAndSetText()
     } catch (err) {
       console.error('Failed to save stats:', err)
       showAlert({
         title: 'Failed to save stats',
-        message: err instanceof Error ? err.message : String(err),
-        type: AlertType.ERROR,
-      })
-    }
-
-    // Fetch new text for the next session – handle failure
-    try {
-      const newText = await fetchNewString()
-      dispatch({ type: 'SET_TEXT', payload: newText })
-      localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
-      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
-    } catch (err) {
-      const errorMsg = 'Could not load new text'
-      console.error(errorMsg, err)
-      showAlert({
-        title: errorMsg,
         message: getReadableErrorMessage(err),
         type: AlertType.ERROR,
       })

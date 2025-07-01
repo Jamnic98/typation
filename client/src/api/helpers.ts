@@ -49,8 +49,8 @@ export const convertToGraphQLInput = (stats: TypingSessionStats) => {
     details: {
       correctedCharCount: stats.correctedCharCount,
       deletedCharCount: stats.deletedCharCount,
-      typedCharCount: stats.typedCharCount,
-      totalCharCount: stats.totalCharCount,
+      correctCharsTyped: stats.correctCharsTyped,
+      totalCharsTyped: stats.totalCharsTyped,
       errorCharCount: stats.errorCharCount,
 
       aveDigraphTimings: aggregateDigraphTimings(stats.aveDigraphTimings),

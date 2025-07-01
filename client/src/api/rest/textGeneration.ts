@@ -2,7 +2,7 @@ const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 const url = `${baseUrl}/text/generate-practice-text`
 
-export const fetchNewString = async (): Promise<string> => {
+export const fetchTypingString = async (): Promise<string> => {
   try {
     const response = await fetch(url, {
       method: 'POST',
