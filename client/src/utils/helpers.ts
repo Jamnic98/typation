@@ -9,8 +9,6 @@ import {
 } from 'types/global'
 import { AVERAGE_WORD_LENGTH, TYPING_WIDGET_INITIAL_STATE } from './constants'
 
-export const randomRotation = Math.floor(Math.random() * 201) - 100
-
 export const getCursorStyle = (cursorStyle: CursorStyles | undefined) => {
   switch (cursorStyle) {
     case CursorStyles.UNDERSCORE:

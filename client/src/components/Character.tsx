@@ -10,7 +10,7 @@ import {
   STYLE_NONE,
   STYLE_PENDING,
 } from 'utils/constants'
-import { getCursorStyle, randomRotation } from 'utils/helpers'
+import { getCursorStyle } from 'utils/helpers'
 import { type FontSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 
 export interface CharacterProps {
@@ -94,10 +94,14 @@ export const CharacterComponent = ({
               animate={{ opacity: 1 }}
               exit={{
                 opacity: 0,
-                y: Math.floor(Math.random() * 10) + 50,
-                rotate: randomRotation,
+                x: -Math.random() * 10,
+                y: Math.floor(Math.random() * 5) + 50,
+                rotate: (Math.random() - 0.5) * 360,
+                scale: 0.9 + Math.random() * 0.1,
               }}
-              transition={{ duration: 0.3 }}
+              transition={{
+                duration: 0.5,
+              }}
               data-testid="foreground-character"
             >
               {char === ' ' && spaceSymbol ? spaceSymbol : char}
