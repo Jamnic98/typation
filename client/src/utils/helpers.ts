@@ -126,33 +126,31 @@ export const calculateTypingSessionStats = (
       if (!digraphTimings[digraph]) digraphTimings[digraph] = []
       digraphTimings[digraph].push(interval)
 
-      if (!digraphStats[digraph]) {
-        digraphStats[digraph] = { count: 0, hit: 0 }
-      }
-
+      if (!digraphStats[digraph]) digraphStats[digraph] = { count: 0, hit: 0 }
       digraphStats[digraph].count++
+
       if (prev.typedStatus === TypedStatus.HIT && typedStatus === TypedStatus.HIT) {
         digraphStats[digraph].hit++
       }
     }
   }
 
-  const finalUnigraphStats = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
+  const digraphs = Object.entries(digraphStats).map(([key, { count, hit }]) => {
+    const intervals = digraphTimings[key] || []
+    const meanInterval = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length)
+
+    return {
+      key,
+      count,
+      accuracy: Math.round((hit / count) * 100),
+      meanInterval,
+    }
+  })
+
+  const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
     key,
     count,
     accuracy: Math.round((hit / count) * 100),
-  }))
-
-  const finalDigraphStats = Object.entries(digraphStats).map(([digraph, { count, hit }]) => ({
-    firstKey: digraph[0],
-    secondKey: digraph[1],
-    count,
-    accuracy: Math.round((hit / count) * 100),
-  }))
-
-  const digraphTimingsArray = Object.entries(digraphTimings).map(([digraph, intervals]) => ({
-    key: digraph,
-    intervals,
   }))
 
   const elapsed = endTime - startTime
@@ -173,9 +171,8 @@ export const calculateTypingSessionStats = (
     totalCharsTyped,
     errorCharCount,
 
-    aveDigraphTimings: digraphTimingsArray,
-    unigraphStats: finalUnigraphStats,
-    digraphStats: finalDigraphStats,
+    digraphs,
+    unigraphs,
   }
 }
 
@@ -189,7 +186,7 @@ export const calculateAccuracy = (targetText: string, typedText: string) => {
     }
   }
 
-  return typedText.length > 0 ? Math.round((correct / typedText.length) * 100) : 0
+  return typedText.length > 0 ? parseFloat(((correct / typedText.length) * 100).toFixed(1)) : 0
 }
 
 export const calculateWpm = (targetText: string, typedText: string, elapsedTime: number) => {

@@ -19,11 +19,19 @@ def auth_required(func):
     return wrapper
 
 
-def convert_stat_list_to_dict(stat_list):
-    return {entry["key"]: {"count": entry["count"], "accuracy": entry["accuracy"]} for entry in stat_list}
 
-def convert_timing_list_to_dict(timing_list):
-    return {entry["key"]: entry["intervals"] for entry in timing_list}
+def convert_stat_list_to_dict(stat_list):
+    result = {}
+    for entry in stat_list:
+        key = entry["key"]
+        data = {
+            "count": entry["count"],
+            "accuracy": entry["accuracy"],
+            "mean_interval": entry.get("mean_interval", entry.get("meanInterval"))
+        }
+        result[key] = data
+    return result
+
 
 def normalise_user_stats_input(data: dict) -> dict:
     if not data.get("details"):
@@ -36,8 +44,5 @@ def normalise_user_stats_input(data: dict) -> dict:
 
     if isinstance(details.get("digraph_stats"), list):
         details["digraph_stats"] = convert_stat_list_to_dict(details["digraph_stats"])
-
-    if isinstance(details.get("digraph_timings"), list):
-        details["digraph_timings"] = convert_timing_list_to_dict(details["digraph_timings"])
 
     return data

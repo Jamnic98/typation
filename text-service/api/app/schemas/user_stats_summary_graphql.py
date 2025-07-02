@@ -12,7 +12,7 @@ class UserStatsSummaryCreateInput:
     average_wpm: Optional[float] = strawberry.field(default=0.0, name="averageWpm")
     average_accuracy: Optional[float] = strawberry.field(default=0.0, name="averageAccuracy")
     best_wpm: Optional[int] = strawberry.field(default=0, name="bestWpm")
-    best_accuracy: Optional[int] = strawberry.field(default=0, name="bestAccuracy")
+    best_accuracy: Optional[float] = strawberry.field(default=0, name="bestAccuracy")
 
 
 @strawberry.input
@@ -23,7 +23,7 @@ class UserStatsSummaryUpdateInput:
     average_wpm: Optional[float] = strawberry.field(default=None, name="averageWpm")
     average_accuracy: Optional[float] = strawberry.field(default=None, name="averageAccuracy")
     best_wpm: Optional[int] = strawberry.field(default=None, name="bestWpm")
-    best_accuracy: Optional[int] = strawberry.field(default=None, name="bestAccuracy")
+    best_accuracy: Optional[float] = strawberry.field(default=None, name="bestAccuracy")
 
 
 @strawberry.type

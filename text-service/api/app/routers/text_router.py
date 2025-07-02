@@ -9,7 +9,7 @@ text_router = APIRouter(prefix='/text')
 
 @text_router.post('/generate-practice-text')
 async def generate_practice_text():
-    word_list = sample(load_word_list(), 20)
+    word_list = sample(load_word_list(), 5)
     shuffle(word_list)
     return {'text': ' '.join(word_list)}
 

@@ -7,20 +7,20 @@ import strawberry
 @strawberry.input
 class UserStatsSessionUpdateInput:
     wpm: Optional[int] = None
-    accuracy: Optional[int] = None
+    accuracy: Optional[float] = None
     practice_duration: Optional[int] = strawberry.field(name="practiceDuration", default=None)
 
 
 @strawberry.input
 class UnigraphStatisticInput:
     count: int
-    accuracy: float  # Assuming you want decimal support
+    accuracy: int  # Assuming you want decimal support
 
 
 @strawberry.input
 class DigraphStatisticInput:
     count: int
-    accuracy: float
+    accuracy: int
 
 
 @strawberry.input
@@ -33,32 +33,28 @@ class KeyValueInput:
 class UnigraphStatEntryInput:
     key: str
     count: int
-    accuracy: float
+    accuracy: int
 
 
 @strawberry.input
 class DigraphStatEntryInput:
     key: str
     count: int
-    accuracy: float
-
-
-@strawberry.input
-class DigraphTimingEntryInput:
-    key: str
-    average_interval: int = strawberry.field(name="averageInterval")
+    accuracy: int
+    mean_interval: int = strawberry.field(name="meanInterval")
 
 
 @strawberry.type
 class UnigraphStatisticType:
     count: int
-    accuracy: float
+    accuracy: int
 
 
 @strawberry.type
 class DigraphStatisticType:
     count: int
-    accuracy: float
+    accuracy: int
+    mean_interval: int
 
 
 @strawberry.input
@@ -73,12 +69,6 @@ class UserStatsDetailInput:
     unigraph_stats: Optional[List[UnigraphStatEntryInput]] = strawberry.field(name="unigraphStats", default=None)
     digraph_stats: Optional[List[DigraphStatEntryInput]] = strawberry.field(name="digraphStats", default=None)
 
-    # Dict for timings (string → list of intervals)
-    ave_digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(
-        name="aveDigraphTimings",
-        default=None
-    )
-
 
 @strawberry.type
 class UserStatsSessionType:
@@ -86,7 +76,7 @@ class UserStatsSessionType:
 
     user_id: UUID = strawberry.field(name="userId")
     wpm: Optional[int]
-    accuracy: Optional[int]
+    accuracy: Optional[float]
     error_count: Optional[int] = strawberry.field(name="errorCount", default=None)
 
     start_time: Optional[float] = strawberry.field(name="startTime", default=None)
@@ -97,12 +87,11 @@ class UserStatsSessionType:
 @strawberry.input
 class UserStatsSessionInput:
     wpm: Optional[int] = None
-    accuracy: Optional[int] = None
+    accuracy: Optional[float] = None
+
+    unigraph_stats: Optional[List[DigraphStatEntryInput]] = strawberry.field(name="unigraphStats", default=None)
     digraph_stats: Optional[List[DigraphStatEntryInput]] = strawberry.field(name="digraphStats", default=None)
-    ave_digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(
-        name="aveDigraphTimings",
-        default=None
-    )
+
     start_time: Optional[float] = strawberry.field(name="startTime", default=None)  # Unix timestamp in ms
     end_time: Optional[float] = strawberry.field(name="endTime", default=None)
     practice_duration: Optional[int] = strawberry.field(name="practiceDuration", default=None)
@@ -118,9 +107,5 @@ class UserStatsDetailType:
     total_char_count: Optional[int] = strawberry.field(name="totalCharsTyped")
     error_char_count: Optional[int] = strawberry.field(name="errorCharCount")
 
-    ave_digraph_timings: Optional[List[DigraphTimingEntryInput]] = strawberry.field(
-        name="aveDigraphTimings",
-        default=None
-    )
     unigraph_stats: Optional[List[UnigraphStatisticType]] = strawberry.field(name="unigraphStats", default=None)
     digraph_stats: Optional[List[DigraphStatisticType]] = strawberry.field(name="digraphStats", default=None)

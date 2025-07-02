@@ -1,7 +1,10 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
 
 import {
+  Accuracy,
+  StopWatch,
   TypingWidgetText /*  Accuracy, StopWatch, WordsPerMin, type CharacterProps */,
+  WordsPerMin,
 } from 'components'
 import { fetchTypingString, saveStats } from 'api'
 import {
@@ -11,7 +14,12 @@ import {
   type FontSettings,
   type OnTypeParams,
 } from 'types/global'
-import { calculateTypingSessionStats, typingWidgetStateReducer } from 'utils/helpers'
+import {
+  calculateAccuracy,
+  calculateTypingSessionStats,
+  calculateWpm,
+  typingWidgetStateReducer,
+} from 'utils/helpers'
 import {
   defaultFontSettings,
   LOCAL_STORAGE_COMPLETED_KEY,
@@ -28,7 +36,7 @@ export const TypingWidget = () => {
   const deletedCharCount = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
   const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
-  const [showStats /* setShowStats */] = useState<boolean>(true)
+  const [showStats, setShowStats] = useState<boolean>(false)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
   const { showAlert } = useAlert()
 
@@ -65,6 +73,7 @@ export const TypingWidget = () => {
   }, [state.runStopWatch])
 
   const reset = (): void => {
+    setShowStats(false)
     dispatch({ type: 'RESET_SESSION' })
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
     deletedCharCount.current = 0
@@ -99,11 +108,25 @@ export const TypingWidget = () => {
       default:
         keyEventQueue.current.push({ key, typedStatus, cursorIndex, timestamp })
     }
+
+    // ✅ Live stats calculation
+    const typedText = keyEventQueue.current.map((e) => e.key).join('')
+    const targetText = state.text ?? ''
+    const now = Date.now()
+    const elapsed = now - startTimestamp.current
+
+    if (elapsed > 0 && typedText.length > 0) {
+      const accuracy = calculateAccuracy(targetText, typedText)
+      const wpm = calculateWpm(targetText, typedText, elapsed)
+
+      dispatch({ type: 'UPDATE_STATS', payload: { wpm, accuracy } })
+    }
   }
 
   const onComplete = async (correctedCharCount: number): Promise<void> => {
     if (!state.text) return
     dispatch({ type: 'STOP' })
+    setShowStats(true)
 
     const now = Date.now()
     const elapsedTime = now - startTimestamp.current
@@ -139,9 +162,8 @@ export const TypingWidget = () => {
             correctCharsTyped: sessionStats.correctCharsTyped,
             totalCharsTyped: sessionStats.totalCharsTyped,
             errorCharCount: sessionStats.errorCharCount,
-            aveDigraphTimings: sessionStats.aveDigraphTimings,
-            unigraphStats: sessionStats.unigraphStats,
-            digraphStats: sessionStats.digraphStats,
+            unigraphs: sessionStats.unigraphs,
+            digraphs: sessionStats.digraphs,
           },
           token
         ))
@@ -171,9 +193,9 @@ export const TypingWidget = () => {
       <br />
       {showStats ? (
         <div id="stats" className="space-y-4">
-          {/* <WordsPerMin wpm={state.wpm} />
-          <Accuracy accuracy={state.accuracy} /> 
-          <StopWatch time={state.stopWatchTime} /> */}
+          <WordsPerMin wpm={state.wpm} />
+          <Accuracy accuracy={state.accuracy} />
+          <StopWatch time={state.stopWatchTime} />
         </div>
       ) : null}
     </div>

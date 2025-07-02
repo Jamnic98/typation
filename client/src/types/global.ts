@@ -113,31 +113,40 @@ export type BaseTypingStats = {
   digraphStats: DigraphStatistic[]
 }
 
-export interface TypingSessionStats extends BaseTypingStats {
-  startTime: number // Unix timestamp in ms
-  endTime: number // Unix timestamp in ms
-
-  practiceDuration?: number // Duration of session in seconds
+export type DigraphStatistic = {
+  key: string
+  count: number
+  accuracy: number // float (0–1)
+  meanInterval: number
 }
 
+export type UnigraphStatistic = {
+  key: string
+  count: number
+  accuracy: number // float (0–1)
+}
+
+export type TypingSessionStats = {
+  startTime: number
+  endTime: number
+  practiceDuration: number
+  wpm: number
+  accuracy: number
+
+  correctedCharCount: number
+  deletedCharCount: number
+  correctCharsTyped: number
+  totalCharsTyped: number
+  errorCharCount: number
+
+  digraphs: DigraphStatistic[]
+  unigraphs: UnigraphStatistic[]
+}
 export interface TypingStatsSummary extends BaseTypingStats {
   sessionCount: number
 
   averageWpm: number
   averageAccuracy: number
-}
-
-export type UnigraphStatistic = {
-  key: string
-  count: number // Number of times key was typed
-  accuracy: number // % correct uses of key (0–100)
-}
-
-export type DigraphStatistic = {
-  firstKey: string
-  secondKey: string
-  count: number // Number of times digraph was typed
-  accuracy: number // % correct uses of digraph (0–100)
 }
 
 export type DigraphTiming = { key: string; intervals: number[] }
@@ -188,7 +197,7 @@ export type KeyEvent = {
 
 export type DigraphTimingAverage = {
   key: string
-  averageInterval: number
+  meanInterval: number
 }
 
 export enum TypingAction {

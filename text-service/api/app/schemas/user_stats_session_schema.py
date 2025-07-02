@@ -7,12 +7,13 @@ from pydantic import BaseModel, ConfigDict
 
 class UnigraphStatistic(BaseModel):
     count: int
-    accuracy: float
+    accuracy: int
 
 
 class DigraphStatistic(BaseModel):
     count: int
-    accuracy: float
+    accuracy: int
+    mean_interval: int
 
 
 class UserStatsDetails(BaseModel):
@@ -24,12 +25,11 @@ class UserStatsDetails(BaseModel):
 
     unigraph_stats: Optional[Dict[str, UnigraphStatistic]] = None
     digraph_stats: Optional[Dict[str, DigraphStatistic]] = None
-    digraph_timings: Optional[Dict[str, int]] = None
 
 
 class UserStatsSessionCreate(BaseModel):
     wpm: Optional[int] = None
-    accuracy: Optional[int] = None
+    accuracy: Optional[float] = None
     practice_duration: Optional[int] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
@@ -41,7 +41,7 @@ class UserStatsSessionRead(BaseModel):
     id: UUID
     user_id: UUID
     wpm: Optional[int]
-    accuracy: Optional[int]
+    accuracy: Optional[float]
     practice_duration: Optional[int]
     start_time: Optional[datetime]
     end_time: Optional[datetime]

@@ -34,7 +34,7 @@ class UserStatsSession(Base):
     id: Mapped[uuid4] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id: Mapped[uuid4] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     wpm: Mapped[Optional[int]] = mapped_column(Integer)
-    accuracy: Mapped[Optional[int]] = mapped_column(Integer)
+    accuracy: Mapped[Optional[float]] = mapped_column(Integer)
     practice_duration: Mapped[Optional[int]] = mapped_column(Integer)  # milliseconds
     start_time: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # pylint: disable=not-callable
     end_time: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True))
@@ -52,6 +52,6 @@ class UserStatsSummary(Base):
     average_wpm: Mapped[float] = mapped_column(Float, default=0.0)
     average_accuracy: Mapped[float] = mapped_column(Float, default=0.0)
     best_wpm: Mapped[int] = mapped_column(Integer, default=0)
-    best_accuracy: Mapped[int] = mapped_column(Integer, default=0)
+    best_accuracy: Mapped[float] = mapped_column(Integer, default=0)
 
     user: Mapped["User"] = relationship("User", back_populates="summary")

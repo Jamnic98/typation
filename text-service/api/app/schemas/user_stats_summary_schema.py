@@ -9,7 +9,7 @@ class UserStatsSummaryBase(BaseModel):
     average_wpm: Optional[float] = Field(0.0, ge=0.0)
     average_accuracy: Optional[float] = Field(0.0, ge=0.0, le=100.0)
     best_wpm: Optional[int] = Field(0, ge=0)
-    best_accuracy: Optional[int] = Field(0, ge=0, le=100)
+    best_accuracy: Optional[float] = Field(0, ge=0, le=100)
 
 
 class UserStatsSummaryCreate(UserStatsSummaryBase):

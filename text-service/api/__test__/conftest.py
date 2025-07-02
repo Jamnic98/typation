@@ -194,13 +194,13 @@ async def create_test_user_stats_sessions(
         UserStatsSession(
             user_id=user_ids[0],
             wpm=60,
-            accuracy=90,
+            accuracy=0.999,
             practice_duration=60000,
         ),
         UserStatsSession(
             user_id=user_ids[1],
             wpm=75,
-            accuracy=95,
+            accuracy=0.911,
             practice_duration=90000,
         ),
     ]

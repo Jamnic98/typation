@@ -1,8 +1,4 @@
-import {
-  type DigraphTiming,
-  type DigraphTimingAverage,
-  type TypingSessionStats,
-} from 'types/global'
+import { type TypingSessionStats } from 'types/global'
 
 export const GRAPHQL_ENDPOINT = '/graphql'
 
@@ -30,14 +26,6 @@ export const useGraphQLRequest = async <T, V = undefined>(
   return data.data
 }
 
-function aggregateDigraphTimings(timings: DigraphTiming[]): DigraphTimingAverage[] {
-  return timings.map(({ key, intervals }) => {
-    const sum = intervals.reduce((acc, cur) => acc + cur, 0)
-    const average = Math.round(sum / intervals.length)
-    return { key, averageInterval: average }
-  })
-}
-
 export const convertToGraphQLInput = (stats: TypingSessionStats) => {
   return {
     wpm: stats.wpm,
@@ -53,18 +41,17 @@ export const convertToGraphQLInput = (stats: TypingSessionStats) => {
       totalCharsTyped: stats.totalCharsTyped,
       errorCharCount: stats.errorCharCount,
 
-      aveDigraphTimings: aggregateDigraphTimings(stats.aveDigraphTimings),
-
-      unigraphStats: stats.unigraphStats.map((u) => ({
+      unigraphStats: stats.unigraphs.map((u) => ({
         key: u.key,
         count: u.count,
         accuracy: u.accuracy,
       })),
 
-      digraphStats: stats.digraphStats.map((d) => ({
-        key: d.firstKey + d.secondKey,
+      digraphStats: stats.digraphs.map((d) => ({
+        key: d.key,
         count: d.count,
         accuracy: d.accuracy,
+        meanInterval: d.meanInterval,
       })),
     },
   }
