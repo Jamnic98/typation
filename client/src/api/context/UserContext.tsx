@@ -62,6 +62,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null)
     setToken(null)
     window.location.reload()
+    navigate('/')
   }
 
   return (

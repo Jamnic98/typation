@@ -14,16 +14,16 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="auth">
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password/:token" element={<ResetPassword />} />
+            </Route>
+            {/* TODO: make actual page */}
+            {/* <Route path="*" element={<NotFound />} /> */}
+            <Route path="*" element={<div>Not Found</div>} />
           </Route>
-
-          <Route path="/auth" element={<Layout />}>
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="reset-password/:token" element={<ResetPassword />} />
-          </Route>
-
-          <Route path="*" element={<div>Not Found</div>} />
         </Routes>
       </UserProvider>
     </AlertProvider>

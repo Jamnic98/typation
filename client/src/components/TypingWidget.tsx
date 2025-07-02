@@ -156,7 +156,7 @@ export const TypingWidget = () => {
             accuracy: sessionStats.accuracy,
             startTime: startTimestamp.current,
             endTime: now,
-            practiceDuration: 60,
+            practiceDuration: Math.floor(elapsedTime / 1000),
             correctedCharCount: sessionStats.correctedCharCount,
             deletedCharCount: sessionStats.deletedCharCount,
             correctCharsTyped: sessionStats.correctCharsTyped,
