@@ -34,15 +34,10 @@ def convert_stat_list_to_dict(stat_list):
 
 
 def normalise_user_stats_input(data: dict) -> dict:
-    if not data.get("details"):
-        return data
+    if isinstance(data.get("unigraphs"), list):
+        data["unigraphs"] = convert_stat_list_to_dict(data["unigraphs"])
 
-    details = data["details"]
-
-    if isinstance(details.get("unigraph_stats"), list):
-        details["unigraph_stats"] = convert_stat_list_to_dict(details["unigraph_stats"])
-
-    if isinstance(details.get("digraph_stats"), list):
-        details["digraph_stats"] = convert_stat_list_to_dict(details["digraph_stats"])
+    if isinstance(data.get("digraphs"), list):
+        data["digraphs"] = convert_stat_list_to_dict(data["digraphs"])
 
     return data

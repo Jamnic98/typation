@@ -31,29 +31,27 @@ export const convertToGraphQLInput = (stats: TypingSessionStats) => {
     wpm: stats.wpm,
     accuracy: stats.accuracy,
     practiceDuration: stats.practiceDuration,
+
     startTime: stats.startTime,
     endTime: stats.endTime,
+    correctedCharCount: stats.correctedCharCount,
+    deletedCharCount: stats.deletedCharCount,
+    correctCharsTyped: stats.correctCharsTyped,
+    totalCharsTyped: stats.totalCharsTyped,
+    errorCharCount: stats.errorCharCount,
 
-    details: {
-      correctedCharCount: stats.correctedCharCount,
-      deletedCharCount: stats.deletedCharCount,
-      correctCharsTyped: stats.correctCharsTyped,
-      totalCharsTyped: stats.totalCharsTyped,
-      errorCharCount: stats.errorCharCount,
+    unigraphs: stats.unigraphs.map((u) => ({
+      key: u.key,
+      count: u.count,
+      accuracy: u.accuracy,
+    })),
 
-      unigraphStats: stats.unigraphs.map((u) => ({
-        key: u.key,
-        count: u.count,
-        accuracy: u.accuracy,
-      })),
-
-      digraphStats: stats.digraphs.map((d) => ({
-        key: d.key,
-        count: d.count,
-        accuracy: d.accuracy,
-        meanInterval: d.meanInterval,
-      })),
-    },
+    digraphs: stats.digraphs.map((d) => ({
+      key: d.key,
+      count: d.count,
+      accuracy: d.accuracy,
+      meanInterval: d.meanInterval,
+    })),
   }
 }
 

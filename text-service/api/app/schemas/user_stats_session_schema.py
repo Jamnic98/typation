@@ -16,17 +16,6 @@ class DigraphStatistic(BaseModel):
     mean_interval: int
 
 
-class UserStatsDetails(BaseModel):
-    corrected_char_count: Optional[int] = None
-    deleted_char_count: Optional[int] = None
-    typed_char_count: Optional[int] = None
-    total_char_count: Optional[int] = None
-    error_char_count: Optional[int] = None
-
-    unigraph_stats: Optional[Dict[str, UnigraphStatistic]] = None
-    digraph_stats: Optional[Dict[str, DigraphStatistic]] = None
-
-
 class UserStatsSessionCreate(BaseModel):
     wpm: Optional[int] = None
     accuracy: Optional[float] = None
@@ -34,7 +23,14 @@ class UserStatsSessionCreate(BaseModel):
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
 
-    details: Optional[UserStatsDetails] = None
+    corrected_char_count: Optional[int] = None
+    deleted_char_count: Optional[int] = None
+    typed_char_count: Optional[int] = None
+    total_char_count: Optional[int] = None
+    error_char_count: Optional[int] = None
+
+    unigraphs: Optional[Dict[str, UnigraphStatistic]] = None
+    digraphs: Optional[Dict[str, DigraphStatistic]] = None
 
 
 class UserStatsSessionRead(BaseModel):
@@ -45,6 +41,13 @@ class UserStatsSessionRead(BaseModel):
     practice_duration: Optional[int]
     start_time: Optional[datetime]
     end_time: Optional[datetime]
-    details: Optional[UserStatsDetails] = None
+    corrected_char_count: Optional[int] = None
+    deleted_char_count: Optional[int] = None
+    typed_char_count: Optional[int] = None
+    total_char_count: Optional[int] = None
+    error_char_count: Optional[int] = None
+
+    unigraphs: Optional[Dict[str, UnigraphStatistic]] = None
+    digraphs: Optional[Dict[str, DigraphStatistic]] = None
 
     model_config = ConfigDict(from_attributes=True)

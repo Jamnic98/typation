@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     # TODO: reduce to 60 and implement refresh tokens
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200
 
+    WORD_LIMIT: int = 10
+
     @cached_property
     def database_url(self) -> str:
         return self.DATABASE_URL  # Optional: parse or fallback if needed

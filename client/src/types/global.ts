@@ -95,24 +95,6 @@ export type Action =
   | { type: 'RESET_SESSION' }
   | { type: 'RESET_ALL' }
 
-export type BaseTypingStats = {
-  wpm: number
-  accuracy: number
-
-  correctedCharCount: number // Times user fixed an error (e.g., backspace presses)
-  correctCharsTyped: number // Typed characters that matched target text
-  deletedCharCount: number // Total characters deleted
-  totalCharsTyped: number // All typed characters including errors
-  errorCharCount: number // Incorrect characters typed
-
-  // - For digraphs: digraph string (e.g., "th") → array of intervals in ms between keys
-  aveDigraphTimings: DigraphTiming[]
-
-  // Frequency + accuracy stats per key/digraph
-  unigraphStats: UnigraphStatistic[]
-  digraphStats: DigraphStatistic[]
-}
-
 export type DigraphStatistic = {
   key: string
   count: number
@@ -142,6 +124,20 @@ export type TypingSessionStats = {
   digraphs: DigraphStatistic[]
   unigraphs: UnigraphStatistic[]
 }
+
+export type BaseTypingStats = {
+  wpm: number
+  accuracy: number
+
+  correctedCharCount: number // Times user fixed an error (e.g., backspace presses)
+  correctCharsTyped: number // Typed characters that matched target text
+  deletedCharCount: number // Total characters deleted
+  totalCharsTyped: number // All typed characters including errors
+  errorCharCount: number // Incorrect characters typed
+  unigraphStats: UnigraphStatistic[]
+  digraphStats: DigraphStatistic[]
+}
+
 export interface TypingStatsSummary extends BaseTypingStats {
   sessionCount: number
 
@@ -193,11 +189,6 @@ export type KeyEvent = {
   key: string
   typedStatus: TypedStatus
   cursorIndex: number
-}
-
-export type DigraphTimingAverage = {
-  key: string
-  meanInterval: number
 }
 
 export enum TypingAction {

@@ -17,7 +17,15 @@ async def test_create_stats_session(graphql_query_fixture, test_users, auth_toke
         "userStatsSessionInput": {
             "wpm": 75,
             "accuracy": 96,
-            "practiceDuration": 120000
+            "practiceDuration": 120000,
+            "unigraphs": [
+                {"key": "a", "count": 1, "accuracy": 100},
+                {"key": "b", "count": 2, "accuracy": 90}
+            ],
+            "digraphs": [
+                {"key": "ab", "count": 1, "accuracy": 95, "meanInterval": 120},
+                {"key": "bc", "count": 2, "accuracy": 100, "meanInterval": 100}
+            ]
         }
     }
 
@@ -59,7 +67,15 @@ async def test_get_stats_session_by_id(graphql_query_fixture, test_users, auth_t
         "userStatsSessionInput": {
             "wpm": 90,
             "accuracy": 99,
-            "practiceDuration": 10000
+            "practiceDuration": 10000,
+            "unigraphs": [
+                {"key": "a", "count": 1, "accuracy": 100},
+                {"key": "b", "count": 2, "accuracy": 90}
+            ],
+            "digraphs": [
+                {"key": "ab", "count": 1, "accuracy": 95, "meanInterval": 120},
+                {"key": "bc", "count": 2, "accuracy": 100, "meanInterval": 100}
+            ]
         }
     }
     res = await graphql_query_fixture(mutation, variables, headers)
@@ -96,7 +112,15 @@ async def test_update_stats_session(graphql_query_fixture, test_user_stats_sessi
         "userStatsSessionInput": {
             "wpm": 55,
             "accuracy": 85,
-            "practiceDuration": 60000
+            "practiceDuration": 60000,
+            "unigraphs": [
+                {"key": "a", "count": 1, "accuracy": 100},
+                {"key": "b", "count": 2, "accuracy": 90}
+            ],
+            "digraphs": [
+                {"key": "ab", "count": 1, "accuracy": 95, "meanInterval": 120},
+                {"key": "bc", "count": 2, "accuracy": 100, "meanInterval": 100}
+            ]
         }
     }
     res = await graphql_query_fixture(create_mutation, variables, headers)
@@ -140,7 +164,15 @@ async def test_delete_stats_session(graphql_query_fixture, test_users, auth_toke
         "userStatsSessionInput": {
             "wpm": 100,
             "accuracy": 100,
-            "practiceDuration": 5000
+            "practiceDuration": 5000,
+            "unigraphs": [
+                {"key": "a", "count": 1, "accuracy": 100},
+                {"key": "b", "count": 2, "accuracy": 90}
+            ],
+            "digraphs": [
+                {"key": "ab", "count": 1, "accuracy": 95, "meanInterval": 120},
+                {"key": "bc", "count": 2, "accuracy": 100, "meanInterval": 100}
+            ]
         }
     }
     res = await graphql_query_fixture(mutation, variables, headers)

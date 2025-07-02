@@ -15,7 +15,6 @@ const SAVE_STATS_MUTATION = `
 
 export const saveStats = async (stats: TypingSessionStats, token: string): Promise<void> => {
   const input = convertToGraphQLInput(stats)
-  console.log(input)
   const response = await fetch(`${baseUrl}${GRAPHQL_ENDPOINT}`, {
     method: 'POST',
     headers: {

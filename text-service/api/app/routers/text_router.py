@@ -4,12 +4,15 @@ from random import shuffle, sample
 
 from fastapi import APIRouter
 
+from ..settings import settings
+
+
 text_router = APIRouter(prefix='/text')
 
 
 @text_router.post('/generate-practice-text')
 async def generate_practice_text():
-    word_list = sample(load_word_list(), 5)
+    word_list = sample(load_word_list(), settings.WORD_LIMIT)
     shuffle(word_list)
     return {'text': ' '.join(word_list)}
 

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from ..factories.database import get_db
-from ..models.user_model import UserStatsSession
+from ..models.user_model import UserStatsSession, Digraph, Unigraph
 from ..schemas.user_stats_session_graphql import UserStatsSessionUpdateInput
 from ..schemas.user_stats_session_schema import UserStatsSessionCreate
 
@@ -23,7 +23,10 @@ async def create_user_stats_session(
         practice_duration=input_data.practice_duration,
         start_time=input_data.start_time,
         end_time=input_data.end_time,
-        details=input_data.details
+        corrected_char_count=input_data.corrected_char_count,
+        deleted_char_count=input_data.deleted_char_count,
+        total_char_count=input_data.total_char_count,
+        error_char_count=input_data.error_char_count,
     )
 
     new_session = UserStatsSession(
@@ -33,12 +36,35 @@ async def create_user_stats_session(
         practice_duration=session_data.practice_duration,
         start_time=session_data.start_time,
         end_time=session_data.end_time,
-        details=session_data.details.model_dump() if session_data.details else None
+        corrected_char_count=input_data.corrected_char_count,
+        deleted_char_count=input_data.deleted_char_count,
+        total_char_count=input_data.total_char_count,
+        error_char_count=input_data.error_char_count,
     )
 
     db.add(new_session)
     await db.commit()
     await db.refresh(new_session)
+
+    for key, uni in input_data.unigraphs.items():
+        new_uni = Unigraph(
+            user_stats_session_id=new_session.id,
+            key=key,
+            count=uni.count,
+            accuracy=uni.accuracy,
+        )
+        db.add(new_uni)
+
+    for key, di in input_data.digraphs.items():
+        new_di = Digraph(
+            user_stats_session_id=new_session.id,
+            key=key,
+            count=di.count,
+            accuracy=di.accuracy,
+            mean_interval=di.mean_interval,
+        )
+        db.add(new_di)
+
     return new_session
 
 
