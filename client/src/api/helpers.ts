@@ -43,6 +43,7 @@ export const convertToGraphQLInput = (stats: TypingSessionStats) => {
       key: u.key,
       count: u.count,
       accuracy: u.accuracy,
+      mistyped: u.mistyped,
     })),
 
     digraphs: stats.digraphs.map((d) => ({

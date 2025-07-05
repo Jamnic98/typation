@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict
 class UnigraphStatistic(BaseModel):
     count: int
     accuracy: int
+    mistyped: Optional[Dict[str, int]] = None
 
 
 class DigraphStatistic(BaseModel):

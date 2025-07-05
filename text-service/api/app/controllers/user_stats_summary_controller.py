@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,7 +43,7 @@ async def create_user_stats_summary(
                     user_stats_summary_id=summary.id,
                     key=uni.key,
                     count=uni.count,
-                    accuracy=uni.accuracy
+                    accuracy=uni.accuracy,
                 )
             )
 
@@ -74,13 +74,6 @@ async def get_user_stats_summary_by_user_id(
         select(UserStatsSummary).where(UserStatsSummary.user_id == user_id)
     )
     return result.scalar_one_or_none()
-
-
-async def get_all_user_stats_summaries(
-    db: AsyncSession
-) -> Sequence[UserStatsSummary]:
-    result = await db.execute(select(UserStatsSummary))
-    return result.scalars().all()
 
 
 async def update_user_stats_summary(

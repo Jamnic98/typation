@@ -5,10 +5,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from strawberry.types import Info
 
+from ..types.digraph_type import DigraphType
+from ..types.unigraph_type import UnigraphType
 from ...controllers.user_stats_session_controller import get_all_user_stats_sessions, get_user_stats_session_by_id
 from ...controllers.users_controller import get_all_users
-from ...models.digraph_model import Digraph
-from ...models.unigraph_model import Unigraph
 from ...models.user_model import User
 from ...models.user_stats_summary_model import UserStatsSummary
 from ...schemas.user_graphql import UserType
@@ -115,11 +115,15 @@ class UsersQuery:
                 total_char_count=summary.total_char_count,
                 error_char_count=summary.error_char_count,
                 unigraphs=[
-                    Unigraph(key=uni.key, accuracy=uni.accuracy, count=uni.count)
+                    UnigraphType(
+                        key=uni.key,
+                        count=uni.count,
+                        accuracy=uni.accuracy
+                    )
                     for uni in summary.unigraphs
                 ],
                 digraphs=[
-                    Digraph(key=di.key, mean_interval=di.mean_interval, accuracy=di.accuracy, count=di.count)
+                    DigraphType(key=di.key, mean_interval=di.mean_interval, accuracy=di.accuracy, count=di.count)
                     for di in summary.digraphs
                 ]
             )

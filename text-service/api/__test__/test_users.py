@@ -151,7 +151,6 @@ async def test_update_user_authenticated(graphql_query_fixture, auth_token):
     response = await graphql_query_fixture(mutation, variables, headers)
     assert response.status_code == 200
     data = response.json()
-    print("GRAPHQL RESPONSE:", data)
     assert "errors" not in data
     if data["data"]["updateUser"] is not None:
         assert data["data"]["updateUser"]["userName"] == test_user_name

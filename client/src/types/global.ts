@@ -106,6 +106,7 @@ export type UnigraphStatistic = {
   key: string
   count: number
   accuracy: number // float (0–1)
+  mistyped: { key: string; count: number }[]
 }
 
 export type TypingSessionStats = {

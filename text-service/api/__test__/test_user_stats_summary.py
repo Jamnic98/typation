@@ -22,7 +22,7 @@ async def test_create_user_stats_summary(graphql_query_fixture, test_users, auth
             "averageAccuracy": 92.0,
             "fastestWpm": fastest_wpm,
             "unigraphs": [
-                {"key": "z", "accuracy": 92, "count": 4}
+                {"key": "z", "accuracy": 92, "count": 4, "mistyped": []}
             ],
             "digraphs": [
                 {"key": "ab", "meanInterval": 222, "accuracy": 88, "count": 11}
@@ -79,7 +79,6 @@ async def test_get_user_stats_summary_by_user_id(graphql_query_fixture, test_use
     data = response.json()["data"]["userStatsSummary"]
 
     # Assert that the userId in the returned stats matches the created userId
-    print(response.json())
     assert data["totalSessions"] == 5
     assert data["averageWpm"] == 65.0
     assert data["fastestWpm"] == 85

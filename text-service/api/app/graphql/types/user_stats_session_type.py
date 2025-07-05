@@ -17,7 +17,7 @@ class UserStatsSessionUpdateInput:
 @strawberry.input
 class UnigraphStatisticInput:
     count: int
-    accuracy: int  # Assuming you want decimal support
+    accuracy: int
 
 
 @strawberry.input

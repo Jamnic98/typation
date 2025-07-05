@@ -96,7 +96,8 @@ export const calculateTypingSessionStats = (
   correctedCharCount: number,
   deletedCharCount: number,
   startTime: number,
-  endTime: number
+  endTime: number,
+  mistyped: Record<string, Record<string, number>>
 ): TypingSessionStats => {
   const typedText = keyEvents.map((keyEvent) => keyEvent.key).join('')
   const correctCharsTyped = keyEvents.filter((e) => e.typedStatus === TypedStatus.HIT).length
@@ -105,14 +106,17 @@ export const calculateTypingSessionStats = (
 
   const digraphTimings: Record<string, number[]> = {}
   const digraphStats: Record<string, { count: number; hit: number }> = {}
-  const unigraphStats: Record<string, { count: number; hit: number }> = {}
+  const unigraphStats: Record<
+    string,
+    { count: number; hit: number; mistyped: { key: string; count: number }[] }
+  > = {}
 
   for (let i = 0; i < keyEvents.length; i++) {
     const { key, typedStatus } = keyEvents[i]
 
     // --- Unigraph Stats ---
     if (!unigraphStats[key]) {
-      unigraphStats[key] = { count: 0, hit: 0 }
+      unigraphStats[key] = { count: 0, hit: 0, mistyped: [] }
     }
     unigraphStats[key].count++
     if (typedStatus === TypedStatus.HIT) unigraphStats[key].hit++
@@ -162,10 +166,20 @@ export const calculateTypingSessionStats = (
     }
   })
 
-  const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
+  for (const key of Object.keys(unigraphStats)) {
+    const mistypedDict = mistyped[key] ?? {}
+    const mistypedList = Object.entries(mistypedDict).map(([mistypedKey, count]) => ({
+      key: mistypedKey,
+      count,
+    }))
+    unigraphStats[key].mistyped = mistypedList
+  }
+
+  const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit, mistyped }]) => ({
     key,
     count,
     accuracy: Math.round((hit / count) * 100),
+    mistyped,
   }))
 
   const elapsed = endTime - startTime

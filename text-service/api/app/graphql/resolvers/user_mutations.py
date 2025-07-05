@@ -291,9 +291,15 @@ class UsersMutation:
 
                 # Build response types to avoid lazy loading later
                 unigraphs = [
-                    UnigraphType(id=u.id, key=u.key, count=u.count, accuracy=u.accuracy)
+                    UnigraphType(
+                        id=u.id,
+                        key=u.key,
+                        count=u.count,
+                        accuracy=u.accuracy
+                    )
                     for u in summary.unigraphs
                 ]
+
                 digraphs = [
                     DigraphType(id=d.id, key=d.key, count=d.count, accuracy=d.accuracy, mean_interval=d.mean_interval)
                     for d in summary.digraphs

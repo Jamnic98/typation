@@ -6,6 +6,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import selectinload
 
 from ..factories.database import get_db
 from ..models.digraph_model import Digraph
@@ -26,11 +27,15 @@ async def create_user_stats_session(
     await db.flush()
     await db.refresh(new_session)
 
-    result = await db.execute(select(UserStatsSummary).where(UserStatsSummary.user_id == user_id))
+    result = await db.execute(
+        select(UserStatsSummary)
+        .options(selectinload(UserStatsSummary.unigraphs))
+        .where(UserStatsSummary.user_id == user_id)
+    )
     summary = result.scalars().first()
 
     if summary:
-        update_user_stats_summary(summary, input_data)
+        await update_user_stats_summary(summary, input_data)
         await upsert_graphs(db, summary.id, input_data)
     else:
         await create_user_stats_summary(db, user_id, input_data)
@@ -60,7 +65,8 @@ async def create_user_stats_summary(db: AsyncSession, user_id: UUID, data: UserS
     return summary
 
 
-def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSessionCreate) -> None:
+async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSessionCreate) -> None:
+    # Update basic stats (keep your existing logic here)
     summary.total_sessions += 1
     summary.total_practice_duration += data.practice_duration or 0
 
@@ -68,18 +74,16 @@ def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSessionC
         summary.average_wpm = round(
             ((summary.average_wpm * (summary.total_sessions - 1)) + (data.wpm or 0)) / summary.total_sessions
         )
-
         new_accuracy = (
             (Decimal(summary.average_accuracy) * (summary.total_sessions - 1)) +
             (Decimal(str(data.accuracy)) if data.accuracy is not None else Decimal("0"))
         ) / summary.total_sessions
-
-        summary.average_accuracy = float(round(new_accuracy, 2))  # Convert to float here
-
+        summary.average_accuracy = float(round(new_accuracy, 2))
     else:
         summary.average_wpm = data.wpm or 0
-        summary.average_accuracy = float(round(Decimal(str(data.accuracy)) if
-                                               data.accuracy is not None else Decimal("0"), 2))
+        summary.average_accuracy = float(
+            round(Decimal(str(data.accuracy)) if data.accuracy is not None else Decimal("0"), 2)
+        )
 
     if data.wpm and data.wpm > (summary.fastest_wpm or 0):
         summary.fastest_wpm = data.wpm
@@ -90,6 +94,33 @@ def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSessionC
     summary.total_char_count += data.total_char_count or 0
     summary.error_char_count += data.error_char_count or 0
 
+    if data.unigraphs:
+        unigraph_dict = {u.key: u for u in summary.unigraphs}
+
+        for char, stats in data.unigraphs.items():
+            unigraph = unigraph_dict.get(char)
+
+            if unigraph is None:
+                unigraph = Unigraph(
+                    key=char,
+                    count=0,
+                    accuracy=0.0
+                )
+                summary.unigraphs.append(unigraph)
+                unigraph_dict[char] = unigraph
+
+            # ✅ Update count and accuracy
+            unigraph.count += getattr(stats, "count", 0) or 0
+            unigraph.accuracy = getattr(stats, "accuracy", 0.0) or 0.0  # ✅ Add this line
+
+            # ✅ Handle mistyped stats
+            mistyped_stats = getattr(stats, "mistyped", {}) or {}
+            if not isinstance(unigraph.mistyped, dict):
+                unigraph.mistyped = {}
+
+            for mistyped_char, count in mistyped_stats.items():
+                unigraph.mistyped[mistyped_char] = unigraph.mistyped.get(mistyped_char, 0) + count
+
 
 async def upsert_graphs(db: AsyncSession, summary_id: UUID, data: UserStatsSessionCreate):
     if data.unigraphs:
@@ -99,6 +130,7 @@ async def upsert_graphs(db: AsyncSession, summary_id: UUID, data: UserStatsSessi
                 key=key,
                 count=stat.count,
                 accuracy=stat.accuracy,
+                mistyped=stat.mistyped
             ).on_conflict_do_update(
                 index_elements=['user_stats_summary_id', 'key'],
                 set_={
@@ -135,6 +167,7 @@ async def insert_graphs(db: AsyncSession, summary_id: UUID, data: UserStatsSessi
                 key=key,
                 count=stat.count,
                 accuracy=stat.accuracy,
+                mistyped=stat.mistyped or {}
             ))
     if data.digraphs:
         for key, stat in data.digraphs.items():

@@ -13,6 +13,7 @@ import {
   type KeyEvent,
   type FontSettings,
   type OnTypeParams,
+  TypedStatus,
 } from 'types/global'
 import {
   calculateAccuracy,
@@ -32,6 +33,7 @@ import { getReadableErrorMessage } from 'api/helpers'
 
 export const TypingWidget = () => {
   const token = useUser().token
+  const mistypedRef = useRef<Record<string, Record<string, number>>>({})
   const startTimestamp = useRef<number>(0)
   const deletedCharCount = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
@@ -77,6 +79,7 @@ export const TypingWidget = () => {
     dispatch({ type: 'RESET_SESSION' })
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
     deletedCharCount.current = 0
+    mistypedRef.current = {}
     keyEventQueue.current = []
   }
 
@@ -109,7 +112,20 @@ export const TypingWidget = () => {
         keyEventQueue.current.push({ key, typedStatus, cursorIndex, timestamp })
     }
 
-    // ✅ Live stats calculation
+    // Track mistyped keys
+    if (
+      typedStatus === TypedStatus.MISS &&
+      state.text && // Ensure target text exists
+      cursorIndex < state.text.length
+    ) {
+      const intendedChar = state.text[cursorIndex]
+      if (!mistypedRef.current[intendedChar]) {
+        mistypedRef.current[intendedChar] = {}
+      }
+      mistypedRef.current[intendedChar][key] = (mistypedRef.current[intendedChar][key] || 0) + 1
+    }
+
+    // Live stats calculation as before...
     const typedText = keyEventQueue.current.map((e) => e.key).join('')
     const targetText = state.text ?? ''
     const now = Date.now()
@@ -139,7 +155,8 @@ export const TypingWidget = () => {
       correctedCharCount,
       deletedCharCount.current,
       startTimestamp.current,
-      now
+      now,
+      mistypedRef.current
     )
 
     dispatch({
@@ -147,7 +164,6 @@ export const TypingWidget = () => {
       payload: { wpm: sessionStats.wpm, accuracy: sessionStats.accuracy },
     })
 
-    // Save stats to server – handle failure gracefully
     try {
       token &&
         (await saveStats(
