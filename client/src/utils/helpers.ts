@@ -101,7 +101,7 @@ export const calculateTypingSessionStats = (
   const typedText = keyEvents.map((keyEvent) => keyEvent.key).join('')
   const correctCharsTyped = keyEvents.filter((e) => e.typedStatus === TypedStatus.HIT).length
   const errorCharCount = keyEvents.filter((e) => e.typedStatus === TypedStatus.MISS).length
-  const totalCharsTyped = keyEvents.length
+  const totalCharsTyped = keyEvents.length + deletedCharCount
 
   const digraphTimings: Record<string, number[]> = {}
   const digraphStats: Record<string, { count: number; hit: number }> = {}
@@ -118,23 +118,38 @@ export const calculateTypingSessionStats = (
     if (typedStatus === TypedStatus.HIT) unigraphStats[key].hit++
 
     // --- Digraph Stats ---
-    if (i > 0) {
+    if (i > 0 && i < targetText.length) {
       const prev = keyEvents[i - 1]
-      const digraph = prev.key + key
+
+      // Expected digraph from target text (position i-1, i)
+      const expectedDigraph = targetText[i - 1] + targetText[i]
+
+      // Typed digraph from actual keys typed
+      const typedDigraph = prev.key + key
+
+      // Calculate interval as before
       const interval = keyEvents[i].timestamp - prev.timestamp
 
-      if (!digraphTimings[digraph]) digraphTimings[digraph] = []
-      digraphTimings[digraph].push(interval)
+      // Initialize timings array
+      if (!digraphTimings[expectedDigraph]) digraphTimings[expectedDigraph] = []
+      digraphTimings[expectedDigraph].push(interval)
 
-      if (!digraphStats[digraph]) digraphStats[digraph] = { count: 0, hit: 0 }
-      digraphStats[digraph].count++
+      // Initialize stats for expected digraph
+      if (!digraphStats[expectedDigraph]) digraphStats[expectedDigraph] = { count: 0, hit: 0 }
+      digraphStats[expectedDigraph].count++
 
-      if (prev.typedStatus === TypedStatus.HIT && typedStatus === TypedStatus.HIT) {
-        digraphStats[digraph].hit++
+      // Increment hit only if typed digraph matches expected and both keys are hits
+      if (
+        typedDigraph === expectedDigraph &&
+        prev.typedStatus === TypedStatus.HIT &&
+        typedStatus === TypedStatus.HIT
+      ) {
+        digraphStats[expectedDigraph].hit++
       }
     }
   }
 
+  // Compute digraphs array with accuracy and mean intervals
   const digraphs = Object.entries(digraphStats).map(([key, { count, hit }]) => {
     const intervals = digraphTimings[key] || []
     const meanInterval = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length)
@@ -164,7 +179,6 @@ export const calculateTypingSessionStats = (
     practiceDuration,
     wpm,
     accuracy,
-
     correctedCharCount,
     deletedCharCount,
     correctCharsTyped,

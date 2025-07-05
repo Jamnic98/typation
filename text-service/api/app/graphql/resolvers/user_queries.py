@@ -1,15 +1,19 @@
 from uuid import UUID
 from typing import List, Optional
 import strawberry
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from strawberry.types import Info
 
 from ...controllers.user_stats_session_controller import get_all_user_stats_sessions, get_user_stats_session_by_id
-from ...controllers.user_stats_summary_controller import get_user_stats_summary_by_user_id, get_all_user_stats_summaries
 from ...controllers.users_controller import get_all_users
+from ...models.digraph_model import Digraph
+from ...models.unigraph_model import Unigraph
 from ...models.user_model import User
+from ...models.user_stats_summary_model import UserStatsSummary
 from ...schemas.user_graphql import UserType
-from ...schemas.user_stats_session_graphql import UserStatsSessionType
-from ...schemas.user_stats_summary_graphql import UserStatsSummaryType
+from ..types.user_stats_session_type import UserStatsSessionType
+from ...graphql.types.user_stats_summary_type import UserStatsSummaryType
 
 
 @strawberry.type
@@ -77,40 +81,45 @@ class UsersQuery:
                 practice_duration=session.practice_duration,
                 start_time=session.start_time,
                 end_time=session.end_time
-            )
 
-    @strawberry.field(name="userStatsSummaries")
-    async def user_stats_summaries(self, info: Info) -> List[UserStatsSummaryType]:
-        async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
-            summaries = await get_all_user_stats_summaries(db)
-            return [
-                UserStatsSummaryType(
-                    user_id=summary.user_id,
-                    total_sessions=summary.total_sessions,
-                    total_practice_duration=summary.total_practice_duration,
-                    average_wpm=summary.average_wpm,
-                    average_accuracy=summary.average_accuracy,
-                    best_wpm=summary.best_wpm,
-                    best_accuracy=summary.best_accuracy,
-                )
-                for summary in summaries
-            ]
+            )
 
     @strawberry.field(name="userStatsSummary")
     async def user_stats_summary(self, info: Info) -> Optional[UserStatsSummaryType]:
         user_id = info.context["user"].id
         async_session_maker = info.context["db_factory"]
         async with async_session_maker() as db:
-            summary = await get_user_stats_summary_by_user_id(user_id, db)
+            result = await db.execute(
+                select(UserStatsSummary)
+                .options(
+                    selectinload(UserStatsSummary.unigraphs),
+                    selectinload(UserStatsSummary.digraphs),
+                )
+                .filter(UserStatsSummary.user_id == user_id)
+            )
+            summary = result.scalar_one_or_none()
             if not summary:
                 return None
+
             return UserStatsSummaryType(
                 user_id=summary.user_id,
                 total_sessions=summary.total_sessions,
                 total_practice_duration=summary.total_practice_duration,
                 average_wpm=summary.average_wpm,
                 average_accuracy=summary.average_accuracy,
-                best_wpm=summary.best_wpm,
-                best_accuracy=summary.best_accuracy,
+                longest_consecutive_daily_practice_streak=summary.longest_consecutive_daily_practice_streak,
+                fastest_wpm=summary.fastest_wpm,
+                total_corrected_char_count=summary.total_corrected_char_count,
+                total_deleted_char_count=summary.total_deleted_char_count,
+                total_keystrokes=summary.total_keystrokes,
+                total_char_count=summary.total_char_count,
+                error_char_count=summary.error_char_count,
+                unigraphs=[
+                    Unigraph(key=uni.key, accuracy=uni.accuracy, count=uni.count)
+                    for uni in summary.unigraphs
+                ],
+                digraphs=[
+                    Digraph(key=di.key, mean_interval=di.mean_interval, accuracy=di.accuracy, count=di.count)
+                    for di in summary.digraphs
+                ]
             )

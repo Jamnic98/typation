@@ -31,7 +31,6 @@ export const convertToGraphQLInput = (stats: TypingSessionStats) => {
     wpm: stats.wpm,
     accuracy: stats.accuracy,
     practiceDuration: stats.practiceDuration,
-
     startTime: stats.startTime,
     endTime: stats.endTime,
     correctedCharCount: stats.correctedCharCount,

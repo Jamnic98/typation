@@ -2,20 +2,17 @@ import asyncio
 import uuid
 from uuid import UUID
 from typing import Callable, Optional, Any, Coroutine, AsyncGenerator, List
-
-import pytest
 from passlib.context import CryptContext
 
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport, Response
-from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio.session import async_sessionmaker as AsyncSessionMaker
 
-from api.app.models.user_model import User
-from ..app.factories.database import Base, get_db, async_sessionmaker_instance
+from ..app.factories.database import Base, get_db
 from ..app.factories.fastapi_app import create_app
-from ..app.models.user_model import User, UserStatsSession
+from ..app.models.user_model import User
+from ..app.models.user_stats_session_model import UserStatsSession
 from ..app.settings import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
