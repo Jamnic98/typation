@@ -142,11 +142,8 @@ export const TypingWidget = () => {
   const onComplete = async (correctedCharCount: number): Promise<void> => {
     if (!state.text) return
     dispatch({ type: 'STOP' })
-    setShowStats(true)
-
     const now = Date.now()
     const elapsedTime = now - startTimestamp.current
-
     dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
 
     const sessionStats = calculateTypingSessionStats(
@@ -184,8 +181,9 @@ export const TypingWidget = () => {
           token
         ))
 
-      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
       await fetchAndSetText()
+      setShowStats(true)
+      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
     } catch (err) {
       console.error('Failed to save stats:', err)
       showAlert({
