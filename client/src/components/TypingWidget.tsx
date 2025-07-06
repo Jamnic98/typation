@@ -163,6 +163,7 @@ export const TypingWidget = () => {
 
     try {
       await fetchAndSetText()
+      setShowStats(true)
       token &&
         (await saveStats(
           {
@@ -182,7 +183,6 @@ export const TypingWidget = () => {
           token
         ))
 
-      setShowStats(true)
       localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
     } catch (err) {
       console.error('Failed to save stats:', err)
