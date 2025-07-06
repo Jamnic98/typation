@@ -65,14 +65,14 @@ export const TypingWidget = () => {
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null
 
-    if (state.runStopWatch) {
+    if (state.isRunning) {
       intervalId = setInterval(() => dispatch({ type: 'TICK' }), 10)
     }
 
     return () => {
       if (intervalId) clearInterval(intervalId)
     }
-  }, [state.runStopWatch])
+  }, [state.isRunning])
 
   const reset = (): void => {
     setShowStats(false)
@@ -162,6 +162,7 @@ export const TypingWidget = () => {
     })
 
     try {
+      await fetchAndSetText()
       token &&
         (await saveStats(
           {
@@ -181,7 +182,6 @@ export const TypingWidget = () => {
           token
         ))
 
-      await fetchAndSetText()
       setShowStats(true)
       localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
     } catch (err) {

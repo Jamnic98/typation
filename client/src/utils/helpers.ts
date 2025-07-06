@@ -39,10 +39,10 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
       return TYPING_WIDGET_INITIAL_STATE
 
     case 'START':
-      return { ...state, runStopWatch: true, stopWatchTime: 0 }
+      return { ...state, isRunning: true, stopWatchTime: 0 }
 
     case 'STOP':
-      return { ...state, runStopWatch: false }
+      return { ...state, isRunning: false }
 
     case 'UPDATE_STATS':
       return {

@@ -65,7 +65,7 @@ export type State = {
   wpm: number
   accuracy: number
   stopWatchTime: number
-  runStopWatch: boolean
+  isRunning: boolean
   text: string
 }
 

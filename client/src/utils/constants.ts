@@ -44,7 +44,7 @@ export const TYPING_WIDGET_INITIAL_STATE: State = {
   wpm: 0,
   accuracy: 0,
   stopWatchTime: 0,
-  runStopWatch: false,
+  isRunning: false,
   text: '',
 }
 

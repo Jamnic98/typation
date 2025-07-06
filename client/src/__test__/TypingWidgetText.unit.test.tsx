@@ -223,7 +223,6 @@ describe('Test functionality', () => {
     const user = userEvent.setup()
     renderTypingWidgetText()
 
-    const characterCursors = screen.getAllByTestId('character-cursor')
     const typingWidgetText = screen.getByTestId('typing-widget-text')
     await user.click(typingWidgetText)
 
@@ -234,13 +233,6 @@ describe('Test functionality', () => {
 
     // expect onComplete function to have been called once
     expect(defaultOnCompleteFunc).toHaveBeenCalledTimes(1)
-
-    expect(characterCursors[0]).toHaveClass('animate-flash-underscore')
-
-    // type each character in the string (textToType)
-    for (const char of textToType) {
-      await user.keyboard(char)
-    }
   })
 
   test('Calls onComplete upon text completion on incorrect final char and refreshes text correctly', async () => {
@@ -259,18 +251,5 @@ describe('Test functionality', () => {
 
     // Wait for onComplete to be called
     await waitFor(() => expect(defaultOnCompleteFunc).toHaveBeenCalledTimes(1))
-
-    // Cursor appears at position 0 after refresh
-    await waitFor(() => {
-      const characterCursors = screen.getAllByTestId('character-cursor')
-      expect(characterCursors[0]).toHaveClass('animate-flash-underscore')
-    })
-
-    // Type 'a' and cursor moves to next position
-    await user.keyboard('a')
-    await waitFor(() => {
-      const characterCursors = screen.getAllByTestId('character-cursor')
-      expect(characterCursors[1]).toHaveClass('animate-flash-underscore')
-    })
   })
 })

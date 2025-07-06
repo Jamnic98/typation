@@ -8,10 +8,10 @@ import { TypedStatus, TypingAction, type OnTypeParams, type FontSettings } from 
 // TODO MOVE
 const resetTypedStatus = (chars: CharacterProps[] | string): CharacterProps[] => {
   if (typeof chars === 'string') {
-    return chars.split('').map((char) => ({
+    return chars.split('').map((char, index) => ({
       char,
       typedStatus: TypedStatus.NONE,
-      isActive: false,
+      isActive: index === 0,
     }))
   }
 
@@ -41,8 +41,8 @@ export const TypingWidgetText = ({
 
   const resetTyping = useCallback(() => {
     if (typeof textToType === 'string') {
-      setCharObjArray(resetTypedStatus(textToType))
       setCursorIndex(0)
+      setCharObjArray(resetTypedStatus(textToType))
     }
   }, [textToType])
 
@@ -61,6 +61,7 @@ export const TypingWidgetText = ({
   }
 
   const shiftCursor = (shift: number): void => {
+    if (cursorIndex === -1) return
     if (!charObjArray) return
     let newIndex = (cursorIndex + shift) % charObjArray.length
     if (newIndex < 0) newIndex += charObjArray.length
@@ -122,10 +123,10 @@ export const TypingWidgetText = ({
 
       if (cursorIndex === charObjArray.length - 1) {
         try {
+          setCursorIndex(-1)
           await onComplete(
             charObjArray.filter((charObj) => charObj.typedStatus === TypedStatus.CORRECTED).length
           )
-          setCursorIndex(0)
         } catch (err) {
           console.error('Failed to complete typing session:', err)
         }
@@ -211,11 +212,6 @@ export const TypingWidgetText = ({
     }
   }
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
-    e.preventDefault()
-    if (e.ctrlKey && e.key === 'r') return
-  }
-
   if (!textToType || !charObjArray) return null
 
   return (
@@ -233,7 +229,6 @@ export const TypingWidgetText = ({
           isFocused ? '' : 'blur-xs'
         }`}
         tabIndex={0}
-        onKeyUp={handleKeyUp}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
