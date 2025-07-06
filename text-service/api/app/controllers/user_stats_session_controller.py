@@ -55,7 +55,7 @@ async def create_user_stats_summary(db: AsyncSession, user_id: UUID, data: UserS
         fastest_wpm=data.wpm,
         total_corrected_char_count=data.corrected_char_count,
         total_deleted_char_count=data.deleted_char_count,
-        total_keystrokes=data.total_char_count,
+        total_keystrokes=data.total_keystrokes,
         total_char_count=data.total_char_count,
         error_char_count=data.error_char_count,
     )
@@ -90,7 +90,8 @@ async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSe
 
     summary.total_corrected_char_count += data.corrected_char_count or 0
     summary.total_deleted_char_count += data.deleted_char_count or 0
-    summary.total_keystrokes += data.total_char_count or 0
+    # TODO: fix
+    summary.total_keystrokes += data.total_keystrokes or 0
     summary.total_char_count += data.total_char_count or 0
     summary.error_char_count += data.error_char_count or 0
 

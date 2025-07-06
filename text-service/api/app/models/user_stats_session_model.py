@@ -24,8 +24,8 @@ class UserStatsSession(Base):
 
     corrected_char_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     deleted_char_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    typed_char_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     total_char_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    total_keystrokes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     error_char_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="sessions")

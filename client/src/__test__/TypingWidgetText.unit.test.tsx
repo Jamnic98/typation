@@ -233,6 +233,11 @@ describe('Test functionality', () => {
 
     // expect onComplete function to have been called once
     expect(defaultOnCompleteFunc).toHaveBeenCalledTimes(1)
+
+    // type each character in the string (textToType)
+    for (const char of textToType) {
+      await user.keyboard(char)
+    }
   })
 
   test('Calls onComplete upon text completion on incorrect final char and refreshes text correctly', async () => {

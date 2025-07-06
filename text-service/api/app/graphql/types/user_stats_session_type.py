@@ -40,8 +40,8 @@ class UserStatsSessionType:
 
     corrected_char_count: Optional[int] = strawberry.field(name="correctedCharCount", default=None)
     deleted_char_count: Optional[int] = strawberry.field(name="deletedCharCount", default=None)
-    typed_char_count: Optional[int] = strawberry.field(name="correctCharsTyped", default=None)
-    total_char_count: Optional[int] = strawberry.field(name="totalCharsTyped", default=None)
+    total_char_count: Optional[int] = strawberry.field(name="correctCharsTyped", default=None)
+    total_keystrokes: Optional[int] = strawberry.field(name="totalCharsTyped", default=None)
     error_char_count: Optional[int] = strawberry.field(name="errorCharCount", default=None)
 
 
@@ -56,8 +56,8 @@ class UserStatsSessionInput:
 
     corrected_char_count: Optional[int] = strawberry.field(name="correctedCharCount", default=None)
     deleted_char_count: Optional[int] = strawberry.field(name="deletedCharCount", default=None)
-    typed_char_count: Optional[int] = strawberry.field(name="correctCharsTyped", default=None)
-    total_char_count: Optional[int] = strawberry.field(name="totalCharsTyped", default=None)
+    total_char_count: Optional[int] = strawberry.field(name="correctCharsTyped", default=None)
+    total_keystrokes: Optional[int] = strawberry.field(name="totalCharsTyped", default=None)
     error_char_count: Optional[int] = strawberry.field(name="errorCharCount", default=None)
 
     unigraphs: Optional[list[UnigraphInput]] = None

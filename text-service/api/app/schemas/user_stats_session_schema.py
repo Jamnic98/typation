@@ -26,8 +26,8 @@ class UserStatsSessionCreate(BaseModel):
 
     corrected_char_count: Optional[int] = None
     deleted_char_count: Optional[int] = None
-    typed_char_count: Optional[int] = None
     total_char_count: Optional[int] = None
+    total_keystrokes: Optional[int] = None
     error_char_count: Optional[int] = None
 
     unigraphs: Optional[Dict[str, UnigraphStatistic]] = None
@@ -44,8 +44,8 @@ class UserStatsSessionRead(BaseModel):
     end_time: Optional[datetime]
     corrected_char_count: Optional[int] = None
     deleted_char_count: Optional[int] = None
-    typed_char_count: Optional[int] = None
     total_char_count: Optional[int] = None
+    total_keystrokes: Optional[int] = None
     error_char_count: Optional[int] = None
 
     unigraphs: Optional[Dict[str, UnigraphStatistic]] = None
