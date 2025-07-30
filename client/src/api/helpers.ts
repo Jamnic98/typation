@@ -1,4 +1,4 @@
-import { type TypingSessionStats } from 'types/global'
+import { type TypingSessionStats } from 'types'
 
 export const GRAPHQL_ENDPOINT = '/graphql'
 

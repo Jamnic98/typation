@@ -1,4 +1,4 @@
-import { type CharacterProps } from 'components/Character'
+import { type CharacterProps } from 'components'
 import {
   CursorStyles,
   TypedStatus,
@@ -6,7 +6,7 @@ import {
   type Action,
   type State,
   type TypingSessionStats,
-} from 'types/global'
+} from 'types'
 import { AVERAGE_WORD_LENGTH, TYPING_WIDGET_INITIAL_STATE } from './constants'
 
 export const getCursorStyle = (cursorStyle: CursorStyles | undefined) => {
@@ -50,9 +50,6 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
         wpm: action.payload.wpm !== undefined ? action.payload.wpm : state.wpm,
         accuracy: action.payload.accuracy !== undefined ? action.payload.accuracy : state.accuracy,
       }
-
-    case 'TICK':
-      return { ...state, stopWatchTime: state.stopWatchTime + 10 }
 
     case 'SET_STOPWATCH_TIME':
       return { ...state, stopWatchTime: action.payload }

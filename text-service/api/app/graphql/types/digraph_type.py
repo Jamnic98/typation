@@ -1,11 +1,8 @@
-from uuid import UUID
-
 import strawberry
 
 
 @strawberry.type
 class DigraphType:
-    id: UUID
     key: str
     count: int
     accuracy: int

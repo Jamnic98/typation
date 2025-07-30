@@ -3,7 +3,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 
 import { TypingWidgetText, type TypingWidgetTextProps } from 'components'
-import { CursorStyles, SpaceSymbols, spaceSymbolMap } from 'types/global'
+import { CursorStyles, SpaceSymbols, spaceSymbolMap } from 'types'
 import { STYLE_HIT, STYLE_MISS, STYLE_NONE } from 'utils'
 
 const textToType = 'hi me'

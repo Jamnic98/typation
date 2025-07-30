@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { TypingWidgetText /* , TypingWidgetTextProps */ } from 'components'
-import { CursorStyles, SpaceSymbols } from 'types/global'
+import { CursorStyles, SpaceSymbols } from 'types'
 
 const meta = {
   title: 'TypingWidgetText',

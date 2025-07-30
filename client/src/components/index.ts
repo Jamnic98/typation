@@ -1,4 +1,6 @@
 export * from './Alert'
+export * from './AlertBanner'
+export * from '../api/context/AlertContext'
 export * from './Accuracy'
 export * from './Character'
 export * from './Footer'

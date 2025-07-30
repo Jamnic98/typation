@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { Character, type CharacterProps } from 'components'
+import { type CharacterProps, Character } from 'components'
 import { defaultFontSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
 import { findDeleteFrom } from 'utils/helpers'
 import { TypedStatus, TypingAction, type OnTypeParams, type FontSettings } from 'types'

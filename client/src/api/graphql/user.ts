@@ -1,5 +1,5 @@
 // import { useGraphQLRequest } from '../helpers'
-// import { type DeleteUserResponse, type UpdateUserResponse, type User } from 'types/global'
+// import { type DeleteUserResponse, type UpdateUserResponse, type User } from 'types'
 
 // TODO: Uncomment when needed
 // export const fetchAllUsers = async (): Promise<User[]> => {

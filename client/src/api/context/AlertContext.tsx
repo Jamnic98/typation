@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import { type AlertData, type AlertContextType } from 'types/global'
+import { type AlertData, type AlertContextType } from 'types'
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined)
 

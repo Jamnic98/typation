@@ -1,4 +1,4 @@
-import { type User, type UserLogin } from 'types/global'
+import { type User, type UserLogin } from 'types'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 const authEndpoint = `${baseUrl}/auth`

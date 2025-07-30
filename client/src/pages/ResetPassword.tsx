@@ -1,7 +1,7 @@
-import { useAlert } from 'components/AlertContext'
+import { useAlert } from 'api/context/AlertContext'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { AlertType } from 'types/global'
+import { AlertType } from 'types'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 

@@ -1,6 +1,6 @@
+import { baseUrl } from 'utils/constants'
 import { convertToGraphQLInput, GRAPHQL_ENDPOINT } from 'api/helpers'
-import { type TypingSessionStats } from 'types/global'
-import { baseUrl } from 'utils'
+import { type StatsSummary, type TypingSessionStats } from 'types'
 
 const SAVE_STATS_MUTATION = `
   mutation SaveStats($userStatsSessionInput: UserStatsSessionInput!) {
@@ -37,4 +37,39 @@ export const saveStats = async (stats: TypingSessionStats, token: string): Promi
     console.error('[saveStats] GraphQL errors:', result.errors)
     throw new Error('Failed to save typing stats')
   }
+}
+
+const GET_STATS_SUMMARY_QUERY = `
+  query {
+      userStatsSummary {
+          userId
+          fastestWpm
+      }
+  }
+`
+
+export const fetchUserStatsSummary = async (token: string): Promise<StatsSummary> => {
+  const response = await fetch(`${baseUrl}${GRAPHQL_ENDPOINT}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      query: GET_STATS_SUMMARY_QUERY,
+    }),
+  })
+
+  if (response.status === 401) {
+    throw new Error('Unauthorized: check your token or login status')
+  }
+
+  const result = await response.json()
+
+  if (result.errors) {
+    console.error('[fetchUserStatsSummary] GraphQL errors:', result.errors)
+    throw new Error('Failed to fetch typing stats')
+  }
+
+  return result.data.getUserStatsSummary
 }

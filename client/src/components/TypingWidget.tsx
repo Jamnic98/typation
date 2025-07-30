@@ -1,20 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
-
-import {
-  Accuracy,
-  StopWatch,
-  TypingWidgetText /*  Accuracy, StopWatch, WordsPerMin, type CharacterProps */,
-  WordsPerMin,
-} from 'components'
-import { fetchTypingString, saveStats } from 'api'
-import {
-  TypingAction,
-  AlertType,
-  type KeyEvent,
-  type FontSettings,
-  type OnTypeParams,
-  TypedStatus,
-} from 'types/global'
+import { Accuracy, StopWatch, TypingWidgetText, WordsPerMin } from 'components'
+import { fetchTypingString, getReadableErrorMessage, saveStats, useAlert, useUser } from 'api'
 import {
   calculateAccuracy,
   calculateTypingSessionStats,
@@ -27,20 +13,29 @@ import {
   LOCAL_STORAGE_TEXT_KEY,
   TYPING_WIDGET_INITIAL_STATE,
 } from 'utils/constants'
-import { useUser } from 'api/context/UserContext'
-import { useAlert } from './AlertContext'
-import { getReadableErrorMessage } from 'api/helpers'
+import {
+  TypingAction,
+  AlertType,
+  type KeyEvent,
+  type FontSettings,
+  type OnTypeParams,
+  TypedStatus,
+} from 'types'
 
 export const TypingWidget = () => {
-  const token = useUser().token
+  const { token } = useUser()
+  const { showAlert } = useAlert()
+
+  const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
+
   const mistypedRef = useRef<Record<string, Record<string, number>>>({})
   const startTimestamp = useRef<number>(0)
   const deletedCharCount = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
-  const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
+
+  const [displayTime, setDisplayTime] = useState(0)
   const [showStats, setShowStats] = useState<boolean>(false)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
-  const { showAlert } = useAlert()
 
   const fetchAndSetText = async () => {
     const newText = await fetchTypingString()
@@ -49,7 +44,6 @@ export const TypingWidget = () => {
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
   }
 
-  // On mount
   useEffect(() => {
     const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
     const completed = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY)
@@ -60,19 +54,6 @@ export const TypingWidget = () => {
       fetchAndSetText()
     }
   }, [])
-
-  // Stopwatch interval
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null
-
-    if (state.isRunning) {
-      intervalId = setInterval(() => dispatch({ type: 'TICK' }), 10)
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId)
-    }
-  }, [state.isRunning])
 
   const reset = (): void => {
     setShowStats(false)
@@ -113,11 +94,7 @@ export const TypingWidget = () => {
     }
 
     // Track mistyped keys
-    if (
-      typedStatus === TypedStatus.MISS &&
-      state.text && // Ensure target text exists
-      cursorIndex < state.text.length
-    ) {
+    if (typedStatus === TypedStatus.MISS && cursorIndex < state.text.length) {
       const intendedChar = state.text[cursorIndex]
       if (!mistypedRef.current[intendedChar]) {
         mistypedRef.current[intendedChar] = {}
@@ -132,19 +109,21 @@ export const TypingWidget = () => {
     const elapsed = now - startTimestamp.current
 
     if (elapsed > 0 && typedText.length > 0) {
-      const accuracy = calculateAccuracy(targetText, typedText)
       const wpm = calculateWpm(targetText, typedText, elapsed)
-
+      const accuracy = calculateAccuracy(targetText, typedText)
       dispatch({ type: 'UPDATE_STATS', payload: { wpm, accuracy } })
     }
   }
 
   const onComplete = async (correctedCharCount: number): Promise<void> => {
     if (!state.text) return
-    dispatch({ type: 'STOP' })
+
     const now = Date.now()
     const elapsedTime = now - startTimestamp.current
+
+    dispatch({ type: 'STOP' })
     dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
+    setDisplayTime(elapsedTime)
 
     const sessionStats = calculateTypingSessionStats(
       keyEventQueue.current,
@@ -209,7 +188,7 @@ export const TypingWidget = () => {
         <div id="stats" className="space-y-4">
           <WordsPerMin wpm={state.wpm} />
           <Accuracy accuracy={state.accuracy} />
-          <StopWatch time={state.stopWatchTime} />
+          <StopWatch time={displayTime} />
         </div>
       ) : null}
     </div>

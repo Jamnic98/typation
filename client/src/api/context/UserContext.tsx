@@ -1,9 +1,16 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useAlert } from 'components'
+import { fetchUserStatsSummary } from 'api'
 import { loginUser } from 'utils/auth'
-import { AlertType, type User, type UserContextType, type UserLogin } from 'types/global'
-import { useAlert } from 'components/AlertContext'
+import {
+  AlertType,
+  type StatsSummary,
+  type User,
+  type UserContextType,
+  type UserLogin,
+} from 'types'
 
 const UserContext = createContext<UserContextType | null>(null)
 
@@ -65,8 +72,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     navigate('/')
   }
 
+  const statsSummary = async (): Promise<StatsSummary | undefined> => {
+    try {
+      if (token) {
+        const userStatsSummary = await fetchUserStatsSummary(token)
+        console.log(userStatsSummary)
+        return userStatsSummary
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   return (
-    <UserContext.Provider value={{ user, token, login, logout, authError: null }}>
+    <UserContext.Provider value={{ user, token, login, logout, statsSummary, authError: null }}>
       {children}
     </UserContext.Provider>
   )

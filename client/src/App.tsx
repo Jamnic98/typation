@@ -1,10 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
 
-import { Layout } from 'components'
-import { Home, Login, ForgotPassword, Register, ResetPassword } from 'pages'
+import { Home, Login, ForgotPassword, Register, ResetPassword, Profile } from 'pages'
+import { AlertProvider, AlertBanner, Layout } from 'components'
 import { UserProvider } from 'api/context/UserContext'
-import { AlertProvider } from 'components/AlertContext'
-import { AlertBanner } from 'components/AlertBanner'
 
 const App = () => {
   return (
@@ -14,6 +12,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="auth">
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />

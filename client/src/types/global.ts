@@ -88,7 +88,6 @@ type UpdateStatsPayload = {
 export type Action =
   | { type: 'START' }
   | { type: 'STOP' }
-  | { type: 'TICK' }
   | { type: 'UPDATE_STATS'; payload: UpdateStatsPayload }
   | { type: 'SET_STOPWATCH_TIME'; payload: number }
   | { type: 'SET_TEXT'; payload: string }
@@ -130,20 +129,36 @@ export type BaseTypingStats = {
   wpm: number
   accuracy: number
 
-  correctedCharCount: number // Times user fixed an error (e.g., backspace presses)
-  correctCharsTyped: number // Typed characters that matched target text
-  deletedCharCount: number // Total characters deleted
-  totalCharsTyped: number // All typed characters including errors
-  errorCharCount: number // Incorrect characters typed
+  correctedCharCount: number
+  correctCharsTyped: number
+  deletedCharCount: number
+  totalCharsTyped: number
+  errorCharCount: number
+
   unigraphStats: UnigraphStatistic[]
   digraphStats: DigraphStatistic[]
 }
 
-export interface TypingStatsSummary extends BaseTypingStats {
-  sessionCount: number
+export interface StatsSummary extends BaseTypingStats {
+  id: string // UUID as string
+  userId: string // UUID as string
+  sessionCount: number // maps to totalSessions
+  totalPracticeDuration: number
 
   averageWpm: number
   averageAccuracy: number
+  fastestWpm: number
+  longestConsecutiveDailyPracticeStreak: number
+
+  totalCorrectedCharCount: number
+  totalDeletedCharCount: number
+  totalKeystrokes: number
+  totalCharCount: number
+  errorCharCount: number
+
+  // Relationships would likely be nested types or IDs
+  unigraphs: UnigraphStatistic[]
+  digraphs: DigraphStatistic[]
 }
 
 export type DigraphTiming = { key: string; intervals: number[] }
@@ -163,6 +178,7 @@ export type UserContextType = {
   user: User | null
   login: (userLogin: UserLogin) => Promise<void>
   logout: () => void
+  statsSummary: () => Promise<StatsSummary | undefined>
   token: string | null
   authError: string | null
 }

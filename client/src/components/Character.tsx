@@ -88,7 +88,7 @@ export const CharacterComponent = ({
         <AnimatePresence mode="popLayout">
           {!wasTyped && (
             <motion.span
-              key={typedStatus}
+              // key={typedStatus}
               className={`${typedStatusClass} ${fontSettingsClass} z-10`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

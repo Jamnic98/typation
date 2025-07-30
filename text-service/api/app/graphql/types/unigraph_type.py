@@ -1,4 +1,3 @@
-from uuid import UUID
 from typing import Optional
 
 import strawberry
@@ -18,7 +17,6 @@ class MistypedEntryInput:
 
 @strawberry.type
 class UnigraphType:
-    id: UUID
     key: str
     count: int
     accuracy: int
