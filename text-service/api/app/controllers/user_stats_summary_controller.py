@@ -103,11 +103,7 @@ async def update_user_stats_summary(
     await db.commit()
     # Refresh the summary to pick up any DB changes
     await db.refresh(summary)
-    # Refresh relationships explicitly (optional)
-    await db.refresh(summary, attribute_names=["unigraphs", "digraphs"])
-
     return summary
-
 
 
 async def delete_user_stats_summary(

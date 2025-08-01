@@ -44,6 +44,8 @@ const GET_STATS_SUMMARY_QUERY = `
       userStatsSummary {
           userId
           fastestWpm
+          averageAccuracy
+          totalSessions
       }
   }
 `
@@ -71,5 +73,5 @@ export const fetchUserStatsSummary = async (token: string): Promise<StatsSummary
     throw new Error('Failed to fetch typing stats')
   }
 
-  return result.data.getUserStatsSummary
+  return result.data.userStatsSummary
 }

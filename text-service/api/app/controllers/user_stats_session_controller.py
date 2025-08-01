@@ -78,11 +78,11 @@ async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSe
             (Decimal(summary.average_accuracy) * (summary.total_sessions - 1)) +
             (Decimal(str(data.accuracy)) if data.accuracy is not None else Decimal("0"))
         ) / summary.total_sessions
-        summary.average_accuracy = float(round(new_accuracy, 2))
+        summary.average_accuracy = float(round(new_accuracy, 1))
     else:
         summary.average_wpm = data.wpm or 0
         summary.average_accuracy = float(
-            round(Decimal(str(data.accuracy)) if data.accuracy is not None else Decimal("0"), 2)
+            round(Decimal(str(data.accuracy)) if data.accuracy is not None else Decimal("0"), 1)
         )
 
     if data.wpm and data.wpm > (summary.fastest_wpm or 0):

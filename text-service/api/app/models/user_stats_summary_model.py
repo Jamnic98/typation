@@ -16,13 +16,14 @@ class UserStatsSummary(Base):
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    total_sessions: Mapped[int] = mapped_column(Integer, default=1)
-    total_practice_duration: Mapped[int] = mapped_column(Integer, default=0)
 
     average_wpm: Mapped[int] = mapped_column(Integer, default=0)
-    average_accuracy: Mapped[float] = mapped_column(Numeric(5, 2), default=0.0)
+    average_accuracy: Mapped[float] = mapped_column(Numeric(4, 1), default=0.0)
     fastest_wpm: Mapped[int] = mapped_column(Integer, default=0)
     longest_consecutive_daily_practice_streak: Mapped[int] = mapped_column(Integer, default=0)
+
+    total_sessions: Mapped[int] = mapped_column(Integer, default=1)
+    total_practice_duration: Mapped[int] = mapped_column(Integer, default=0)
 
     total_corrected_char_count: Mapped[int] = mapped_column(Integer, nullable=True)
     total_deleted_char_count: Mapped[int] = mapped_column(Integer, nullable=True)

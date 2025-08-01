@@ -7,7 +7,9 @@ from ..auth.jwt import decode_access_token
 from ..factories.database import get_db
 from ..models.user_model import User
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
 
 def get_token_credentials(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -18,6 +20,7 @@ def get_token_credentials(token: str = Depends(oauth2_scheme)):
     if not payload or "sub" not in payload:
         raise credentials_exception
     return payload["sub"]
+
 
 async def get_current_user(
     user_id: str = Depends(get_token_credentials),

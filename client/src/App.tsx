@@ -1,6 +1,15 @@
 import { Route, Routes } from 'react-router-dom'
 
-import { Home, Login, ForgotPassword, Register, ResetPassword, Profile } from 'pages'
+import {
+  ForgotPassword,
+  Home,
+  Login,
+  NotFound,
+  Profile,
+  Register,
+  ResetPassword,
+  Statistics,
+} from 'pages'
 import { AlertProvider, AlertBanner, Layout } from 'components'
 import { UserProvider } from 'api/context/UserContext'
 
@@ -13,15 +22,14 @@ const App = () => {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="statistics" element={<Statistics />} />
             <Route path="auth">
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
               <Route path="reset-password/:token" element={<ResetPassword />} />
             </Route>
-            {/* TODO: make actual page */}
-            {/* <Route path="*" element={<NotFound />} /> */}
-            <Route path="*" element={<div>Not Found</div>} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </UserProvider>

@@ -4,19 +4,7 @@ import { type CharacterProps, Character } from 'components'
 import { defaultFontSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
 import { findDeleteFrom } from 'utils/helpers'
 import { TypedStatus, TypingAction, type OnTypeParams, type FontSettings } from 'types'
-
-// TODO MOVE
-const resetTypedStatus = (chars: CharacterProps[] | string): CharacterProps[] => {
-  if (typeof chars === 'string') {
-    return chars.split('').map((char, index) => ({
-      char,
-      typedStatus: TypedStatus.NONE,
-      isActive: index === 0,
-    }))
-  }
-
-  return chars.map((c) => ({ ...c, typedStatus: TypedStatus.NONE }))
-}
+import { resetTypedStatus } from 'api'
 
 export interface TypingWidgetTextProps {
   textToType: string | null

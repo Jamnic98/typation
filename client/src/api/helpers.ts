@@ -1,4 +1,5 @@
-import { type TypingSessionStats } from 'types'
+import { type CharacterProps } from 'components'
+import { TypedStatus, type TypingSessionStats } from 'types'
 
 export const GRAPHQL_ENDPOINT = '/graphql'
 
@@ -57,3 +58,15 @@ export const convertToGraphQLInput = (stats: TypingSessionStats) => {
 
 export const getReadableErrorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err)
+
+export const resetTypedStatus = (chars: CharacterProps[] | string): CharacterProps[] => {
+  if (typeof chars === 'string') {
+    return chars.split('').map((char, index) => ({
+      char,
+      typedStatus: TypedStatus.NONE,
+      isActive: index === 0,
+    }))
+  }
+
+  return chars.map((c) => ({ ...c, typedStatus: TypedStatus.NONE }))
+}

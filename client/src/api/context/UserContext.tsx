@@ -75,9 +75,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const statsSummary = async (): Promise<StatsSummary | undefined> => {
     try {
       if (token) {
-        const userStatsSummary = await fetchUserStatsSummary(token)
-        console.log(userStatsSummary)
-        return userStatsSummary
+        return await fetchUserStatsSummary(token)
       }
     } catch (error) {
       console.error(error)

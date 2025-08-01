@@ -1,23 +1,7 @@
-import { useState, useEffect } from 'react'
-
 import { useUser } from 'api/context/UserContext'
-import { type StatsSummary } from 'types'
 
 export const Profile = () => {
-  const { user, statsSummary } = useUser()
-  const [userStatsSummary, setUserStatsSummary] = useState<StatsSummary | undefined>()
-
-  console.log(userStatsSummary)
-
-  useEffect(() => {
-    const getStats = async () => {
-      const summary = await statsSummary()
-      summary && setUserStatsSummary(summary)
-      console.log(summary)
-    }
-
-    getStats()
-  }, [statsSummary])
+  const { user } = useUser()
 
   return (
     <>
@@ -31,17 +15,10 @@ export const Profile = () => {
           <h2 className="text-2xl mb-4">User</h2>
           <div className="space-y-2">
             <div>
-              Username: <span>{user?.user_name}</span>
+              Username: <span>{user?.user_name ?? ''}</span>
             </div>
             <div>
-              Email: <span>{user?.email}</span>
-            </div>
-          </div>
-
-          <h2 className="text-2xl mb-4">Statistics</h2>
-          <div className="space-y-2">
-            <div>
-              Fastest WPM: <span>79</span>
+              Email: <span>{user?.email ?? ''}</span>
             </div>
           </div>
         </div>
