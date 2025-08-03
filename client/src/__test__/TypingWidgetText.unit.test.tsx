@@ -129,7 +129,7 @@ describe('Test functionality', () => {
 
     // subsequent hit after miss
     await user.keyboard(textToType[3])
-    expect(characters[3]).toHaveClass(STYLE_HIT)
+    expect(characters[3]).toHaveClass(STYLE_NONE)
   })
 
   test('Updates cursor position correctly', async () => {

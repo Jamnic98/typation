@@ -221,14 +221,37 @@ export const TypingWidgetText = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
       >
-        {charObjArray.map((character, index) => (
-          <Character
-            {...character}
-            fontSettings={fontSettings}
-            isActive={index === cursorIndex && isFocused}
-            key={`${character.char ?? ''}-${index}`}
-          />
-        ))}
+        {(() => {
+          const words: CharacterProps[][] = []
+          let currentWord: CharacterProps[] = []
+
+          charObjArray.forEach((charObj) => {
+            if (charObj.char === ' ') {
+              if (currentWord.length) words.push(currentWord)
+              words.push([charObj]) // space as its own "word" to preserve spacing
+              currentWord = []
+            } else {
+              currentWord.push(charObj)
+            }
+          })
+          if (currentWord.length) words.push(currentWord)
+
+          return words.map((wordChars, wordIdx) => (
+            <span key={wordIdx} className="inline-block whitespace-nowrap">
+              {wordChars.map((charObj) => {
+                const index = charObjArray.indexOf(charObj)
+                return (
+                  <Character
+                    {...charObj}
+                    fontSettings={fontSettings}
+                    isActive={index === cursorIndex && isFocused}
+                    key={`${charObj.char ?? ''}-${index}`}
+                  />
+                )
+              })}
+            </span>
+          ))
+        })()}
       </div>
     </div>
   )
