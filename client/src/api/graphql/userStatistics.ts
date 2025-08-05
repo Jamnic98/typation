@@ -1,17 +1,8 @@
-import { baseUrl, GRAPHQL_ENDPOINT } from 'utils/constants'
 import { convertToGraphQLInput } from 'api/helpers'
+import { SAVE_STATS_MUTATION } from './mutations'
+import { GET_STATS_SUMMARY_QUERY } from './queries'
+import { baseUrl, GRAPHQL_ENDPOINT } from 'utils/constants'
 import { type StatsSummary, type TypingSessionStats } from 'types'
-
-const SAVE_STATS_MUTATION = `
-  mutation SaveStats($userStatsSessionInput: UserStatsSessionInput!) {
-    createUserStatsSession(userStatsSessionInput: $userStatsSessionInput) {
-      id
-      wpm
-      accuracy
-      practiceDuration
-    }
-  }
-`
 
 export const saveStats = async (stats: TypingSessionStats, token: string): Promise<void> => {
   const input = convertToGraphQLInput(stats)
@@ -38,17 +29,6 @@ export const saveStats = async (stats: TypingSessionStats, token: string): Promi
     throw new Error('Failed to save typing stats')
   }
 }
-
-const GET_STATS_SUMMARY_QUERY = `
-  query {
-      userStatsSummary {
-          userId
-          fastestWpm
-          averageAccuracy
-          totalSessions
-      }
-  }
-`
 
 export const fetchUserStatsSummary = async (token: string): Promise<StatsSummary> => {
   const response = await fetch(`${baseUrl}${GRAPHQL_ENDPOINT}`, {
