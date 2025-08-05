@@ -1,10 +1,12 @@
+import { LOCAL_STORAGE_TOKEN_KEY } from 'utils/constants'
+
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 const url = `${baseUrl}/text/generate-practice-text`
 
 export const fetchTypingString = async (): Promise<string> => {
   try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)
     if (!token) throw new Error('No token found')
 
     const response = await fetch(url, {

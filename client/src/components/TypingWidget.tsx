@@ -1,6 +1,13 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
 import { Accuracy, StopWatch, TypingWidgetText, WordsPerMin } from 'components'
-import { fetchTypingString, getReadableErrorMessage, saveStats, useAlert, useUser } from 'api'
+import {
+  fetchTypingString,
+  getReadableErrorMessage,
+  saveStats,
+  trackMistypedKey,
+  useAlert,
+  useUser,
+} from 'api'
 import {
   calculateAccuracy,
   calculateTypingSessionStats,
@@ -38,10 +45,19 @@ export const TypingWidget = () => {
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
 
   const fetchAndSetText = async () => {
-    const newText = await fetchTypingString()
-    dispatch({ type: 'SET_TEXT', payload: newText })
-    localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
-    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+    try {
+      const newText = await fetchTypingString()
+      dispatch({ type: 'SET_TEXT', payload: newText })
+      localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
+      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+    } catch (err) {
+      console.error('Failed to fetch typing text:', err)
+      showAlert({
+        title: 'Failed to load text',
+        message: getReadableErrorMessage(err),
+        type: AlertType.ERROR,
+      })
+    }
   }
 
   useEffect(() => {
@@ -93,13 +109,8 @@ export const TypingWidget = () => {
         keyEventQueue.current.push({ key, typedStatus, cursorIndex, timestamp })
     }
 
-    // Track mistyped keys
     if (typedStatus === TypedStatus.MISS && cursorIndex < state.text.length) {
-      const intendedChar = state.text[cursorIndex]
-      if (!mistypedRef.current[intendedChar]) {
-        mistypedRef.current[intendedChar] = {}
-      }
-      mistypedRef.current[intendedChar][key] = (mistypedRef.current[intendedChar][key] || 0) + 1
+      trackMistypedKey(mistypedRef, key, state.text[cursorIndex])
     }
 
     // Live stats calculation as before...
@@ -173,14 +184,14 @@ export const TypingWidget = () => {
     }
   }
 
-  return state.text ? (
+  return (
     <div id="typing-widget" data-testid="typing-widget">
       <TypingWidgetText
         onStart={onStart}
         onComplete={onComplete}
         onType={onType}
         reset={reset}
-        textToType={state.text}
+        textToType={state.text ?? ''}
         fontSettings={fontSettings}
       />
       <br />
@@ -192,5 +203,5 @@ export const TypingWidget = () => {
         </div>
       ) : null}
     </div>
-  ) : null
+  )
 }

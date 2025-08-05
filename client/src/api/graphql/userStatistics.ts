@@ -1,5 +1,5 @@
-import { baseUrl } from 'utils/constants'
-import { convertToGraphQLInput, GRAPHQL_ENDPOINT } from 'api/helpers'
+import { baseUrl, GRAPHQL_ENDPOINT } from 'utils/constants'
+import { convertToGraphQLInput } from 'api/helpers'
 import { type StatsSummary, type TypingSessionStats } from 'types'
 
 const SAVE_STATS_MUTATION = `

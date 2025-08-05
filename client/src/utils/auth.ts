@@ -1,4 +1,5 @@
 import { type User, type UserLogin } from 'types'
+import { LOCAL_STORAGE_TOKEN_KEY, LOCAL_STORAGE_USER_KEY } from 'utils/constants'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 const authEndpoint = `${baseUrl}/auth`
@@ -16,7 +17,7 @@ export const loginUser = async (userLogin: UserLogin): Promise<User> => {
   }
   // save token to localStorage
   const { access_token } = await res.json()
-  localStorage.setItem('token', access_token)
+  localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, access_token)
 
   // fetch user profile
   const meRes = await fetch(`${authEndpoint}/me`, {
@@ -30,7 +31,7 @@ export const loginUser = async (userLogin: UserLogin): Promise<User> => {
 }
 
 export const logoutUser = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+  localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
+  localStorage.removeItem(LOCAL_STORAGE_USER_KEY)
   window.location.reload()
 }

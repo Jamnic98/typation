@@ -19,6 +19,8 @@ export const defaultFontSettings: FontSettings = {
   // textWordSpacing: 'normal',
 }
 
+export const GRAPHQL_ENDPOINT = '/graphql'
+
 export const AVERAGE_WORD_LENGTH = 5
 
 // typable characters used in the typing test
@@ -37,6 +39,8 @@ export const CHAR_ARRAY_PAIRS = TYPABLE_CHARS_ARRAY.map((char1) =>
 )
 
 // localStorage keys
+export const LOCAL_STORAGE_TOKEN_KEY = 'token'
+export const LOCAL_STORAGE_USER_KEY = 'user'
 export const LOCAL_STORAGE_TEXT_KEY = 'typingText'
 export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
 

@@ -1,9 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import { useAlert } from 'components'
 import { fetchUserStatsSummary } from 'api'
 import { loginUser } from 'utils/auth'
+import {
+  LOCAL_STORAGE_TEXT_KEY,
+  LOCAL_STORAGE_TOKEN_KEY,
+  LOCAL_STORAGE_USER_KEY,
+} from 'utils/constants'
 import {
   AlertType,
   type StatsSummary,
@@ -21,21 +25,21 @@ export const useUser = () => {
 }
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const navigate = useNavigate()
   const { showAlert } = useAlert()
+
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
 
   useEffect(() => {
     try {
-      const savedUser = localStorage.getItem('user')
-      const savedToken = localStorage.getItem('token')
+      const savedUser = localStorage.getItem(LOCAL_STORAGE_USER_KEY)
+      const savedToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)
       if (savedUser && savedUser !== 'undefined') setUser(JSON.parse(savedUser))
       if (savedToken) setToken(savedToken)
     } catch (err) {
       console.warn('Failed to parse saved user from localStorage:', err)
-      localStorage.removeItem('user')
-      localStorage.removeItem('token')
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY)
+      localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
     }
   }, [])
 
@@ -48,11 +52,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(userData)
 
       // **also set token state here from localStorage or return token from loginUser**
-      const savedToken = localStorage.getItem('token')
+      const savedToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)
       if (savedToken) setToken(savedToken)
 
-      localStorage.setItem('user', JSON.stringify(userData))
-      navigate('/')
+      localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(userData))
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unexpected login error'
       showAlert({
@@ -64,12 +67,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
+    localStorage.removeItem(LOCAL_STORAGE_USER_KEY)
+    localStorage.removeItem(LOCAL_STORAGE_TEXT_KEY)
     setUser(null)
     setToken(null)
-    window.location.reload()
-    navigate('/')
   }
 
   const statsSummary = async (): Promise<StatsSummary | undefined> => {

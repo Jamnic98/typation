@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
 import { useUser } from 'api/context/UserContext'
 
 export const Login = () => {
+  const navigate = useNavigate()
   const { authError, login } = useUser()
 
   const [email, setEmail] = useState('')
@@ -12,6 +13,7 @@ export const Login = () => {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     await login({ email, password })
+    navigate('/')
   }
 
   return (

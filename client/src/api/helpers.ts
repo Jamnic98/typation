@@ -1,7 +1,8 @@
+import { RefObject } from 'react'
+
 import { type CharacterProps } from 'components'
 import { TypedStatus, type TypingSessionStats } from 'types'
-
-export const GRAPHQL_ENDPOINT = '/graphql'
+import { GRAPHQL_ENDPOINT } from 'utils/constants'
 
 export const useGraphQLRequest = async <T, V = undefined>(
   query: string,
@@ -69,4 +70,14 @@ export const resetTypedStatus = (chars: CharacterProps[] | string): CharacterPro
   }
 
   return chars.map((c) => ({ ...c, typedStatus: TypedStatus.NONE }))
+}
+
+export const trackMistypedKey = (
+  mistypedRef: RefObject<Record<string, Record<string, number>>>,
+  key: string,
+  intended: string
+) => {
+  const ref = mistypedRef.current
+  ref[intended] ??= {}
+  ref[intended][key] = (ref[intended][key] ?? 0) + 1
 }
