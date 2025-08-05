@@ -35,10 +35,10 @@ export const TypingWidget = () => {
 
   const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
 
-  const mistypedRef = useRef<Record<string, Record<string, number>>>({})
   const startTimestamp = useRef<number>(0)
   const deletedCharCount = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
+  const mistypedRef = useRef<Record<string, Record<string, number>>>({})
 
   const [displayTime, setDisplayTime] = useState(0)
   const [showStats, setShowStats] = useState<boolean>(false)
@@ -113,13 +113,13 @@ export const TypingWidget = () => {
       trackMistypedKey(mistypedRef, key, state.text[cursorIndex])
     }
 
-    // Live stats calculation as before...
-    const typedText = keyEventQueue.current.map((e) => e.key).join('')
-    const targetText = state.text ?? ''
+    // Live stats calculation of wpm and accuracy
     const now = Date.now()
     const elapsed = now - startTimestamp.current
+    const typedText = keyEventQueue.current.map((e) => e.key).join('')
 
-    if (elapsed > 0 && typedText.length > 0) {
+    if (elapsed && typedText.length > 0) {
+      const targetText = state.text
       const wpm = calculateWpm(targetText, typedText, elapsed)
       const accuracy = calculateAccuracy(targetText, typedText)
       dispatch({ type: 'UPDATE_STATS', payload: { wpm, accuracy } })
@@ -194,6 +194,7 @@ export const TypingWidget = () => {
         textToType={state.text ?? ''}
         fontSettings={fontSettings}
       />
+      {/* TODO: replace br tag with style */}
       <br />
       {showStats ? (
         <div id="stats" className="space-y-4">

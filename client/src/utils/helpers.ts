@@ -97,6 +97,7 @@ export const calculateTypingSessionStats = (
   mistyped: Record<string, Record<string, number>>
 ): TypingSessionStats => {
   const typedText = keyEvents.map((keyEvent) => keyEvent.key).join('')
+
   const correctCharsTyped = keyEvents.filter((e) => e.typedStatus === TypedStatus.HIT).length
   const errorCharCount = keyEvents.filter((e) => e.typedStatus === TypedStatus.MISS).length
   const totalCharsTyped = keyEvents.length + deletedCharCount
@@ -115,8 +116,10 @@ export const calculateTypingSessionStats = (
     if (!unigraphStats[key]) {
       unigraphStats[key] = { count: 0, hit: 0, mistyped: [] }
     }
+    if (typedStatus === TypedStatus.HIT) {
+      unigraphStats[key].hit++
+    }
     unigraphStats[key].count++
-    if (typedStatus === TypedStatus.HIT) unigraphStats[key].hit++
 
     // --- Digraph Stats ---
     if (i > 0 && i < targetText.length) {
@@ -150,19 +153,7 @@ export const calculateTypingSessionStats = (
     }
   }
 
-  // Compute digraphs array with accuracy and mean intervals
-  const digraphs = Object.entries(digraphStats).map(([key, { count, hit }]) => {
-    const intervals = digraphTimings[key] || []
-    const meanInterval = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length)
-
-    return {
-      key,
-      count,
-      accuracy: Math.round((hit / count) * 100),
-      meanInterval,
-    }
-  })
-
+  // create an array of incorrectly typed keys
   for (const key of Object.keys(unigraphStats)) {
     const mistypedDict = mistyped[key] ?? {}
     const mistypedList = Object.entries(mistypedDict).map(([mistypedKey, count]) => ({
@@ -172,12 +163,36 @@ export const calculateTypingSessionStats = (
     unigraphStats[key].mistyped = mistypedList
   }
 
-  const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit, mistyped }]) => ({
-    key,
-    count,
-    accuracy: Math.round((hit / count) * 100),
-    mistyped,
-  }))
+  // Compute unigraphs array with accuracy and array of mistyped characters
+  const unigraphs = Object.entries(unigraphStats).map(([key, { count, mistyped = [] }]) => {
+    const missCount = Array.isArray(mistyped)
+      ? mistyped.reduce((acc, val) => acc + val.count, 0)
+      : 0
+
+    return {
+      key,
+      count,
+      accuracy: count ? Math.round(((count - missCount) / count) * 100) : 0,
+      mistyped,
+    }
+  })
+
+  console.log(unigraphs)
+
+  // Compute digraphs array with accuracy and mean intervals
+  const digraphs = Object.entries(digraphStats).map(([key, { count, hit }]) => {
+    const intervals = digraphTimings[key] || []
+    const meanInterval = intervals.length
+      ? Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length)
+      : 0
+    const accuracy = count > 0 ? Math.round((hit / count) * 100) : 0
+    return {
+      key,
+      count,
+      accuracy,
+      meanInterval,
+    }
+  })
 
   const elapsed = endTime - startTime
   const practiceDuration = Math.round(elapsed / 1000)
@@ -195,7 +210,6 @@ export const calculateTypingSessionStats = (
     correctCharsTyped,
     totalCharsTyped,
     errorCharCount,
-
     digraphs,
     unigraphs,
   }

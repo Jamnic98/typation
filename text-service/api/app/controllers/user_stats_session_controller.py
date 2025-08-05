@@ -66,60 +66,64 @@ async def create_user_stats_summary(db: AsyncSession, user_id: UUID, data: UserS
 
 
 async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSessionCreate) -> None:
-    # Update basic stats (keep your existing logic here)
     summary.total_sessions += 1
     summary.total_practice_duration += data.practice_duration or 0
 
-    if summary.total_sessions > 1:
+    if summary.total_sessions == 1:
+        summary.average_wpm = data.wpm or 0
+        summary.average_accuracy = float(round(Decimal(str(data.accuracy or 0)), 1))
+    else:
         summary.average_wpm = round(
             ((summary.average_wpm * (summary.total_sessions - 1)) + (data.wpm or 0)) / summary.total_sessions
         )
         new_accuracy = (
             (Decimal(summary.average_accuracy) * (summary.total_sessions - 1)) +
-            (Decimal(str(data.accuracy)) if data.accuracy is not None else Decimal("0"))
+            Decimal(str(data.accuracy or 0))
         ) / summary.total_sessions
         summary.average_accuracy = float(round(new_accuracy, 1))
-    else:
-        summary.average_wpm = data.wpm or 0
-        summary.average_accuracy = float(
-            round(Decimal(str(data.accuracy)) if data.accuracy is not None else Decimal("0"), 1)
-        )
 
     if data.wpm and data.wpm > (summary.fastest_wpm or 0):
         summary.fastest_wpm = data.wpm
 
     summary.total_corrected_char_count += data.corrected_char_count or 0
     summary.total_deleted_char_count += data.deleted_char_count or 0
-    # TODO: fix
     summary.total_keystrokes += data.total_keystrokes or 0
     summary.total_char_count += data.total_char_count or 0
     summary.error_char_count += data.error_char_count or 0
 
+    # --- Update unigraphs ---
     if data.unigraphs:
         unigraph_dict = {u.key: u for u in summary.unigraphs}
 
         for char, stats in data.unigraphs.items():
-            unigraph = unigraph_dict.get(char)
+            if char not in unigraph_dict:
+                unigraph_dict[char] = Unigraph(key=char, count=0, accuracy=0, mistyped={})
+                summary.unigraphs.append(unigraph_dict[char])
 
-            if unigraph is None:
-                unigraph = Unigraph(
-                    key=char,
-                    count=0,
-                    accuracy=0.0
-                )
-                summary.unigraphs.append(unigraph)
-                unigraph_dict[char] = unigraph
+            new_count = getattr(stats, "count", 0)
+            new_accuracy = getattr(stats, "accuracy", 0.0) # between 0–100
+            new_mistyped = getattr(stats, "mistyped", {})
 
-            # ✅ Update count and accuracy
-            unigraph.count += getattr(stats, "count", 0) or 0
-            unigraph.accuracy = getattr(stats, "accuracy", 0.0) or 0.0  # ✅ Add this line
+            unigraph = unigraph_dict[char]
+            existing_count = unigraph.count
+            existing_accuracy = unigraph.accuracy
 
-            # ✅ Handle mistyped stats
-            mistyped_stats = getattr(stats, "mistyped", {}) or {}
+            # Only compute weighted accuracy if new data exists
+            if new_count > 0:
+                updated_accuracy = (
+                    (existing_accuracy * existing_count) + (new_accuracy * new_count)
+                ) / (existing_count + new_count)
+
+                unigraph.accuracy = int(round(updated_accuracy))
+
+            # Update count AFTER accuracy is computed
+            unigraph.count += new_count
+
+            # Merge mistyped stats
             if not isinstance(unigraph.mistyped, dict):
                 unigraph.mistyped = {}
 
-            for mistyped_char, count in mistyped_stats.items():
+            for mistyped_char, count in new_mistyped.items():
                 unigraph.mistyped[mistyped_char] = unigraph.mistyped.get(mistyped_char, 0) + count
 
 

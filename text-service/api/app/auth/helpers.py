@@ -46,6 +46,7 @@ def normalise_user_stats_input(data: dict) -> dict:
             mistyped_list = unigraph.get("mistyped")
             if isinstance(mistyped_list, list):
                 unigraph["mistyped"] = {entry["key"]: entry["count"] for entry in mistyped_list}
+
         # Convert list of unigraphs to dict keyed by 'key', exclude mean_interval for unigraphs
         data["unigraphs"] = convert_stat_list_to_dict(data["unigraphs"], include_mean_interval=False)
 

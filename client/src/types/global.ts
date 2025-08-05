@@ -177,11 +177,11 @@ export type UserLogin = {
 
 export type UserContextType = {
   user: User | null
+  token: string | null
+  authError: string | null
   login: (userLogin: UserLogin) => Promise<void>
   logout: () => void
   statsSummary: () => Promise<StatsSummary | undefined>
-  token: string | null
-  authError: string | null
 }
 
 export type GraphQLResponse<T> = {
@@ -203,10 +203,10 @@ export type DeleteUserResponse = {
 }
 
 export type KeyEvent = {
-  timestamp: number
   key: string
   typedStatus: TypedStatus
   cursorIndex: number
+  timestamp: number
 }
 
 export enum TypingAction {
