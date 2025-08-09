@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Accuracy, StopWatch, TypingWidgetText, WordsPerMin } from 'components'
 import {
   fetchTypingString,
@@ -44,7 +44,7 @@ export const TypingWidget = () => {
   const [showStats, setShowStats] = useState<boolean>(false)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
 
-  const fetchAndSetText = async () => {
+  const fetchAndSetText = useCallback(async () => {
     try {
       const newText = await fetchTypingString()
       dispatch({ type: 'SET_TEXT', payload: newText })
@@ -58,7 +58,7 @@ export const TypingWidget = () => {
         type: AlertType.ERROR,
       })
     }
-  }
+  }, [showAlert])
 
   useEffect(() => {
     const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
@@ -69,7 +69,7 @@ export const TypingWidget = () => {
     } else {
       fetchAndSetText()
     }
-  }, [])
+  }, [fetchAndSetText])
 
   const reset = (): void => {
     setShowStats(false)

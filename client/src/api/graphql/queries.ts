@@ -5,6 +5,11 @@ export const GET_STATS_SUMMARY_QUERY = `
           fastestWpm
           averageAccuracy
           totalSessions
+          totalKeystrokes
+          totalCorrectedCharCount
+          totalDeletedCharCount
+          totalCharCount
+          errorCharCount
       }
   }
 `

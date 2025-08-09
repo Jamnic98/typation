@@ -1,7 +1,6 @@
 import React from 'react'
 
-type AlertType = 'success' | 'error' | 'info' | 'warning'
-
+import { AlertType } from 'types/global'
 type AlertProps = {
   type: AlertType
   title?: string
@@ -10,10 +9,10 @@ type AlertProps = {
 }
 
 const typeStyles: Record<AlertType, string> = {
-  success: 'bg-green-100 border-green-500 text-green-700',
-  error: 'bg-red-100 border-red-500 text-red-700',
-  info: 'bg-blue-100 border-blue-500 text-blue-700',
-  warning: 'bg-yellow-100 border-yellow-500 text-yellow-700',
+  [AlertType.SUCCESS]: 'bg-green-100 border-green-500 text-green-700',
+  [AlertType.ERROR]: 'bg-red-100 border-red-500 text-red-700',
+  [AlertType.INFO]: 'bg-blue-100 border-blue-500 text-blue-700',
+  [AlertType.WARNING]: 'bg-yellow-100 border-yellow-500 text-yellow-700',
 }
 
 export const Alert: React.FC<AlertProps> = ({ type, title, message, onClose }) => {

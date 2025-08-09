@@ -80,11 +80,12 @@ export const calculateErrorCount = (text: string, typedText: string): number => 
 }
 
 export const findDeleteFrom = (charObjArray: CharacterProps[], index: number): number => {
-  let i = index
-  while (i >= 0 && charObjArray[i].typedStatus === TypedStatus.MISS) {
-    i--
+  for (let i = index; i >= 0; i--) {
+    if (charObjArray[i].typedStatus !== TypedStatus.MISS) {
+      return i + 1
+    }
   }
-  return i + 1
+  return 0
 }
 
 export const calculateTypingSessionStats = (
@@ -177,8 +178,6 @@ export const calculateTypingSessionStats = (
     }
   })
 
-  console.log(unigraphs)
-
   // Compute digraphs array with accuracy and mean intervals
   const digraphs = Object.entries(digraphStats).map(([key, { count, hit }]) => {
     const intervals = digraphTimings[key] || []
@@ -244,3 +243,5 @@ export const calculateWpm = (targetText: string, typedText: string, elapsedTime:
 
   return Math.round(wordsTyped / minutesElapsed)
 }
+
+export const prettifyInt = (num: number): string => num.toLocaleString('en-GB')

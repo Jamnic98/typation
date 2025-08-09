@@ -50,15 +50,15 @@ export enum FontSizes {
 }
 
 export enum CursorStyles {
-  UNDERSCORE = 'underscore',
-  BLOCK = 'block',
-  OUTLINE = 'outline',
-  PIPE = 'pipe',
+  UNDERSCORE,
+  BLOCK,
+  OUTLINE,
+  PIPE,
 }
 
 export enum StopWatchState {
-  RUNNING = 'running',
-  STOPPED = 'stopped',
+  RUNNING,
+  STOPPED,
 }
 
 export type State = {
@@ -226,10 +226,10 @@ export interface OnTypeParams {
 
 // Define enum
 export enum AlertType {
-  SUCCESS = 'success',
-  ERROR = 'error',
-  INFO = 'info',
-  WARNING = 'warning',
+  SUCCESS,
+  ERROR,
+  INFO,
+  WARNING,
 }
 
 // Use the enum in the types

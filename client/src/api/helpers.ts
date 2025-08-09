@@ -1,4 +1,4 @@
-import { RefObject } from 'react'
+import { type RefObject } from 'react'
 
 import { type CharacterProps } from 'components'
 import { TypedStatus, type TypingSessionStats } from 'types'

@@ -1,6 +1,7 @@
 aiosqlite
 alembic
 asyncpg
+bcrypt
 email_validator
 fastapi
 httpx
