@@ -6,10 +6,10 @@ export const Layout = () => {
   const { user } = useUser()
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen min-w-screen">
       <Header />
 
-      <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-8 py-20">
+      <main className="max-w-4xl mx-auto px-4 py-20">
         <Outlet context={{ user }} />
       </main>
 

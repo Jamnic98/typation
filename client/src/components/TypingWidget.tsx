@@ -185,7 +185,7 @@ export const TypingWidget = () => {
   }
 
   return (
-    <div id="typing-widget" data-testid="typing-widget">
+    <div id="typing-widget" data-testid="typing-widget" className="w-full h-full">
       <TypingWidgetText
         onStart={onStart}
         onComplete={onComplete}
@@ -194,6 +194,7 @@ export const TypingWidget = () => {
         textToType={state.text ?? ''}
         fontSettings={fontSettings}
       />
+
       {/* TODO: replace br tag with style */}
       <br />
       {showStats ? (

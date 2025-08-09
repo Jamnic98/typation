@@ -49,8 +49,8 @@ export const TypingWidgetText = ({
   }
 
   const shiftCursor = (shift: number): void => {
-    if (cursorIndex === -1) return
-    if (!charObjArray) return
+    if (!charObjArray || cursorIndex === -1) return
+
     let newIndex = (cursorIndex + shift) % charObjArray.length
     if (newIndex < 0) newIndex += charObjArray.length
     setCursorIndex(newIndex)
@@ -126,7 +126,7 @@ export const TypingWidgetText = ({
   }
 
   const handleBackspace = (ctrl: boolean = false): void => {
-    if (!charObjArray || !textToType || cursorIndex === 0) return
+    if (!textToType || !charObjArray || cursorIndex === 0) return
 
     const prevIndex = cursorIndex - 1
     const prevChar = charObjArray[prevIndex]
@@ -203,23 +203,23 @@ export const TypingWidgetText = ({
   if (!textToType || !charObjArray) return null
 
   return (
-    <div className="relative w-fit h-fit select-none">
-      {!isFocused && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none select-none text-lg font-medium text-neutral-500">
+    <div className="relative select-none">
+      {textToType && charObjArray && !isFocused ? (
+        <div className="absolute inset-0 flex items-center justify-center flex-row z-10 pointer-events-none select-none text-lg font-medium text-neutral-500">
           Click here to start
         </div>
-      )}
-
+      ) : null}
       <div
         id="typing-widget-text"
         data-testid="typing-widget-text"
-        className={`w-fit h-fit font-mono outline-none transition duration-300 ease-in-out ${
+        className={`font-mono outline-none transition duration-300 ease-in-out ${
           isFocused ? '' : 'blur-xs'
         }`}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
+        style={{ minHeight: '3em' }} // reserve vertical space (adjust as needed)
       >
         {(() => {
           const words: CharacterProps[][] = []

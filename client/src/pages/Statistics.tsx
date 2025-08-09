@@ -65,7 +65,7 @@ export const Statistics = () => {
     },
     {
       label: 'Errors Corrected',
-      tooltip: 'Errors that were fixed before moving on.',
+      tooltip: 'Errors that were fixed before continuing.',
       value: userStatsSummary?.totalCorrectedCharCount
         ? prettifyInt(userStatsSummary.totalCorrectedCharCount)
         : 'n/a',
