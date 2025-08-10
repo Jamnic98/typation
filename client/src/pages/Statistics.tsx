@@ -3,23 +3,45 @@ import { useState, useEffect } from 'react'
 import { StatRow } from 'components'
 import { useUser } from 'api'
 import { prettifyInt } from 'utils/helpers'
-import { type StatsSummary } from 'types'
+import { type TypingSessionStats, type StatsSummary } from 'types'
+
+// TODO: move this to a real graph component
+import { TestGraph } from 'components/graphs/TestGraph'
 
 export const Statistics = () => {
   const { statsSummary } = useUser()
   const [userStatsSummary, setUserStatsSummary] = useState<StatsSummary>()
 
+  const { sessionsByDateRange } = useUser()
+  const [userSessions, setUserSessions] = useState<TypingSessionStats[]>()
+
+  // const [startDate, setStartDate] = useState<Date>()
+  // const [endDate, setEndDate] = useState<Date>()
+
   useEffect(() => {
     const getStats = async () => {
       const summary = await statsSummary()
-      if (summary) setUserStatsSummary(summary)
+      if (summary) {
+        setUserStatsSummary(summary)
+      }
     }
     getStats()
-  }, [statsSummary])
+
+    const dateInPast = new Date('2025-07-30')
+    const dateNow = new Date()
+    const getSessions = async () => {
+      const sessions = await sessionsByDateRange(dateInPast, dateNow)
+      if (sessions) {
+        console.log(sessions)
+        setUserSessions(sessions)
+      }
+    }
+    getSessions()
+  }, [sessionsByDateRange, statsSummary])
 
   const stats = [
     {
-      label: 'Total Practice Sessions',
+      label: 'Practice Sessions',
       tooltip: 'Number of completed practice sessions.',
       value: userStatsSummary?.totalSessions?.toString() ?? 'n/a',
     },
@@ -84,6 +106,21 @@ export const Statistics = () => {
           <StatRow key={stat.label} {...stat} />
         ))}
       </div>
+
+      <br />
+      <br />
+      <br />
+
+      <h2 className="text-xl font-semibold">Session Performance</h2>
+      <br />
+
+      <TestGraph
+        sessions={(userSessions ?? []).map((s) => ({
+          startTime: s.startTime,
+          wpm: s.wpm,
+          accuracy: s.accuracy,
+        }))}
+      />
     </>
   )
 }

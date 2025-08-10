@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
 import { useAlert } from 'components'
-import { fetchUserStatsSummary } from 'api'
+import { fetchUserStatsSummary, fetchUserSessionsByDateRange } from 'api'
 import { loginUser } from 'utils/auth'
 import {
   LOCAL_STORAGE_TEXT_KEY,
@@ -10,6 +10,7 @@ import {
 } from 'utils/constants'
 import {
   AlertType,
+  type TypingSessionStats,
   type StatsSummary,
   type User,
   type UserContextType,
@@ -79,13 +80,38 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (token) {
         return await fetchUserStatsSummary(token)
       }
-    } catch (error) {
-      console.error(error)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch stats summary'
+      showAlert({
+        type: AlertType.ERROR,
+        title: 'Fetch Stats Summary Failed',
+        message,
+      })
+    }
+  }
+
+  const sessionsByDateRange = async (
+    startDate: Date,
+    endDate: Date
+  ): Promise<TypingSessionStats[] | undefined> => {
+    try {
+      if (token) {
+        return await fetchUserSessionsByDateRange(startDate, endDate, token)
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch sessions'
+      showAlert({
+        type: AlertType.ERROR,
+        title: 'Fetch Sessions Failed',
+        message,
+      })
     }
   }
 
   return (
-    <UserContext.Provider value={{ user, token, login, logout, statsSummary, authError: null }}>
+    <UserContext.Provider
+      value={{ user, token, login, logout, statsSummary, sessionsByDateRange, authError: null }}
+    >
       {children}
     </UserContext.Provider>
   )

@@ -182,6 +182,7 @@ export type UserContextType = {
   login: (userLogin: UserLogin) => Promise<void>
   logout: () => void
   statsSummary: () => Promise<StatsSummary | undefined>
+  sessionsByDateRange: (startDate: Date, endDate: Date) => Promise<TypingSessionStats[] | undefined>
 }
 
 export type GraphQLResponse<T> = {
