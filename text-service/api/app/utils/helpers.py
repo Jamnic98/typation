@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 def get_unigraph_weights(unigraphs: list) -> dict[str, float]:
     weights = {}
     for uni in unigraphs:
@@ -24,3 +27,7 @@ def score_word(word: str, unigraph_weights: dict[str, float], digraph_weights: d
             digraph = word[i - 1] + c
             score += digraph_weights.get(digraph, 0.0)
     return score
+
+
+def to_timestamp(dt: datetime) -> float:
+    return dt.timestamp() if dt else 0.0

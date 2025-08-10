@@ -1,19 +1,23 @@
 from uuid import UUID
+from datetime import datetime
 from typing import List, Optional
+
 import strawberry
+from strawberry.types import Info
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from strawberry.types import Info
 
-from ..types.digraph_type import DigraphType
-from ..types.unigraph_type import UnigraphType
-from ...controllers.user_stats_session_controller import get_all_user_stats_sessions, get_user_stats_session_by_id
 from ...controllers.users_controller import get_all_users
+from ...controllers.user_stats_session_controller import get_all_user_stats_sessions, get_user_stats_session_by_id, \
+    get_user_stats_sessions_by_date_range
 from ...models.user_model import User
 from ...models.user_stats_summary_model import UserStatsSummary
 from ...schemas.user_graphql import UserType
-from ..types.user_stats_session_type import UserStatsSessionType
 from ...graphql.types.user_stats_summary_type import UserStatsSummaryType
+from ..types.user_stats_session_type import UserStatsSessionType
+from ..types.digraph_type import DigraphType
+from ..types.unigraph_type import UnigraphType
+from ...utils.helpers import to_timestamp
 
 
 @strawberry.type
@@ -55,15 +59,20 @@ class UsersQuery:
             sessions = await get_all_user_stats_sessions(db)
             return [
                 UserStatsSessionType(
-                    id=session.id,
-                    user_id=session.user_id,
-                    wpm=session.wpm,
-                    accuracy=session.accuracy,
-                    practice_duration=session.practice_duration,
-                    start_time=session.start_time,
-                    end_time=session.end_time,
+                    id=s.id,
+                    user_id=s.user_id,
+                    wpm=s.wpm,
+                    accuracy=s.accuracy,
+                    practice_duration=s.practice_duration,
+                    start_time=to_timestamp(s.start_time),
+                    end_time=to_timestamp(s.end_time),
+                    corrected_char_count=s.corrected_char_count,
+                    deleted_char_count=s.deleted_char_count,
+                    total_char_count=s.total_char_count,
+                    total_keystrokes=s.total_keystrokes,
+                    error_char_count=s.error_char_count
                 )
-                for session in sessions
+                for s in sessions
             ]
 
     @strawberry.field()
@@ -79,10 +88,47 @@ class UsersQuery:
                 wpm=session.wpm,
                 accuracy=session.accuracy,
                 practice_duration=session.practice_duration,
-                start_time=session.start_time,
-                end_time=session.end_time
-
+                start_time=to_timestamp(session.start_time),
+                end_time=to_timestamp(session.end_time),
+                corrected_char_count=session.corrected_char_count,
+                deleted_char_count=session.deleted_char_count,
+                total_char_count=session.total_char_count,
+                total_keystrokes=session.total_keystrokes,
+                error_char_count=session.error_char_count
             )
+
+    @strawberry.field()
+    async def user_stats_sessions_by_date_range(
+            self,
+            info: Info,
+            start_date: datetime,
+            end_date: datetime,
+    ) -> Optional[List[UserStatsSessionType]]:
+        async_session_maker = info.context["db_factory"]
+        async with async_session_maker() as db:
+            user = info.context.get("user")
+            if not user:
+                # raise GraphQLError("User not authenticated")
+                return None
+
+            sessions = await get_user_stats_sessions_by_date_range(user.id, start_date, end_date, db)
+            return [
+                UserStatsSessionType(
+                    id=s.id,
+                    user_id=s.user_id,
+                    wpm=s.wpm,
+                    accuracy=s.accuracy,
+                    practice_duration=s.practice_duration,
+                    start_time=to_timestamp(s.start_time),
+                    end_time=to_timestamp(s.end_time),
+                    corrected_char_count=s.corrected_char_count,
+                    deleted_char_count=s.deleted_char_count,
+                    total_char_count=s.total_char_count,
+                    total_keystrokes=s.total_keystrokes,
+                    error_char_count=s.error_char_count,
+                )
+                for s in sessions
+            ]
 
     @strawberry.field(name="userStatsSummary")
     async def user_stats_summary(self, info: Info) -> Optional[UserStatsSummaryType]:

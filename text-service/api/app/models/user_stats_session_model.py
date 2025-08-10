@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
@@ -17,10 +18,11 @@ class UserStatsSession(Base):
     wpm: Mapped[Optional[int]] = mapped_column(Integer)
     accuracy: Mapped[Optional[float]] = mapped_column(Float)
     practice_duration: Mapped[Optional[int]] = mapped_column(Integer)
-    start_time: Mapped[DateTime] = mapped_column(
+
+    start_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()  # pylint: disable=not-callable
     )
-    end_time: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True))
+    end_time: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     corrected_char_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     deleted_char_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)

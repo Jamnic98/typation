@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 from decimal import Decimal
 from typing import  Optional,Sequence
@@ -189,6 +190,20 @@ async def get_user_stats_session_by_id(
 ) -> Optional[UserStatsSession]:
     return await db.get(UserStatsSession, session_id)
 
+async def get_user_stats_sessions_by_date_range(
+    user_id: UUID,
+    start_date: datetime,
+    end_date: datetime,
+    db: AsyncSession = Depends(get_db)
+) -> Sequence[UserStatsSession]:
+    result = await db.execute(
+        select(UserStatsSession)
+        .where(UserStatsSession.user_id == user_id)
+        .where(UserStatsSession.start_time >= start_date)
+        .where(UserStatsSession.end_time <= end_date)
+        .order_by(UserStatsSession.start_time)
+    )
+    return result.scalars().all()
 
 async def get_all_user_stats_sessions(
     db: AsyncSession = Depends(get_db)
