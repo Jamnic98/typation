@@ -14,8 +14,10 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.18.1",
     "react": "^19.1.0",
+    "react-datepicker": "^8.4.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "recharts": "^3.1.2"
@@ -36,6 +38,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.3",
     "@types/react": "^19.1.5",
+    "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.4.1",
     "@vitest/browser": "^3.2.4",

@@ -32,7 +32,6 @@ class UserStatsSessionType:
     user_id: UUID = strawberry.field(name="userId")
     wpm: Optional[int]
     accuracy: Optional[float]
-    error_count: Optional[int] = strawberry.field(name="errorCount", default=None)
 
     start_time: Optional[float] = strawberry.field(name="startTime", default=None)
     end_time: Optional[float] = strawberry.field(name="endTime", default=None)

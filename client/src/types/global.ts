@@ -72,7 +72,6 @@ export type State = {
 type UpdateStatsPayload = {
   wpm?: number
   accuracy?: number
-  errorCount?: number
   startTime?: number // Unix timestamp in ms
   endTime?: number // Unix timestamp in ms
   practiceDuration?: number // Duration of session in seconds

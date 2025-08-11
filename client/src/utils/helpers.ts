@@ -63,22 +63,6 @@ export const isValidDigraphKey = (key: string): boolean => {
   return typeof key === 'string' && key.length === 2
 }
 
-export const calculateErrorCount = (text: string, typedText: string): number => {
-  let errorCount = 0
-  const len = Math.min(text.length, typedText.length)
-
-  for (let i = 0; i < len; i++) {
-    if (text[i] !== typedText[i]) {
-      errorCount++
-    }
-  }
-
-  // Count any extra characters in typedText as errors
-  errorCount += Math.max(0, typedText.length - text.length)
-
-  return errorCount
-}
-
 export const findDeleteFrom = (charObjArray: CharacterProps[], index: number): number => {
   for (let i = index; i >= 0; i--) {
     if (charObjArray[i].typedStatus !== TypedStatus.MISS) {

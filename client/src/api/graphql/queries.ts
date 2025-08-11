@@ -23,7 +23,6 @@ export const GET_SESSIONS_BY_DATE_QUERY = `
       wpm
       accuracy
       practiceDuration
-      errorCount
       correctedCharCount
       deletedCharCount
       correctCharsTyped
