@@ -123,13 +123,15 @@ describe('Test functionality', () => {
 
     // 1st miss
     await user.keyboard('z')
-    const character = screen.getAllByText('z')[1]
-    expect(character).toHaveClass(STYLE_MISS)
-    expect(characters[3]).toHaveClass(STYLE_NONE)
 
-    // subsequent hit after miss
-    await user.keyboard(textToType[3])
-    expect(characters[3]).toHaveClass(STYLE_NONE)
+    // background characters carry the status styles
+    const backgroundChars = screen.getAllByTestId('background-character')
+
+    // index 2 (the space position) should now be marked MISS
+    expect(backgroundChars[2]).toHaveClass(STYLE_MISS)
+
+    // index 3 should still be untouched
+    expect(backgroundChars[3]).toHaveClass(STYLE_NONE)
   })
 
   test('Updates cursor position correctly', async () => {

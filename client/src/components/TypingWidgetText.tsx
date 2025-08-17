@@ -22,6 +22,7 @@ export const TypingWidgetText = ({
   onType,
   reset,
 }: TypingWidgetTextProps) => {
+  const [sessionId, setSessionId] = useState(Date.now())
   const [cursorIndex, setCursorIndex] = useState<number>(0)
   const [charObjArray, setCharObjArray] = useState<CharacterProps[] | null>(null)
   const [isFocused, setIsFocused] = useState<boolean>(false)
@@ -35,6 +36,7 @@ export const TypingWidgetText = ({
 
   useEffect(() => {
     resetTyping()
+    setSessionId(Date.now())
   }, [textToType, resetTyping])
 
   const handleFocus = () => {
@@ -81,7 +83,9 @@ export const TypingWidgetText = ({
         ...obj,
         typedStatus: newStatus,
         ...((newStatus === TypedStatus.MISS || newStatus === TypedStatus.NON_FIX_DELETE) && key
-          ? { char: key }
+          ? obj.char === ' '
+            ? {} // ✅ leave spaces alone
+            : { typedChar: key } // show wrong typed letter separately
           : {}),
       }
     })
@@ -243,7 +247,7 @@ export const TypingWidgetText = ({
                     {...charObj}
                     fontSettings={fontSettings}
                     isActive={index === cursorIndex && isFocused}
-                    key={`${charObj.char ?? ''}-${index}`}
+                    key={`${index}-${charObj.char}-${sessionId}`}
                   />
                 )
               })}
