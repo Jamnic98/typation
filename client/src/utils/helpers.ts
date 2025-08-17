@@ -1,4 +1,7 @@
+import { type RefObject } from 'react'
+
 import { type CharacterProps } from 'components'
+import { AVERAGE_WORD_LENGTH, TYPING_WIDGET_INITIAL_STATE } from './constants'
 import {
   CursorStyles,
   TypedStatus,
@@ -7,7 +10,6 @@ import {
   type State,
   type TypingSessionStats,
 } from 'types'
-import { AVERAGE_WORD_LENGTH, TYPING_WIDGET_INITIAL_STATE } from './constants'
 
 export const getCursorStyle = (cursorStyle: CursorStyles | undefined) => {
   switch (cursorStyle) {
@@ -87,12 +89,12 @@ export const calculateTypingSessionStats = (
   const errorCharCount = keyEvents.filter((e) => e.typedStatus === TypedStatus.MISS).length
   const totalCharsTyped = keyEvents.length + deletedCharCount
 
-  const digraphTimings: Record<string, number[]> = {}
-  const digraphStats: Record<string, { count: number; hit: number }> = {}
   const unigraphStats: Record<
     string,
     { count: number; hit: number; mistyped: { key: string; count: number }[] }
   > = {}
+  const digraphStats: Record<string, { count: number; hit: number }> = {}
+  const digraphTimings: Record<string, number[]> = {}
 
   for (let i = 0; i < keyEvents.length; i++) {
     const { key, typedStatus } = keyEvents[i]
@@ -150,10 +152,7 @@ export const calculateTypingSessionStats = (
 
   // Compute unigraphs array with accuracy and array of mistyped characters
   const unigraphs = Object.entries(unigraphStats).map(([key, { count, mistyped = [] }]) => {
-    const missCount = Array.isArray(mistyped)
-      ? mistyped.reduce((acc, val) => acc + val.count, 0)
-      : 0
-
+    const missCount = mistyped.reduce((acc, val) => acc + val.count, 0)
     return {
       key,
       count,
@@ -229,3 +228,28 @@ export const calculateWpm = (targetText: string, typedText: string, elapsedTime:
 }
 
 export const prettifyInt = (num: number): string => num.toLocaleString('en-GB')
+
+export const getReadableErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : String(err)
+
+export const resetTypedStatus = (chars: CharacterProps[] | string): CharacterProps[] => {
+  if (typeof chars === 'string') {
+    return chars.split('').map((char, index) => ({
+      char,
+      typedStatus: TypedStatus.NONE,
+      isActive: index === 0,
+    }))
+  }
+
+  return chars.map((c) => ({ ...c, typedStatus: TypedStatus.NONE }))
+}
+
+export const trackMistypedKey = (
+  mistypedRef: RefObject<Record<string, Record<string, number>>>,
+  key: string,
+  intended: string
+) => {
+  const ref = mistypedRef.current
+  ref[intended] ??= {}
+  ref[intended][key] = (ref[intended][key] ?? 0) + 1
+}

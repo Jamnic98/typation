@@ -8,7 +8,7 @@ type Props = {
   }[]
 }
 
-export const TestGraph = ({ sessions }: Props) => {
+export const SessionPerformance = ({ sessions }: Props) => {
   const data = sessions.map((s) => ({
     timestamp: s.startTime * 1000, // full timestamp (milliseconds)
     wpm: s.wpm ?? 0,

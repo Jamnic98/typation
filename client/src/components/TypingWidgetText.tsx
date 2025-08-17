@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { type CharacterProps, Character } from 'components'
+import { findDeleteFrom, resetTypedStatus } from 'utils/helpers'
 import { defaultFontSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
-import { findDeleteFrom } from 'utils/helpers'
-import { TypedStatus, TypingAction, type OnTypeParams, type FontSettings } from 'types'
-import { resetTypedStatus } from 'api'
+import { type OnTypeParams, type FontSettings, TypedStatus, TypingAction } from 'types'
 
 export interface TypingWidgetTextProps {
   textToType: string | null
@@ -212,14 +211,13 @@ export const TypingWidgetText = ({
       <div
         id="typing-widget-text"
         data-testid="typing-widget-text"
-        className={`font-mono outline-none transition duration-300 ease-in-out ${
+        className={`font-mono outline-none transition duration-300 ease-in-out min-h-12 ${
           isFocused ? '' : 'blur-xs'
         }`}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        style={{ minHeight: '3em' }} // reserve vertical space (adjust as needed)
       >
         {(() => {
           const words: CharacterProps[][] = []
@@ -228,7 +226,7 @@ export const TypingWidgetText = ({
           charObjArray.forEach((charObj) => {
             if (charObj.char === ' ') {
               if (currentWord.length) words.push(currentWord)
-              words.push([charObj]) // space as its own "word" to preserve spacing
+              words.push([charObj])
               currentWord = []
             } else {
               currentWord.push(charObj)

@@ -32,7 +32,7 @@ export const Header = () => {
   }
 
   return (
-    <div className="w-full sticky top-0 z-10 h-20 bg-white border-b border-gray-200 flex justify-between items-center px-6">
+    <div className="sticky top-0 z-10 h-20 bg-white border-b border-gray-200 flex justify-between items-center px-4 mx-4">
       <h1 onClick={() => navigate('/')} className="text-xl font-bold cursor-pointer text-black">
         Typation
       </h1>

@@ -1,18 +1,14 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+
 import { Accuracy, StopWatch, TypingWidgetText, WordsPerMin } from 'components'
-import {
-  fetchTypingString,
-  getReadableErrorMessage,
-  saveStats,
-  trackMistypedKey,
-  useAlert,
-  useUser,
-} from 'api'
+import { fetchTypingString, saveStats, useAlert, useUser } from 'api'
 import {
   calculateAccuracy,
   calculateTypingSessionStats,
   calculateWpm,
   typingWidgetStateReducer,
+  getReadableErrorMessage,
+  trackMistypedKey,
 } from 'utils/helpers'
 import {
   defaultFontSettings,
@@ -51,9 +47,10 @@ export const TypingWidget = () => {
       localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
       localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
     } catch (err) {
-      console.error('Failed to fetch typing text:', err)
+      const errorMsg = 'Failed to fetch typing text'
+      console.error(errorMsg, err)
       showAlert({
-        title: 'Failed to load text',
+        title: errorMsg,
         message: getReadableErrorMessage(err),
         type: AlertType.ERROR,
       })
@@ -111,6 +108,7 @@ export const TypingWidget = () => {
 
     if (typedStatus === TypedStatus.MISS && cursorIndex < state.text.length) {
       trackMistypedKey(mistypedRef, key, state.text[cursorIndex])
+      console.log(mistypedRef.current)
     }
 
     // Live stats calculation of wpm and accuracy
@@ -145,7 +143,6 @@ export const TypingWidget = () => {
       now,
       mistypedRef.current
     )
-
     dispatch({
       type: 'UPDATE_STATS',
       payload: { wpm: sessionStats.wpm, accuracy: sessionStats.accuracy },
@@ -159,8 +156,6 @@ export const TypingWidget = () => {
           {
             wpm: sessionStats.wpm,
             accuracy: sessionStats.accuracy,
-            startTime: startTimestamp.current,
-            endTime: now,
             practiceDuration: Math.floor(elapsedTime / 1000),
             correctedCharCount: sessionStats.correctedCharCount,
             deletedCharCount: sessionStats.deletedCharCount,
@@ -169,15 +164,18 @@ export const TypingWidget = () => {
             errorCharCount: sessionStats.errorCharCount,
             unigraphs: sessionStats.unigraphs,
             digraphs: sessionStats.digraphs,
+            startTime: startTimestamp.current,
+            endTime: now,
           },
           token
         ))
 
       localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
     } catch (err) {
-      console.error('Failed to save stats:', err)
+      const errorMsg = 'Failed to save stats'
+      console.error(errorMsg, err)
       showAlert({
-        title: 'Failed to save stats',
+        title: errorMsg,
         message: getReadableErrorMessage(err),
         type: AlertType.ERROR,
       })
