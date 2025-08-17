@@ -213,7 +213,7 @@ export const TypingWidgetText = ({
         data-testid="typing-widget-text"
         className={`font-mono outline-none transition duration-300 ease-in-out min-h-12 ${
           isFocused ? '' : 'blur-xs'
-        }`}
+        } flex justify-center text-center flex-wrap`}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}

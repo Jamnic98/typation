@@ -108,7 +108,6 @@ export const TypingWidget = () => {
 
     if (typedStatus === TypedStatus.MISS && cursorIndex < state.text.length) {
       trackMistypedKey(mistypedRef, key, state.text[cursorIndex])
-      console.log(mistypedRef.current)
     }
 
     // Live stats calculation of wpm and accuracy
@@ -195,8 +194,12 @@ export const TypingWidget = () => {
 
       {/* TODO: replace br tag with style */}
       <br />
+      <br />
+      <br />
+      <br />
+
       {showStats ? (
-        <div id="stats" className="space-y-4">
+        <div id="stats" className="space-y-4 flex flex-col justify-center items-center">
           <WordsPerMin wpm={state.wpm} />
           <Accuracy accuracy={state.accuracy} />
           <StopWatch time={displayTime} />

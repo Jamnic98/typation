@@ -82,6 +82,8 @@ class UsersQuery:
             session = await get_user_stats_session_by_id(session_id, db)
             if not session:
                 return None
+
+            # noinspection PyUnreachableCode
             return UserStatsSessionType(
                 id=session.id,
                 user_id=session.user_id,

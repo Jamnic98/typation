@@ -35,6 +35,7 @@ async def create_user_stats_session(
     )
     summary = result.scalars().first()
 
+    # noinspection PyUnreachableCode
     if summary:
         await update_user_stats_summary(summary, input_data)
         await upsert_graphs(db, summary.id, input_data)

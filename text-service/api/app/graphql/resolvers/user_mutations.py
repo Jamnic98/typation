@@ -71,6 +71,7 @@ class UsersMutation:
             async with info.context["db_factory"]() as db:
                 user_update = UserUpdate(user_name=user_name)
                 user = await update_user(user_update, user_id, db)
+                # noinspection PyUnreachableCode
                 return UserType(
                     id=user_id,
                     user_name=user.user_name,
@@ -349,6 +350,8 @@ class UsersMutation:
                 updated = await update_user_stats_summary(user_id, user_stats_summary_input, db)
                 if not updated:
                     return None
+
+                # noinspection PyUnreachableCode
                 return UserStatsSummaryType(
                     user_id=updated.user_id,
                     total_sessions=updated.total_sessions,
