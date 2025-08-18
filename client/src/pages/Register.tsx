@@ -1,12 +1,17 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
-import { useUser } from 'api/context/UserContext'
+import { useAlert, useUser } from 'api'
+import { AlertType } from 'types/global'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 export const Register = () => {
+  const navigate = useNavigate()
+
+  const { showAlert } = useAlert()
   const { login } = useUser()
+
   const [form, setForm] = useState({
     user_name: '',
     first_name: '',
@@ -28,13 +33,31 @@ export const Register = () => {
         body: JSON.stringify(form),
       })
 
-      if (!response.ok) throw new Error('Registration failed')
+      if (!response.ok) {
+        // try to parse error JSON
+        const errorData = await response.json().catch(() => null)
+
+        console.log('Registration error:', errorData)
+        throw new Error(errorData?.detail || 'Registration failed, please try again.')
+      }
 
       // login using credentials
       await login({ email: form.email, password: form.password })
+      navigate('/')
     } catch (err: unknown) {
-      if (err instanceof Error) alert(err.message)
-      else alert('An unexpected error occurred')
+      if (err instanceof Error) {
+        showAlert({
+          title: 'Registration Error',
+          message: err.message,
+          type: AlertType.ERROR,
+        })
+      } else {
+        showAlert({
+          title: 'Registration Error',
+          message: 'An unexpected error occurred',
+          type: AlertType.ERROR,
+        })
+      }
     }
   }
 

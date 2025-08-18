@@ -32,9 +32,9 @@ export const Header = () => {
   }
 
   return (
-    <div className="sticky top-0 z-10 h-20 bg-white border-b border-gray-200 flex justify-between items-center px-4 mx-4">
+    <div className="sticky top-0 z-10 h-20 bg-white border-b border-gray-200 flex justify-between items-center px-8">
       <h1 onClick={() => navigate('/')} className="text-xl font-bold cursor-pointer text-black">
-        Typation
+        Typation (beta)
       </h1>
 
       <div className="relative">
@@ -42,7 +42,7 @@ export const Header = () => {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setMenuOpen((prev) => !prev)}
-              className="text-black hover:underline focus:outline-none"
+              className="text-black hover:underline focus:outline-none hover:cursor-pointer"
             >
               {user.user_name}
             </button>
@@ -52,7 +52,7 @@ export const Header = () => {
                 <Link
                   to="/profile"
                   onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
                 >
                   Profile
                 </Link>
@@ -65,7 +65,7 @@ export const Header = () => {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:cursor-pointer rounded-b-md"
                 >
                   Logout
                 </button>

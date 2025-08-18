@@ -9,7 +9,7 @@ export const Layout = () => {
     <div className="min-h-screen min-w-screen">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-4 py-20">
+      <main className="max-w-4xl mx-auto px-8 py-20">
         <Outlet context={{ user }} />
       </main>
 

@@ -20,7 +20,18 @@ export const SessionPerformance = ({ sessions }: Props) => {
       <LineChart data={data}>
         <XAxis dataKey="timestamp" tickFormatter={(ts) => new Date(ts).toLocaleDateString()} />
         <YAxis />
-        <Tooltip labelFormatter={(ts) => new Date(ts).toLocaleString()} />
+        <Tooltip
+          labelFormatter={(ts) => new Date(ts).toLocaleString()}
+          formatter={(value, name) => {
+            if (name === 'accuracy') {
+              return [`${value}%`, 'Accuracy']
+            }
+            if (name === 'wpm') {
+              return [value, 'WPM']
+            }
+            return [value, name]
+          }}
+        />
         <Legend />
         <Line type="monotone" dataKey="wpm" stroke="#8884d8" strokeWidth={2} />
         <Line type="monotone" dataKey="accuracy" stroke="#82ca9d" strokeWidth={2} />

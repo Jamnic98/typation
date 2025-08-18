@@ -4,8 +4,9 @@ export interface AccuracyProps {
 
 export const Accuracy = ({ accuracy }: AccuracyProps) => {
   return (
-    <div data-testid="accuracy" className="text-xl font-mono tracking-widest select-none">
-      accuracy:{accuracy}%
+    <div className="text-xl font-mono ">
+      <span className="text-xl font-mono tracking-widest select-none">accuracy:</span>
+      <span>{accuracy}%</span>
     </div>
   )
 }
