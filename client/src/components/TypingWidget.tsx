@@ -194,8 +194,6 @@ export const TypingWidget = () => {
 
       {/* TODO: replace br tag with style */}
       <br />
-      <br />
-      <br />
 
       {showStats ? (
         <div id="stats" className="space-y-4 flex flex-col justify-center items-center">

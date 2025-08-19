@@ -3,7 +3,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { type CharacterProps, Character } from 'components'
 import { findDeleteFrom, resetTypedStatus } from 'utils/helpers'
 import { defaultFontSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
-import { type OnTypeParams, type FontSettings, TypedStatus, TypingAction } from 'types'
+import {
+  type OnTypeParams,
+  type FontSettings,
+  TypedStatus,
+  TypingAction,
+  SpaceSymbols,
+  spaceSymbolMap,
+} from 'types'
+import SvgKeyboardUK from './SvgKeyboardUK'
 
 export interface TypingWidgetTextProps {
   textToType: string | null
@@ -206,55 +214,75 @@ export const TypingWidgetText = ({
   if (!textToType || !charObjArray) return null
 
   return (
-    <div className="relative select-none">
-      {textToType && charObjArray && !isFocused ? (
-        <div className="absolute inset-0 flex items-center justify-center flex-row z-10 pointer-events-none select-none text-lg font-medium text-neutral-500">
-          Click here to start
-        </div>
-      ) : null}
-      <div
-        id="typing-widget-text"
-        data-testid="typing-widget-text"
-        className={`font-mono outline-none transition duration-300 ease-in-out min-h-12 ${
-          isFocused ? '' : 'blur-xs hover:cursor-pointer'
-        } flex justify-center text-center flex-wrap`}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-      >
-        {(() => {
-          const words: CharacterProps[][] = []
-          let currentWord: CharacterProps[] = []
-
-          charObjArray.forEach((charObj) => {
-            if (charObj.char === ' ') {
-              if (currentWord.length) words.push(currentWord)
-              words.push([charObj])
-              currentWord = []
-            } else {
-              currentWord.push(charObj)
-            }
-          })
-          if (currentWord.length) words.push(currentWord)
-
-          return words.map((wordChars, wordIdx) => (
-            <span key={wordIdx} className="inline-block whitespace-nowrap">
-              {wordChars.map((charObj) => {
-                const index = charObjArray.indexOf(charObj)
-                return (
-                  <Character
-                    {...charObj}
-                    fontSettings={fontSettings}
-                    isActive={index === cursorIndex && isFocused}
-                    key={`${index}-${charObj.char}-${sessionId}`}
-                  />
-                )
-              })}
+    <>
+      <div className="relative select-none">
+        <div>
+          {textToType && charObjArray && !isFocused ? (
+            <span className="absolute inset-0 flex items-center justify-center flex-row z-10 pointer-events-none select-none text-lg font-medium text-neutral-500">
+              Click here to start
             </span>
-          ))
-        })()}
+          ) : null}
+        </div>
+        <div>
+          <div
+            id="typing-widget-text"
+            data-testid="typing-widget-text"
+            className={`font-mono outline-none transition duration-300 ease-in-out min-h-12 ${
+              isFocused ? '' : 'blur-xs hover:cursor-pointer'
+            } flex justify-center text-center flex-wrap`}
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          >
+            {(() => {
+              const words: CharacterProps[][] = []
+              let currentWord: CharacterProps[] = []
+
+              charObjArray.forEach((charObj) => {
+                if (charObj.char === ' ') {
+                  if (currentWord.length) words.push(currentWord)
+                  words.push([charObj])
+                  currentWord = []
+                } else {
+                  currentWord.push(charObj)
+                }
+              })
+              if (currentWord.length) words.push(currentWord)
+
+              return words.map((wordChars, wordIdx) => (
+                <span key={wordIdx} className="inline-block whitespace-nowrap">
+                  {wordChars.map((charObj) => {
+                    const index = charObjArray.indexOf(charObj)
+                    return (
+                      <Character
+                        {...charObj}
+                        fontSettings={fontSettings}
+                        isActive={index === cursorIndex && isFocused}
+                        key={`${index}-${charObj.char}-${sessionId}`}
+                      />
+                    )
+                  })}
+                </span>
+              ))
+            })()}
+          </div>
+        </div>
       </div>
-    </div>
+
+      <div className="w-fit m-auto  text-8xl my-8">
+        {charObjArray && charObjArray[cursorIndex]?.char
+          ? charObjArray[cursorIndex]?.char === ' '
+            ? spaceSymbolMap[SpaceSymbols.DOT]
+            : charObjArray[cursorIndex]?.char
+          : ''}
+      </div>
+
+      <SvgKeyboardUK
+        highlightKey={charObjArray[cursorIndex]?.char}
+        showNumberRow
+        className="w-full h-auto"
+      />
+    </>
   )
 }

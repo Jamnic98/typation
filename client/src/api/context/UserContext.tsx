@@ -64,6 +64,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         title: 'Login Failed',
         message,
       })
+      throw err
     }
   }
 

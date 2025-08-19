@@ -11,9 +11,13 @@ export const Login = () => {
   const [password, setPassword] = useState('')
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    await login({ email, password })
-    navigate('/')
+    try {
+      e.preventDefault()
+      await login({ email, password })
+      navigate('/')
+    } catch (error) {
+      console.error('Login failed:', error)
+    }
   }
 
   return (
