@@ -10,7 +10,7 @@ class UnigraphQuery:
     @strawberry.field()
     async def unigraph(
         self,
-        info,
+        info: strawberry.types.Info,
         id: strawberry.ID = strawberry.argument(description="Unigraph ID"),
     ) -> UnigraphType | None:
         db_factory = info.context["db_factory"]
