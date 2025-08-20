@@ -11,7 +11,7 @@ type Props = {
   sessions: TypingSessionStats[]
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FF8042']
+const COLORS = ['#0088FE', '#FFA500', '#FF4136']
 
 export const ErrorDistributionPieChart: React.FC<Props> = ({ sessions }) => {
   // Aggregate totals (use 0 as default if any field is missing)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 from decimal import Decimal
-from typing import  Optional,Sequence
+from typing import Optional, Sequence, cast
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,7 +53,8 @@ async def create_user_stats_summary(db: AsyncSession, user_id: UUID, data: UserS
         total_practice_duration=data.practice_duration,
         average_wpm=data.wpm,
         average_accuracy=data.accuracy,
-        longest_consecutive_daily_practice_streak=0,
+        practice_streak=0,
+        longest_streak=0,
         fastest_wpm=data.wpm,
         total_corrected_char_count=data.corrected_char_count,
         total_deleted_char_count=data.deleted_char_count,
@@ -63,7 +64,7 @@ async def create_user_stats_summary(db: AsyncSession, user_id: UUID, data: UserS
     )
     db.add(summary)
     await db.flush()
-    await insert_graphs(db, summary.id, data)
+    await insert_graphs(db, cast(UUID, summary.id), data)
     return summary
 
 
@@ -79,7 +80,7 @@ async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSe
             ((summary.average_wpm * (summary.total_sessions - 1)) + (data.wpm or 0)) / summary.total_sessions
         )
         new_accuracy = (
-            (Decimal(summary.average_accuracy) * (summary.total_sessions - 1)) +
+            (Decimal(cast(float, summary.average_accuracy)) * (summary.total_sessions - 1)) +
             Decimal(str(data.accuracy or 0))
         ) / summary.total_sessions
         summary.average_accuracy = float(round(new_accuracy, 1))

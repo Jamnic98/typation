@@ -25,8 +25,8 @@ export const KeystrokesBreakdownChart = ({ sessions }: Props) => {
         <Tooltip labelFormatter={(ts) => new Date(ts).toLocaleString()} />
         <Legend />
         <Bar dataKey="Correct" stackId="a" fill="#4CAF50" />
-        <Bar dataKey="Errors" stackId="a" fill="#FF4136" />
         <Bar dataKey="Deleted" stackId="a" fill="#FFA500" />
+        <Bar dataKey="Errors" stackId="a" fill="#FF4136" />
       </BarChart>
     </ResponsiveContainer>
   )

@@ -16,7 +16,9 @@ class UserStatsSummaryCreateInput:
     average_wpm: float = strawberry.field(default=0.0, name="averageWpm")
     average_accuracy: float = strawberry.field(default=0.0, name="averageAccuracy")
     fastest_wpm: int = strawberry.field(default=0, name="fastestWpm")
-    longest_consecutive_daily_practice_streak: int = strawberry.field(default=0, name="longestStreak")
+
+    practice_streak: int = strawberry.field(default=0, name="practiceStreak")
+    longest_streak: int = strawberry.field(default=0, name="longestStreak")
 
     total_corrected_char_count: int = strawberry.field(default=None, name="correctedCharCount")
     total_deleted_char_count: int = strawberry.field(default=None, name="deletedCharCount")
@@ -36,7 +38,9 @@ class UserStatsSummaryUpdateInput:
     average_wpm: Optional[int] = strawberry.field(default=None, name="averageWpm")
     average_accuracy: Optional[float] = strawberry.field(default=None, name="averageAccuracy")
     fastest_wpm: Optional[int] = strawberry.field(default=None, name="fastestWpm")
-    longest_consecutive_daily_practice_streak: Optional[int] = strawberry.field(default=0, name="longestStreak")
+
+    practice_streak: Optional[int] = strawberry.field(default=0, name="practiceStreak")
+    longest_streak: Optional[int] = strawberry.field(default=0, name="longestStreak")
 
     total_corrected_char_count: Optional[int] = strawberry.field(default=None, name="correctedCharCount")
     total_deleted_char_count: Optional[int] = strawberry.field(default=None, name="deletedCharCount")
@@ -57,8 +61,13 @@ class UserStatsSummaryType:
     average_wpm: int = strawberry.field(name="averageWpm")
     average_accuracy: float = strawberry.field(name="averageAccuracy")
     fastest_wpm: int = strawberry.field(name="fastestWpm")
-    longest_consecutive_daily_practice_streak: int = strawberry.field(
-        name="longestConsecutiveDailyPracticeStreak"
+
+    practice_streak: int = strawberry.field(
+        name="practiceStreak"
+    )
+
+    longest_streak: int = strawberry.field(
+        name="longestStreak"
     )
 
     total_corrected_char_count: int = strawberry.field(name="totalCorrectedCharCount")

@@ -20,7 +20,9 @@ class UserStatsSummary(Base):
     average_wpm: Mapped[int] = mapped_column(Integer, default=0)
     average_accuracy: Mapped[float] = mapped_column(Numeric(4, 1), default=0.0)
     fastest_wpm: Mapped[int] = mapped_column(Integer, default=0)
-    longest_consecutive_daily_practice_streak: Mapped[int] = mapped_column(Integer, default=0)
+
+    practice_streak: Mapped[int] = mapped_column(Integer, default=0)
+    longest_streak: Mapped[int] = mapped_column(Integer, default=0)
 
     total_sessions: Mapped[int] = mapped_column(Integer, default=1)
     total_practice_duration: Mapped[int] = mapped_column(Integer, default=0)

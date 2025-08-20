@@ -147,7 +147,9 @@ export interface StatsSummary extends BaseTypingStats {
   averageWpm: number
   averageAccuracy: number
   fastestWpm: number
-  longestConsecutiveDailyPracticeStreak: number
+
+  practiceStreak: number
+  longestStreak: number
 
   totalSessions: number
   totalCorrectedCharCount: number

@@ -151,17 +151,23 @@ class UsersQuery:
 
             return UserStatsSummaryType(
                 user_id=summary.user_id,
-                total_sessions=summary.total_sessions,
-                total_practice_duration=summary.total_practice_duration,
+
+                fastest_wpm=summary.fastest_wpm,
                 average_wpm=summary.average_wpm,
                 average_accuracy=summary.average_accuracy,
-                longest_consecutive_daily_practice_streak=summary.longest_consecutive_daily_practice_streak,
-                fastest_wpm=summary.fastest_wpm,
+
+                total_practice_duration=summary.total_practice_duration,
+
+                total_sessions=summary.total_sessions,
+                practice_streak=summary.practice_streak,
+                longest_streak=summary.longest_streak,
+
                 total_corrected_char_count=summary.total_corrected_char_count,
                 total_deleted_char_count=summary.total_deleted_char_count,
                 total_keystrokes=summary.total_keystrokes,
                 total_char_count=summary.total_char_count,
                 error_char_count=summary.error_char_count,
+
                 unigraphs=[
                     UnigraphType(
                         key=uni.key,
@@ -170,6 +176,7 @@ class UsersQuery:
                     )
                     for uni in summary.unigraphs
                 ],
+
                 digraphs=[
                     DigraphType(key=di.key, mean_interval=di.mean_interval, accuracy=di.accuracy, count=di.count)
                     for di in summary.digraphs

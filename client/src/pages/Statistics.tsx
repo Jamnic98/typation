@@ -87,98 +87,135 @@ export const Statistics = () => {
   const errorCharCountBaseline = sumMetric(baselineSessions, 'errorCharCount')
   const wpmBaseline = averageMetric(baselineSessions, 'wpm')
   const accuracyBaseline = averageMetric(baselineSessions, 'accuracy')
-
-  const summaryStatsConfig = [
+  const sessionCountsConfig = [
     {
-      label: 'Practice Sessions',
-      tooltip: 'Number of completed practice sessions.',
+      label: 'Total Sessions Completed',
+      tooltip: 'Total number of practice sessions completed.',
       value: userStatsSummary?.totalSessions?.toString() ?? 'n/a',
     },
     {
+      label: 'Current Daily Practice Streak',
+      tooltip: 'Current streak of consecutive days with at least one completed session.',
+      value: userStatsSummary?.practiceStreak?.toString() ?? 'n/a',
+    },
+    {
+      label: 'Longest Daily Practice Streak',
+      tooltip: 'Longest streak of consecutive days with at least one completed session.',
+      value: userStatsSummary?.longestStreak?.toString() ?? 'n/a',
+    },
+  ]
+
+  const summaryStatsConfig = [
+    {
       label: 'Fastest WPM',
-      tooltip: 'Highest recorded words per minute.',
+      tooltip: 'Highest recorded words per minute in any session.',
       value: userStatsSummary?.fastestWpm?.toString() ?? 'n/a',
     },
     {
+      label: 'Average WPM',
+      tooltip: 'Average words per minute across all sessions.',
+      value: userStatsSummary?.averageWpm?.toString() ?? 'n/a',
+    },
+    {
       label: 'Average Accuracy',
-      tooltip: 'Average typing accuracy across all sessions.',
+      tooltip: 'Average typing accuracy across all sessions (percentage of correct keys).',
       value: userStatsSummary?.averageAccuracy
         ? `${userStatsSummary.averageAccuracy.toFixed(1)}%`
         : 'n/a',
     },
+  ]
+
+  const keyStrokeStatsConfig = [
     {
-      label: 'Keystrokes',
-      tooltip: 'Total keys pressed across all sessions.',
+      label: 'Keystroke Count',
+      tooltip: 'Total number of keys pressed across all sessions.',
       value: userStatsSummary?.totalKeystrokes
         ? prettifyInt(userStatsSummary.totalKeystrokes)
         : 'n/a',
     },
     {
       label: 'Correctly Typed',
-      tooltip: 'Number of correct characters typed.',
+      tooltip: 'Total number of correctly typed keys.',
       value: userStatsSummary?.totalCharCount
         ? prettifyInt(userStatsSummary.totalCharCount)
         : 'n/a',
     },
     {
-      label: 'Errors',
-      tooltip: 'Number of incorrect characters typed.',
+      label: 'Final Errors',
+      tooltip: 'Total number of errors left uncorrected at the end of sessions.',
       value: userStatsSummary?.errorCharCount
         ? prettifyInt(userStatsSummary.errorCharCount)
         : 'n/a',
     },
     {
       label: 'Errors Deleted',
-      tooltip: 'Errors that were removed using backspace/delete.',
+      tooltip: 'Total number of errors removed using backspace.',
       value: userStatsSummary?.totalDeletedCharCount
         ? prettifyInt(userStatsSummary.totalDeletedCharCount)
         : 'n/a',
     },
     {
       label: 'Errors Corrected',
-      tooltip: 'Errors that were fixed before continuing.',
+      tooltip: 'Total number of errors corrected by re-typing.',
       value: userStatsSummary?.totalCorrectedCharCount
         ? prettifyInt(userStatsSummary.totalCorrectedCharCount)
         : 'n/a',
+    },
+    {
+      label: 'Correction Rate',
+      tooltip: 'Percentage of deleted errors that were correctly re-typed.',
+      value:
+        userStatsSummary?.totalCorrectedCharCount && userStatsSummary?.totalDeletedCharCount
+          ? `${(
+              (userStatsSummary.totalCorrectedCharCount / userStatsSummary.totalDeletedCharCount) *
+              100
+            ).toFixed(1)}%`
+          : 'n/a',
     },
   ]
 
   const metricsConfig = [
     {
-      label: 'Completed Sessions',
-      // TODO: update baseline to be 7-day moving average
+      label: 'Sessions Completed',
+      tooltip: 'Number of practice sessions completed in the selected period.',
       current: completedSessionsCurr,
       baseline: completedSessionsBaseline,
       format: (v: number) => v,
     },
     {
       label: 'Average WPM',
+      tooltip: 'Average words per minute in the selected period.',
       current: wpmCurr,
       baseline: wpmBaseline,
       format: (v: number) => v.toFixed(1),
     },
     {
       label: 'Average Accuracy',
+      tooltip: 'Average typing accuracy in the selected period (percentage of correct keys).',
       current: accuracyCurr,
       baseline: accuracyBaseline,
       format: (v: number) => v.toFixed(1) + '%',
     },
     {
-      label: 'Corrected Characters',
-      current: correctedCharCountCurr,
-      baseline: correctedCharCountBaseline,
+      label: 'Final Errors',
+      tooltip: 'Number of errors left uncorrected at the end of sessions in the selected period.',
+      current: errorCharCountCurr,
+      baseline: errorCharCountBaseline,
       format: prettifyInt,
     },
+
     {
-      label: 'Deleted Characters',
+      label: 'Errors Deleted',
+      tooltip: 'Number of errors removed using backspace in the selected period.',
       current: deletedCharCountCurr,
       baseline: deletedCharCountBaseline,
       format: prettifyInt,
     },
     {
-      label: 'Errors',
-      current: errorCharCountCurr,
-      baseline: errorCharCountBaseline,
+      label: 'Errors Corrected',
+      tooltip: 'Number of errors corrected by re-typing in the selected period.',
+      current: correctedCharCountCurr,
+      baseline: correctedCharCountBaseline,
       format: prettifyInt,
     },
   ]
@@ -189,23 +226,34 @@ export const Statistics = () => {
         <h1 className="text-4xl font-semibold">Statistics</h1>
         <hr className="w-full" />
       </header>
-
-      <h2 className="text-xl font-semibold">All Time Stats Summary</h2>
+      <h2 className="text-2xl font-semibold">All Time Stats Summary</h2>
       <br />
+      <div className="space-y-2">
+        {sessionCountsConfig.map((stat) => (
+          <StatRow key={stat.label} {...stat} />
+        ))}
+      </div>
+      <br />
+
       <div className="space-y-2">
         {summaryStatsConfig.map((stat) => (
           <StatRow key={stat.label} {...stat} />
         ))}
       </div>
+      <br />
 
+      <div className="space-y-2">
+        {keyStrokeStatsConfig.map((stat) => (
+          <StatRow key={stat.label} {...stat} />
+        ))}
+      </div>
       {/* TODO: replace br with styles */}
-      <br />
+
       <br />
       <br />
 
-      <h2 className="text-xl font-semibold">Statistics by Date Range</h2>
+      <h2 className="text-2xl font-semibold">Statistics by Date Range</h2>
       <br />
-
       {/* Date + time pickers */}
       <div className="sticky top-[80px] z-10 bg-white ">
         <div className="flex gap-4 mb-0">
@@ -246,13 +294,11 @@ export const Statistics = () => {
           </div>
         </div>
       </div>
-
       <br />
       <br />
-
       {/* Show % changes + current values */}
       <div className="mb-6 space-y-2">
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-xl font-semibold">
           Change vs Baseline (7-day moving average before period)
         </h3>
         <div className="grid grid-cols-2 gap-4 max-w-md">
@@ -269,9 +315,7 @@ export const Statistics = () => {
           ))}
         </div>
       </div>
-
       <br />
-
       <h2 className="text-xl font-semibold">Session Performance</h2>
       <br />
       <SessionPerformance
@@ -281,17 +325,13 @@ export const Statistics = () => {
           accuracy: s.accuracy,
         }))}
       />
-
       <br />
       <br />
-
-      <h2 className="text-xl font-semibold">Errors Per Session</h2>
+      <h2 className="text-xl font-semibold">Session Keystroke Breakdown</h2>
       <br />
       <KeystrokesBreakdownChart sessions={userSessions} />
-
       <br />
       <br />
-
       <h2 className="text-xl font-semibold">Error Distribution</h2>
       <br />
       <ErrorDistributionPieChart sessions={userSessions} />

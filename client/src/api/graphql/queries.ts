@@ -3,6 +3,7 @@ export const GET_STATS_SUMMARY_QUERY = `
       userStatsSummary {
           userId
           fastestWpm
+          averageWpm
           averageAccuracy
           totalSessions
           totalKeystrokes
@@ -10,6 +11,8 @@ export const GET_STATS_SUMMARY_QUERY = `
           totalDeletedCharCount
           totalCharCount
           errorCharCount
+          practiceStreak
+          longestStreak
       }
   }
 `

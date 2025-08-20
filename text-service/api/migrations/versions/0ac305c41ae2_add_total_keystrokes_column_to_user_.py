@@ -43,7 +43,7 @@ def downgrade() -> None:
     sa.Column('average_wpm', sa.INTEGER(), autoincrement=False, nullable=False),
     sa.Column('average_accuracy', sa.NUMERIC(precision=5, scale=2), autoincrement=False, nullable=False),
     sa.Column('fastest_wpm', sa.INTEGER(), autoincrement=False, nullable=False),
-    sa.Column('longest_consecutive_daily_practice_streak', sa.INTEGER(), autoincrement=False, nullable=False),
+    sa.Column('longest_streak', sa.INTEGER(), autoincrement=False, nullable=False),
     sa.Column('total_corrected_char_count', sa.INTEGER(), autoincrement=False, nullable=True),
     sa.Column('total_deleted_char_count', sa.INTEGER(), autoincrement=False, nullable=True),
     sa.Column('total_keystrokes', sa.INTEGER(), autoincrement=False, nullable=True),
