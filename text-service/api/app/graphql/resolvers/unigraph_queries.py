@@ -10,14 +10,12 @@ class UnigraphQuery:
     @strawberry.field()
     async def unigraph(
         self,
-        info: strawberry.Info,
-        unigraph_id: strawberry.ID = strawberry.argument(name="id"),
+        info,
+        id: strawberry.ID = strawberry.argument(description="Unigraph ID"),
     ) -> UnigraphType | None:
         db_factory = info.context["db_factory"]
         async with db_factory() as db:
-            result = await db.execute(
-                select(Unigraph).where(Unigraph.id == unigraph_id)
-            )
+            result = await db.execute(select(Unigraph).where(Unigraph.id == id))
             uni = result.scalar_one_or_none()
             if not uni:
                 return None
