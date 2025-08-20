@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
-import { StatRow } from 'components'
+import { StatRow, UnigraphChips } from 'components'
 import {
   ErrorDistributionPieChart,
   KeystrokesBreakdownChart,
@@ -12,11 +12,13 @@ import { useUser } from 'api'
 import { prettifyInt } from 'utils/helpers'
 import { type TypingSessionStats, type StatsSummary } from 'types'
 
-const percentChange = (current: number, previous: number) => {
-  if (previous === 0) return 'N/A'
-  const change = ((current - previous) / previous) * 100
-  const sign = change > 0 ? '+' : ''
-  return `${sign}${change.toFixed(1)}%`
+const percentChange = (current: number, previous: number): string | null => {
+  if (previous !== 0) {
+    const change = ((current - previous) / previous) * 100
+    const sign = change > 0 ? '+' : ''
+    return `${sign}${change.toFixed(1)}%`
+  }
+  return null
 }
 
 export const Statistics = () => {
@@ -226,115 +228,130 @@ export const Statistics = () => {
         <h1 className="text-4xl font-semibold">Statistics</h1>
         <hr className="w-full" />
       </header>
-      <h2 className="text-2xl font-semibold">All Time Stats Summary</h2>
-      <br />
-      <div className="space-y-2">
-        {sessionCountsConfig.map((stat) => (
-          <StatRow key={stat.label} {...stat} />
-        ))}
-      </div>
-      <br />
 
-      <div className="space-y-2">
-        {summaryStatsConfig.map((stat) => (
-          <StatRow key={stat.label} {...stat} />
-        ))}
-      </div>
-      <br />
+      <section className="mb-12 space-y-6">
+        <h2 className="text-2xl font-semibold">All Time Stats Summary</h2>
 
-      <div className="space-y-2">
-        {keyStrokeStatsConfig.map((stat) => (
-          <StatRow key={stat.label} {...stat} />
-        ))}
-      </div>
-      {/* TODO: replace br with styles */}
-
-      <br />
-      <br />
-
-      <h2 className="text-2xl font-semibold">Statistics by Date Range</h2>
-      <br />
-      {/* Date + time pickers */}
-      <div className="sticky top-[80px] z-10 bg-white ">
-        <div className="flex gap-4 mb-0">
-          <div>
-            <label className="block text-sm font-medium mb-1">Start</label>
-            <DatePicker
-              className="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm
-        focus:border-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
-              selectsStart
-              startDate={startDate}
-              endDate={endDate}
-              maxDate={endDate || undefined}
-              showTimeSelect
-              timeFormat="HH:mm"
-              timeIntervals={15}
-              dateFormat="yyyy-MM-dd HH:mm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">End</label>
-            <DatePicker
-              className="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm
-        focus:border-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              selected={endDate}
-              onChange={(date) => setEndDate(date)}
-              selectsEnd
-              startDate={startDate}
-              endDate={endDate}
-              minDate={startDate || undefined}
-              showTimeSelect
-              timeFormat="HH:mm"
-              timeIntervals={15}
-              dateFormat="yyyy-MM-dd HH:mm"
-            />
-          </div>
-        </div>
-      </div>
-      <br />
-      <br />
-      {/* Show % changes + current values */}
-      <div className="mb-6 space-y-2">
-        <h3 className="text-xl font-semibold">
-          Change vs Baseline (7-day moving average before period)
-        </h3>
-        <div className="grid grid-cols-2 gap-4 max-w-md">
-          {metricsConfig.map(({ label, current, baseline, format }) => (
-            <div key={label}>
-              <div className="font-medium">{label}</div>
-              <div className="flex items-center gap-2">
-                {format(current)}
-                <div className={`${current >= baseline ? 'text-green-600' : 'text-red-600'}`}>
-                  ({percentChange(current, baseline)})
-                </div>
-              </div>
-            </div>
+        <div className="space-y-2">
+          {sessionCountsConfig.map((stat) => (
+            <StatRow key={stat.label} {...stat} />
           ))}
         </div>
-      </div>
-      <br />
-      <h2 className="text-xl font-semibold">Session Performance</h2>
-      <br />
-      <SessionPerformance
-        sessions={(userSessions ?? []).map((s) => ({
-          startTime: s.startTime,
-          wpm: s.wpm,
-          accuracy: s.accuracy,
-        }))}
-      />
-      <br />
-      <br />
-      <h2 className="text-xl font-semibold">Session Keystroke Breakdown</h2>
-      <br />
-      <KeystrokesBreakdownChart sessions={userSessions} />
-      <br />
-      <br />
-      <h2 className="text-xl font-semibold">Error Distribution</h2>
-      <br />
-      <ErrorDistributionPieChart sessions={userSessions} />
+
+        <div className="space-y-2">
+          {summaryStatsConfig.map((stat) => (
+            <StatRow key={stat.label} {...stat} />
+          ))}
+        </div>
+
+        <div className="space-y-2">
+          {keyStrokeStatsConfig.map((stat) => (
+            <StatRow key={stat.label} {...stat} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">Unigraphs</h2>
+        <ul className="flex flex-wrap gap-3 list-none p-0 m-0">
+          {userStatsSummary?.unigraphs
+            .sort((a, b) => a.key.localeCompare(b.key))
+            .map((unigraph) => (
+              <li key={unigraph.id}>
+                <UnigraphChips unigraphs={[unigraph]} />
+              </li>
+            ))}
+        </ul>
+      </section>
+
+      <section className="mb-12 space-y-6">
+        <h2 className="text-2xl font-semibold">Statistics by Date Range</h2>
+
+        <div className="sticky top-[80px] z-1 bg-white">
+          <div className="flex gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Start</label>
+              <DatePicker
+                className="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm
+                         focus:border-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                selectsStart
+                startDate={startDate}
+                endDate={endDate}
+                maxDate={endDate || undefined}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                dateFormat="yyyy-MM-dd HH:mm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">End</label>
+              <DatePicker
+                className="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm
+                         focus:border-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                selectsEnd
+                startDate={startDate}
+                endDate={endDate}
+                minDate={startDate || undefined}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                dateFormat="yyyy-MM-dd HH:mm"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold">
+            Change vs Baseline (7-day moving average before period)
+          </h3>
+          <div className="grid grid-cols-2 gap-4 max-w-md">
+            {metricsConfig.map(({ label, current, baseline, format }) => {
+              const change = percentChange(current, baseline)
+              return (
+                <div key={label}>
+                  <div className="font-medium">{label}</div>
+                  <div className="flex items-center gap-2">
+                    {format(current)}
+                    {change && (
+                      <div className={current >= baseline ? 'text-green-600' : 'text-red-600'}>
+                        ({change})
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-12 space-y-6">
+        <h2 className="text-xl font-semibold">Session Performance</h2>
+        <SessionPerformance
+          sessions={(userSessions ?? []).map((s) => ({
+            startTime: s.startTime,
+            wpm: s.wpm,
+            accuracy: s.accuracy,
+          }))}
+        />
+      </section>
+
+      <section className="mb-12 space-y-6">
+        <h2 className="text-xl font-semibold">Session Keystroke Breakdown</h2>
+        <KeystrokesBreakdownChart sessions={userSessions} />
+      </section>
+
+      <section className="mb-12 space-y-6">
+        <h2 className="text-xl font-semibold">Error Distribution</h2>
+        <ErrorDistributionPieChart sessions={userSessions} />
+      </section>
     </>
   )
 }

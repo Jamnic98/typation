@@ -3,6 +3,7 @@ import strawberry
 
 @strawberry.type
 class DigraphType:
+    id: str
     key: str
     count: int
     accuracy: int

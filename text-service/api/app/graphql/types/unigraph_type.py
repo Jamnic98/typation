@@ -8,7 +8,6 @@ class MistypedEntryType:
     key: str
     count: int
 
-
 @strawberry.input
 class MistypedEntryInput:
     key: str
@@ -17,17 +16,16 @@ class MistypedEntryInput:
 
 @strawberry.type
 class UnigraphType:
+    id: str
     key: str
     count: int
-    accuracy: int
+    accuracy: float
 
-    @strawberry.field()
-    def mistyped(self) -> list[MistypedEntryType]:
-        # self is the SQLAlchemy model or a wrapper — adapt if you're using a wrapper
-        return [
-            MistypedEntryType(key=k, count=v)
-            for k, v in self.mistyped.items()
-        ]
+    # avoid name clash with the SQLAlchemy column
+    @strawberry.field(name="mistyped")
+    def mistyped_entries(self) -> list[MistypedEntryType]:
+        raw = getattr(self, "__dict__", {}).get("mistyped", {})  # SQLAlchemy JSONB column
+        return [MistypedEntryType(key=k, count=v) for k, v in (raw or {}).items()]
 
 @strawberry.input
 class UnigraphInput:

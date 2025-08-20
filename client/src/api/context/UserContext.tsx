@@ -79,7 +79,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const statsSummary = async (): Promise<StatsSummary | undefined> => {
     try {
       if (token) {
-        return await fetchUserStatsSummary(token)
+        const summary = await fetchUserStatsSummary(token)
+        return summary
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fetch stats summary'

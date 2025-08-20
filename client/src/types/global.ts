@@ -93,18 +93,20 @@ export type Action =
   | { type: 'RESET_SESSION' }
   | { type: 'RESET_ALL' }
 
-export type DigraphStatistic = {
-  key: string
-  count: number
-  accuracy: number // float (0–1)
-  meanInterval: number
-}
-
 export type UnigraphStatistic = {
+  id?: string
   key: string
   count: number
   accuracy: number // float (0–1)
   mistyped: { key: string; count: number }[]
+}
+
+export type DigraphStatistic = {
+  id?: string
+  key: string
+  count: number
+  accuracy: number // float (0–1)
+  meanInterval: number
 }
 
 export type TypingSessionStats = {
@@ -124,23 +126,10 @@ export type TypingSessionStats = {
   unigraphs: UnigraphStatistic[]
 }
 
-export type BaseTypingStats = {
-  wpm: number
-  accuracy: number
-
-  correctedCharCount: number
-  correctCharsTyped: number
-  deletedCharCount: number
-  totalCharsTyped: number
-  errorCharCount: number
-
-  unigraphStats: UnigraphStatistic[]
-  digraphStats: DigraphStatistic[]
-}
-
-export interface StatsSummary extends BaseTypingStats {
+export interface StatsSummary {
   id: string // UUID as string
   userId: string // UUID as string
+
   sessionCount: number // maps to totalSessions
   totalPracticeDuration: number
 

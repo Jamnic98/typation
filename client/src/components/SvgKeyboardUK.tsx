@@ -107,7 +107,7 @@ export interface UKKeyboardSvgProps {
 const UNIT_W = 52 // base key width
 const UNIT_H = 52 // base key height
 const GAP = 8 // gap between keys
-const RADIUS = 10 // key corner radius
+// const RADIUS = 10 // key corner radius
 
 // Default theme (neutral, easy to override)
 const DEFAULT_THEME: Required<KeyboardTheme> = {
@@ -510,8 +510,6 @@ const UKKeyboardSvg: FC<UKKeyboardSvgProps> = ({
                       <rect
                         x={x}
                         y={0}
-                        rx={RADIUS}
-                        ry={RADIUS}
                         width={width}
                         height={UNIT_H}
                         fill={fill}

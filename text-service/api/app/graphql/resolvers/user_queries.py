@@ -170,6 +170,7 @@ class UsersQuery:
 
                 unigraphs=[
                     UnigraphType(
+                        id=uni.id,
                         key=uni.key,
                         count=uni.count,
                         accuracy=uni.accuracy
@@ -178,7 +179,13 @@ class UsersQuery:
                 ],
 
                 digraphs=[
-                    DigraphType(key=di.key, mean_interval=di.mean_interval, accuracy=di.accuracy, count=di.count)
+                    DigraphType(
+                        id=di.id,
+                        key=di.key,
+                        mean_interval=di.mean_interval,
+                        accuracy=di.accuracy,
+                        count=di.count
+                    )
                     for di in summary.digraphs
                 ]
             )

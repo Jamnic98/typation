@@ -7,6 +7,7 @@ from jose import JWTError
 
 from ..graphql.resolvers.user_mutations import UsersMutation
 from ..graphql.resolvers.user_queries import UsersQuery
+from ..graphql.resolvers.unigraph_queries import UnigraphQuery
 from ..models.user_model import User
 from ..auth.dependencies import get_token_credentials
 from ..factories.database import async_sessionmaker
@@ -34,5 +35,9 @@ def create_graphql_router(session_maker: async_sessionmaker[AsyncSession]):
             "user": user,
         }
 
-    schema = strawberry.Schema(query=UsersQuery, mutation=UsersMutation)
+    @strawberry.type
+    class Query(UsersQuery, UnigraphQuery):
+        pass
+
+    schema = strawberry.Schema(query=Query, mutation=UsersMutation)
     return GraphQLRouter(schema, context_getter=get_context)

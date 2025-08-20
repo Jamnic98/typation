@@ -13,6 +13,18 @@ export const GET_STATS_SUMMARY_QUERY = `
           errorCharCount
           practiceStreak
           longestStreak
+
+          unigraphs {
+            id
+            key
+            count
+            accuracy
+            mistyped {
+              key
+              count
+            }
+          }
+
       }
   }
 `
@@ -34,3 +46,25 @@ export const GET_SESSIONS_BY_DATE_QUERY = `
     }
   }
 `
+
+export const GET_UNIGRAPH_BY_ID = `
+  query GetUnigraph($id: ID!) {
+    unigraph(id: $id) {
+      id
+      key
+      count
+      accuracy
+      mistyped {
+        key
+        count
+      }
+    }
+  }
+`
+
+// TODO: remove
+// digraphs {
+//   key
+//   count
+//   accuracy
+// }

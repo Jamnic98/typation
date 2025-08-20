@@ -9,6 +9,7 @@ import {
   Register,
   ResetPassword,
   Statistics,
+  Unigraph,
 } from 'pages'
 import { AlertProvider, AlertBanner, Layout } from 'components'
 import { UserProvider } from 'api/context/UserContext'
@@ -23,6 +24,7 @@ const App = () => {
             <Route index element={<Home />} />
             <Route path="profile" element={<Profile />} />
             <Route path="statistics" element={<Statistics />} />
+            <Route path="statistics/unigraphs/:id" element={<Unigraph />} />
             <Route path="auth">
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
