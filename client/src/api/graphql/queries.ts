@@ -5,6 +5,7 @@ export const GET_STATS_SUMMARY_QUERY = `
           fastestWpm
           averageWpm
           averageAccuracy
+          averageRawAccuracy
           totalSessions
           totalKeystrokes
           totalCorrectedCharCount

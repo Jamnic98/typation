@@ -20,6 +20,8 @@ class DigraphStatistic(BaseModel):
 class UserStatsSessionCreate(BaseModel):
     wpm: Optional[int] = None
     accuracy: Optional[float] = None
+    raw_accuracy: Optional[float] = None
+
     practice_duration: Optional[int] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None

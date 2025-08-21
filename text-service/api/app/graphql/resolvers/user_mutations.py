@@ -1,4 +1,3 @@
-from uuid import UUID
 from typing import Optional
 import strawberry
 from graphql import GraphQLError
@@ -12,18 +11,15 @@ from strawberry.types import Info
 from ..types.digraph_type import DigraphType
 from ..types.unigraph_type import UnigraphType
 from ...auth.helpers import auth_required, normalise_user_stats_input
-from ...controllers.user_stats_summary_controller import update_user_stats_summary, delete_user_stats_summary, \
-    get_user_stats_summary_by_user_id
+from ...controllers.user_stats_summary_controller import get_user_stats_summary_by_user_id, update_user_stats_summary
 from ...controllers.users_controller import create_user, update_user, delete_user
-from ...controllers.user_stats_session_controller import create_user_stats_session, update_user_stats_session, \
-    delete_user_stats_session
+from ...controllers.user_stats_session_controller import create_user_stats_session
 from ...models.digraph_model import Digraph
 from ...models.unigraph_model import Unigraph
 from ...models.user_stats_summary_model import UserStatsSummary
 from ...schemas.user_graphql import UserType, UserCreateInput
 from ...schemas.user_schema import UserCreate, UserUpdate
-from ..types.user_stats_session_type import UserStatsSessionType, UserStatsSessionInput, \
-    UserStatsSessionUpdateInput
+from ..types.user_stats_session_type import UserStatsSessionType, UserStatsSessionInput
 from ...schemas.user_stats_session_schema import UserStatsSessionCreate
 from ...graphql.types.user_stats_summary_type import UserStatsSummaryType, UserStatsSummaryUpdateInput, \
     UserStatsSummaryCreateInput
@@ -70,7 +66,7 @@ class UsersMutation:
             user_id = info.context["user"].id
             async with info.context["db_factory"]() as db:
                 user_update = UserUpdate(user_name=user_name)
-                user = await update_user(user_update, user_id, db)
+                user: UserType = await update_user(user_update, user_id, db)
                 # noinspection PyUnreachableCode
                 return UserType(
                     id=user_id,
@@ -150,6 +146,7 @@ class UsersMutation:
                     user_id=user.id,
                     wpm=created.wpm,
                     accuracy=created.accuracy,
+                    raw_accuracy=created.raw_accuracy,
                     practice_duration=created.practice_duration,
                     start_time=created.start_time,
                     end_time=created.end_time,
@@ -172,65 +169,65 @@ class UsersMutation:
             print(f"Unexpected error: {e}")
             raise GraphQLError("Something went wrong") from e
 
-    @strawberry.mutation()
-    @auth_required
-    async def update_user_stats_session(
-        self, info: Info, session_id: UUID, user_stats_session_input: UserStatsSessionUpdateInput
-    ) -> Optional[UserStatsSessionType]:
-        try:
-            async with info.context["db_factory"]() as db:
-                updated = await update_user_stats_session(user_stats_session_input, session_id, db)
-                if not updated:
-                    return None
-                return UserStatsSessionType(
-                    id=updated.id,
-                    user_id=updated.user_id,
-                    wpm=updated.wpm,
-                    accuracy=updated.accuracy,
-                    practice_duration=updated.practice_duration,
-                    start_time=updated.start_time,
-                    end_time=updated.end_time
-                )
+    # @strawberry.mutation()
+    # @auth_required
+    # async def update_user_stats_session(
+    #     self, info: Info, session_id: UUID, user_stats_session_input: UserStatsSessionUpdateInput
+    # ) -> Optional[UserStatsSessionType]:
+    #     try:
+    #         async with info.context["db_factory"]() as db:
+    #             updated = await update_user_stats_session(user_stats_session_input, session_id, db)
+    #             if not updated:
+    #                 return None
+    #             return UserStatsSessionType(
+    #                 id=updated.id,
+    #                 user_id=updated.user_id,
+    #                 wpm=updated.wpm,
+    #                 accuracy=updated.accuracy,
+    #                 practice_duration=updated.practice_duration,
+    #                 start_time=updated.start_time,
+    #                 end_time=updated.end_time
+    #             )
+    #
+    #     except ValidationError as e:
+    #         # TODO: make print statements logs
+    #         print(f"Validation error: {e}")
+    #         raise GraphQLError("Invalid input") from e
+    #
+    #     except SQLAlchemyError as e:
+    #         print(f"DB error: {e}")
+    #         raise GraphQLError("Database failure") from e
+    #
+    #     except (KeyError, AttributeError) as e:
+    #         print(f"Context error: {e}")
+    #         raise GraphQLError("User not authenticated") from e
+    #
+    #     except Exception as e:
+    #         print(f"Unexpected error: {e}")
+    #         raise GraphQLError("Something went wrong") from e
 
-        except ValidationError as e:
-            # TODO: make print statements logs
-            print(f"Validation error: {e}")
-            raise GraphQLError("Invalid input") from e
-
-        except SQLAlchemyError as e:
-            print(f"DB error: {e}")
-            raise GraphQLError("Database failure") from e
-
-        except (KeyError, AttributeError) as e:
-            print(f"Context error: {e}")
-            raise GraphQLError("User not authenticated") from e
-
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            raise GraphQLError("Something went wrong") from e
-
-    @strawberry.mutation()
-    @auth_required
-    async def delete_user_stats_session(self, info: Info, session_id: UUID) -> bool:
-        try:
-            async with info.context["db_factory"]() as db:
-                return await delete_user_stats_session(session_id, db)
-        except ValidationError as e:
-            # TODO: make print statements logs
-            print(f"Validation error: {e}")
-            raise GraphQLError("Invalid input") from e
-
-        except SQLAlchemyError as e:
-            print(f"DB error: {e}")
-            raise GraphQLError("Database failure") from e
-
-        except (KeyError, AttributeError) as e:
-            print(f"Context error: {e}")
-            raise GraphQLError("User not authenticated") from e
-
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            raise GraphQLError("Something went wrong") from e
+    # @strawberry.mutation()
+    # @auth_required
+    # async def delete_user_stats_session(self, info: Info, session_id: UUID) -> bool:
+    #     try:
+    #         async with info.context["db_factory"]() as db:
+    #             return await delete_user_stats_session(session_id, db)
+    #     except ValidationError as e:
+    #         # TODO: make print statements logs
+    #         print(f"Validation error: {e}")
+    #         raise GraphQLError("Invalid input") from e
+    #
+    #     except SQLAlchemyError as e:
+    #         print(f"DB error: {e}")
+    #         raise GraphQLError("Database failure") from e
+    #
+    #     except (KeyError, AttributeError) as e:
+    #         print(f"Context error: {e}")
+    #         raise GraphQLError("User not authenticated") from e
+    #
+    #     except Exception as e:
+    #         print(f"Unexpected error: {e}")
+    #         raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
     @auth_required
@@ -313,6 +310,7 @@ class UsersMutation:
                     total_practice_duration=summary.total_practice_duration,
                     average_wpm=summary.average_wpm,
                     average_accuracy=summary.average_accuracy,
+                    average_raw_accuracy=summary.average_raw_accuracy,
                     practice_streak=summary.practice_streak,
                     longest_streak=summary.longest_streak,
                     fastest_wpm=summary.fastest_wpm,
@@ -350,54 +348,29 @@ class UsersMutation:
         try:
             user_id = info.context["user"].id
             async with info.context["db_factory"]() as db:
-                updated = await update_user_stats_summary(user_id, user_stats_summary_input, db)
-                if not updated:
-                    return None
-
+                updated: UserStatsSummaryType = await update_user_stats_summary(user_id, user_stats_summary_input, db)
                 # noinspection PyUnreachableCode
-                return UserStatsSummaryType(
-                    user_id=updated.user_id,
-                    total_sessions=updated.total_sessions,
-                    total_practice_duration=updated.total_practice_duration,
-                    average_wpm=updated.average_wpm,
-                    average_accuracy=updated.average_accuracy,
-                    fastest_wpm=updated.fastest_wpm,
-                    practice_streak=updated.practice_streak,
-                    longest_streak=updated.longest_streak,
-                    total_corrected_char_count=updated.total_corrected_char_count,
-                    total_deleted_char_count=updated.total_deleted_char_count,
-                    total_keystrokes=updated.total_keystrokes,
-                    total_char_count=updated.total_char_count,
-                    error_char_count=updated.error_char_count,
-                    unigraphs=updated.unigraphs,
-                    digraphs=updated.digraphs
+                if updated:
+                    return UserStatsSummaryType(
+                        user_id=updated.user_id,
+                        total_sessions=updated.total_sessions,
+                        total_practice_duration=updated.total_practice_duration,
+                        average_wpm=updated.average_wpm,
+                        average_accuracy=updated.average_accuracy,
+                        fastest_wpm=updated.fastest_wpm,
+                        practice_streak=updated.practice_streak,
+                        longest_streak=updated.longest_streak,
+                        total_corrected_char_count=updated.total_corrected_char_count,
+                        total_deleted_char_count=updated.total_deleted_char_count,
+                        total_keystrokes=updated.total_keystrokes,
+                        total_char_count=updated.total_char_count,
+                        error_char_count=updated.error_char_count,
+                        unigraphs=updated.unigraphs,
+                        digraphs=updated.digraphs
 
-                )
+                    )
 
-        except ValidationError as e:
-            # TODO: make print statements logs
-            print(f"Validation error: {e}")
-            raise GraphQLError("Invalid input") from e
-
-        except SQLAlchemyError as e:
-            print(f"DB error: {e}")
-            raise GraphQLError("Database failure") from e
-
-        except (KeyError, AttributeError) as e:
-            print(f"Context error: {e}")
-            raise GraphQLError("User not authenticated") from e
-
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            raise GraphQLError("Something went wrong") from e
-
-    @strawberry.mutation()
-    @auth_required
-    async def delete_user_stats_summary(self, info: Info) -> bool:
-        try:
-            user_id = info.context["user"].id
-            async with info.context["db_factory"]() as db:
-                return await delete_user_stats_summary(user_id, db)
+                return None
 
         except ValidationError as e:
             # TODO: make print statements logs
@@ -415,6 +388,31 @@ class UsersMutation:
         except Exception as e:
             print(f"Unexpected error: {e}")
             raise GraphQLError("Something went wrong") from e
+
+    # @strawberry.mutation()
+    # @auth_required
+    # async def delete_user_stats_summary(self, info: Info) -> bool:
+    #     try:
+    #         user_id = info.context["user"].id
+    #         async with info.context["db_factory"]() as db:
+    #             return await delete_user_stats_summary(user_id, db)
+    #
+    #     except ValidationError as e:
+    #         # TODO: make print statements logs
+    #         print(f"Validation error: {e}")
+    #         raise GraphQLError("Invalid input") from e
+    #
+    #     except SQLAlchemyError as e:
+    #         print(f"DB error: {e}")
+    #         raise GraphQLError("Database failure") from e
+    #
+    #     except (KeyError, AttributeError) as e:
+    #         print(f"Context error: {e}")
+    #         raise GraphQLError("User not authenticated") from e
+    #
+    #     except Exception as e:
+    #         print(f"Unexpected error: {e}")
+    #         raise GraphQLError("Something went wrong") from e
 
     @strawberry.mutation()
     @auth_required

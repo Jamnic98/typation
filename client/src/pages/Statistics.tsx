@@ -2,24 +2,15 @@ import { useState, useEffect, useCallback } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
-import { StatRow, UnigraphChips } from 'components'
+import { StatRow /* UnigraphChips */ } from 'components'
 import {
   ErrorDistributionPieChart,
   KeystrokesBreakdownChart,
   SessionPerformance,
 } from 'components/graphs'
 import { useUser } from 'api'
-import { prettifyInt } from 'utils/helpers'
+import { displayValue, percentChange, prettifyInt } from 'utils/helpers'
 import { type TypingSessionStats, type StatsSummary } from 'types'
-
-const percentChange = (current: number, previous: number): string | null => {
-  if (previous !== 0) {
-    const change = ((current - previous) / previous) * 100
-    const sign = change > 0 ? '+' : ''
-    return `${sign}${change.toFixed(1)}%`
-  }
-  return null
-}
 
 export const Statistics = () => {
   const { statsSummary, sessionsByDateRange } = useUser()
@@ -89,41 +80,47 @@ export const Statistics = () => {
   const errorCharCountBaseline = sumMetric(baselineSessions, 'errorCharCount')
   const wpmBaseline = averageMetric(baselineSessions, 'wpm')
   const accuracyBaseline = averageMetric(baselineSessions, 'accuracy')
+
   const sessionCountsConfig = [
     {
       label: 'Total Sessions Completed',
-      tooltip: 'Total number of practice sessions completed.',
-      value: userStatsSummary?.totalSessions?.toString() ?? 'n/a',
+      tooltip: 'Number of completed practice sessions.',
+      value: displayValue(userStatsSummary?.totalSessions),
     },
     {
       label: 'Current Daily Practice Streak',
-      tooltip: 'Current streak of consecutive days with at least one completed session.',
-      value: userStatsSummary?.practiceStreak?.toString() ?? 'n/a',
+      tooltip: 'Number of consecutive days with completed practice sessions.',
+      value: displayValue(userStatsSummary?.practiceStreak),
     },
     {
       label: 'Longest Daily Practice Streak',
-      tooltip: 'Longest streak of consecutive days with at least one completed session.',
-      value: userStatsSummary?.longestStreak?.toString() ?? 'n/a',
+      tooltip: 'All time longest streak of consecutive days with completed practice sessions.',
+      value: displayValue(userStatsSummary?.longestStreak),
     },
   ]
 
   const summaryStatsConfig = [
     {
       label: 'Fastest WPM',
-      tooltip: 'Highest recorded words per minute in any session.',
-      value: userStatsSummary?.fastestWpm?.toString() ?? 'n/a',
+      tooltip: 'Highest recorded words per minute.',
+      value: displayValue(userStatsSummary?.fastestWpm),
     },
     {
       label: 'Average WPM',
       tooltip: 'Average words per minute across all sessions.',
-      value: userStatsSummary?.averageWpm?.toString() ?? 'n/a',
+      value: displayValue(userStatsSummary?.averageWpm),
     },
     {
       label: 'Average Accuracy',
-      tooltip: 'Average typing accuracy across all sessions (percentage of correct keys).',
-      value: userStatsSummary?.averageAccuracy
-        ? `${userStatsSummary.averageAccuracy.toFixed(1)}%`
-        : 'n/a',
+      tooltip:
+        'Average typing accuracy across all sessions, after corrections (percentage of keys that ended up correct).',
+      value: displayValue(userStatsSummary?.averageAccuracy, { percent: true }),
+    },
+    {
+      label: 'Average Raw Accuracy',
+      tooltip:
+        'Average typing accuracy across all sessions, before corrections (percentage of keys that were correct on the first try).',
+      value: displayValue(userStatsSummary?.averageRawAccuracy, { percent: true }),
     },
   ]
 
@@ -152,24 +149,30 @@ export const Statistics = () => {
     {
       label: 'Errors Deleted',
       tooltip: 'Total number of errors removed using backspace.',
-      value: userStatsSummary?.totalDeletedCharCount
-        ? prettifyInt(userStatsSummary.totalDeletedCharCount)
-        : 'n/a',
+      value:
+        userStatsSummary?.totalDeletedCharCount !== undefined &&
+        userStatsSummary?.totalDeletedCharCount !== null
+          ? prettifyInt(userStatsSummary.totalDeletedCharCount)
+          : 'n/a',
     },
     {
       label: 'Errors Corrected',
       tooltip: 'Total number of errors corrected by re-typing.',
-      value: userStatsSummary?.totalCorrectedCharCount
-        ? prettifyInt(userStatsSummary.totalCorrectedCharCount)
-        : 'n/a',
+      value:
+        userStatsSummary?.totalCorrectedCharCount !== undefined &&
+        userStatsSummary?.totalCorrectedCharCount !== null
+          ? prettifyInt(userStatsSummary.totalCorrectedCharCount)
+          : 'n/a',
     },
     {
       label: 'Correction Rate',
       tooltip: 'Percentage of deleted errors that were correctly re-typed.',
       value:
-        userStatsSummary?.totalCorrectedCharCount && userStatsSummary?.totalDeletedCharCount
+        userStatsSummary?.totalDeletedCharCount != null &&
+        userStatsSummary.totalDeletedCharCount > 0
           ? `${(
-              (userStatsSummary.totalCorrectedCharCount / userStatsSummary.totalDeletedCharCount) *
+              ((userStatsSummary.totalCorrectedCharCount ?? 0) /
+                userStatsSummary.totalDeletedCharCount) *
               100
             ).toFixed(1)}%`
           : 'n/a',
@@ -251,7 +254,9 @@ export const Statistics = () => {
         </div>
       </section>
 
-      <section className="mb-12">
+      {/* TODO: add back Unigraphs */}
+
+      {/* <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Unigraphs</h2>
         <ul className="flex flex-wrap gap-3 list-none p-0 m-0">
           {userStatsSummary?.unigraphs
@@ -262,7 +267,7 @@ export const Statistics = () => {
               </li>
             ))}
         </ul>
-      </section>
+      </section> */}
 
       <section className="mb-12 space-y-6">
         <h2 className="text-2xl font-semibold">Statistics by Date Range</h2>

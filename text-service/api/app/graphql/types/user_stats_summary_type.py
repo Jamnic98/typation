@@ -13,9 +13,11 @@ class UserStatsSummaryCreateInput:
     total_sessions: int = strawberry.field(default=0, name="totalSessions")
     total_practice_duration: int = strawberry.field(default=0, name="totalPracticeDuration")
 
-    average_wpm: float = strawberry.field(default=0.0, name="averageWpm")
     average_accuracy: float = strawberry.field(default=0.0, name="averageAccuracy")
+    average_raw_accuracy: float = strawberry.field(default=0.0, name="averageRawAccuracy")
+
     fastest_wpm: int = strawberry.field(default=0, name="fastestWpm")
+    average_wpm: float = strawberry.field(default=0.0, name="averageWpm")
 
     practice_streak: int = strawberry.field(default=0, name="practiceStreak")
     longest_streak: int = strawberry.field(default=0, name="longestStreak")
@@ -35,8 +37,10 @@ class UserStatsSummaryUpdateInput:
     total_sessions: Optional[int] = strawberry.field(default=None, name="totalSessions")
     total_practice_duration: Optional[int] = strawberry.field(default=None, name="totalPracticeDuration")
 
-    average_wpm: Optional[int] = strawberry.field(default=None, name="averageWpm")
     average_accuracy: Optional[float] = strawberry.field(default=None, name="averageAccuracy")
+    average_raw_accuracy: float = strawberry.field(name="averageRawAccuracy")
+
+    average_wpm: Optional[int] = strawberry.field(default=None, name="averageWpm")
     fastest_wpm: Optional[int] = strawberry.field(default=None, name="fastestWpm")
 
     practice_streak: Optional[int] = strawberry.field(default=0, name="practiceStreak")
@@ -58,8 +62,10 @@ class UserStatsSummaryType:
     total_sessions: int = strawberry.field(name="totalSessions")
     total_practice_duration: int = strawberry.field(name="totalPracticeDuration")
 
-    average_wpm: int = strawberry.field(name="averageWpm")
     average_accuracy: float = strawberry.field(name="averageAccuracy")
+    average_raw_accuracy: float = strawberry.field(name="averageRawAccuracy")
+
+    average_wpm: int = strawberry.field(name="averageWpm")
     fastest_wpm: int = strawberry.field(name="fastestWpm")
 
     practice_streak: int = strawberry.field(

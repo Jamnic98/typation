@@ -1,14 +1,10 @@
 from uuid import uuid4
 
 from sqlalchemy.dialects.postgresql import UUID
-
 from sqlalchemy import Integer, ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..factories.database import Base
-from ..graphql.types.digraph_type import DigraphType
-from ..graphql.types.unigraph_type import UnigraphType
-from ..schemas.user_graphql import UserType
 
 
 class UserStatsSummary(Base):
@@ -17,9 +13,11 @@ class UserStatsSummary(Base):
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    average_wpm: Mapped[int] = mapped_column(Integer, default=0)
-    average_accuracy: Mapped[float] = mapped_column(Numeric(4, 1), default=0.0)
     fastest_wpm: Mapped[int] = mapped_column(Integer, default=0)
+    average_wpm: Mapped[int] = mapped_column(Integer, default=0)
+
+    average_accuracy: Mapped[float] = mapped_column(Numeric(4, 1), default=0.0)
+    average_raw_accuracy: Mapped[float] = mapped_column(Numeric(4, 1), default=0.0)
 
     practice_streak: Mapped[int] = mapped_column(Integer, default=0)
     longest_streak: Mapped[int] = mapped_column(Integer, default=0)
@@ -33,11 +31,22 @@ class UserStatsSummary(Base):
     total_char_count: Mapped[int] = mapped_column(Integer, nullable=True)
     error_char_count: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    unigraphs: Mapped[list[UnigraphType]] = relationship(
-        "Unigraph", back_populates="summary", cascade="all, delete-orphan"
-    )
-    digraphs: Mapped[list[DigraphType]] = relationship(
-        "Digraph", back_populates="summary", cascade="all, delete-orphan"
+    unigraphs: Mapped[list["Unigraph"]] = relationship(
+        "Unigraph",
+        back_populates="summary",
+        cascade="all, delete-orphan",
+        lazy="selectin",     # ✅ async-safe eager loading
     )
 
-    user: Mapped[UserType] = relationship("User", back_populates="summary")
+    digraphs: Mapped[list["Digraph"]] = relationship(
+        "Digraph",
+        back_populates="summary",
+        cascade="all, delete-orphan",
+        lazy="selectin",     # ✅ async-safe eager loading
+    )
+
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="summary",
+        lazy="selectin",     # optional, but keeps it consistent
+    )

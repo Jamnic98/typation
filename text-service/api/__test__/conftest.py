@@ -1,5 +1,6 @@
 import asyncio
 import uuid
+from datetime import timedelta
 from uuid import UUID
 from typing import Callable, Optional, Any, Coroutine, AsyncGenerator, List
 from passlib.context import CryptContext
@@ -9,6 +10,7 @@ from httpx import AsyncClient, ASGITransport, Response
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio.session import async_sessionmaker as AsyncSessionMaker
 
+from ..app.auth.jwt import create_access_token
 from ..app.factories.database import Base, get_db
 from ..app.factories.fastapi_app import create_app
 from ..app.models.user_model import User
@@ -51,19 +53,6 @@ async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
     engine = create_async_engine(settings.DATABASE_URL, future=True)  #, echo=True)
     yield engine
     await engine.dispose()  # Dispose explicitly when session ends
-
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def setup_database(request, async_engine: AsyncEngine):
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-
-    async def cleanup():
-        async with async_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-
-    request.addfinalizer(lambda: asyncio.create_task(cleanup()))
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -142,18 +131,9 @@ def graphql_query_fixture(async_client: AsyncClient) -> Callable[
 
 
 @pytest_asyncio.fixture
-async def auth_token(async_client: AsyncClient, test_users: list[User]) -> str:
-    # Use one of your existing test users to login
+async def auth_token(test_users: list[User]) -> str:
     test_user = test_users[0]
-    login_data = {
-        "email": test_user.email,
-        "password": "testpassword123"
-    }
-
-    response = await async_client.post("/auth/login", json=login_data)
-    assert response.status_code == 200, "Login failed in fixture"
-    token = response.json()["access_token"]
-    return token
+    return create_access_token({"sub": str(test_user.id)}, expires_delta=timedelta(hours=1))
 
 
 # TODO: move

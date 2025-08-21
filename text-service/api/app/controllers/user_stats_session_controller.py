@@ -6,14 +6,14 @@ from typing import Optional, Sequence, cast
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import selectinload
 
+from .user_stats_summary_controller import create_user_stats_summary, upsert_graphs
 from ..factories.database import get_db
-from ..models.digraph_model import Digraph
+from ..graphql.types.user_stats_summary_type import UserStatsSummaryType
 from ..models.unigraph_model import Unigraph
 from ..models.user_stats_session_model import UserStatsSession
-from ..graphql.types.user_stats_session_type import UserStatsSessionUpdateInput, UserStatsSessionType
+from ..graphql.types.user_stats_session_type import UserStatsSessionType
 from ..models.user_stats_summary_model import UserStatsSummary
 from ..schemas.user_stats_session_schema import UserStatsSessionCreate
 
@@ -37,44 +37,25 @@ async def create_user_stats_session(
 
     # noinspection PyUnreachableCode
     if summary:
-        await update_user_stats_summary(summary, input_data)
-        await upsert_graphs(db, summary.id, input_data)
+        await apply_session_to_summary(summary, input_data)
     else:
-        await create_user_stats_summary(db, user_id, input_data)
+        summary = await create_user_stats_summary(user_id, None, db)
+        await apply_session_to_summary(summary, input_data)
+
+    await upsert_graphs(db, summary.id, input_data)
 
     await db.commit()
     return new_session
 
 
-async def create_user_stats_summary(db: AsyncSession, user_id: UUID, data: UserStatsSessionCreate) -> UserStatsSummary:
-    summary = UserStatsSummary(
-        user_id=user_id,
-        total_sessions=1,
-        total_practice_duration=data.practice_duration,
-        average_wpm=data.wpm,
-        average_accuracy=data.accuracy,
-        practice_streak=0,
-        longest_streak=0,
-        fastest_wpm=data.wpm,
-        total_corrected_char_count=data.corrected_char_count,
-        total_deleted_char_count=data.deleted_char_count,
-        total_keystrokes=data.total_keystrokes,
-        total_char_count=data.total_char_count,
-        error_char_count=data.error_char_count,
-    )
-    db.add(summary)
-    await db.flush()
-    await insert_graphs(db, cast(UUID, summary.id), data)
-    return summary
-
-
-async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSessionCreate) -> None:
+async def apply_session_to_summary(summary: UserStatsSummaryType, data: UserStatsSessionCreate) -> None:
     summary.total_sessions += 1
     summary.total_practice_duration += data.practice_duration or 0
 
     if summary.total_sessions == 1:
         summary.average_wpm = data.wpm or 0
         summary.average_accuracy = float(round(Decimal(str(data.accuracy or 0)), 1))
+        summary.average_raw_accuracy = float(round(Decimal(str(data.raw_accuracy or 0)), 1))
     else:
         summary.average_wpm = round(
             ((summary.average_wpm * (summary.total_sessions - 1)) + (data.wpm or 0)) / summary.total_sessions
@@ -84,6 +65,12 @@ async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSe
             Decimal(str(data.accuracy or 0))
         ) / summary.total_sessions
         summary.average_accuracy = float(round(new_accuracy, 1))
+
+        new_raw_accuracy = (
+            (Decimal(cast(float, summary.average_raw_accuracy)) * (summary.total_sessions - 1)) +
+            Decimal(str(data.accuracy or 0))
+        ) / summary.total_sessions
+        summary.average_raw_accuracy = float(round(new_raw_accuracy, 1))
 
     if data.wpm and data.wpm > (summary.fastest_wpm or 0):
         summary.fastest_wpm = data.wpm
@@ -122,6 +109,7 @@ async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSe
             # Update count AFTER accuracy is computed
             unigraph.count += new_count
 
+            # noinspection PyUnreachableCode
             # Merge mistyped stats
             if not isinstance(unigraph.mistyped, dict):
                 unigraph.mistyped = {}
@@ -130,67 +118,11 @@ async def update_user_stats_summary(summary: UserStatsSummary, data: UserStatsSe
                 unigraph.mistyped[mistyped_char] = unigraph.mistyped.get(mistyped_char, 0) + count
 
 
-async def upsert_graphs(db: AsyncSession, summary_id: UUID, data: UserStatsSessionCreate):
-    if data.unigraphs:
-        for key, stat in data.unigraphs.items():
-            stmt = insert(Unigraph).values(
-                user_stats_summary_id=summary_id,
-                key=key,
-                count=stat.count,
-                accuracy=stat.accuracy,
-                mistyped=stat.mistyped
-            ).on_conflict_do_update(
-                index_elements=['user_stats_summary_id', 'key'],
-                set_={
-                    'count': stat.count,
-                    'accuracy': stat.accuracy,
-                }
-            )
-            await db.execute(stmt)
-
-    if data.digraphs:
-        for key, stat in data.digraphs.items():
-            stmt = insert(Digraph).values(
-                user_stats_summary_id=summary_id,
-                key=key,
-                count=stat.count,
-                accuracy=stat.accuracy,
-                mean_interval=stat.mean_interval,
-            ).on_conflict_do_update(
-                index_elements=['user_stats_summary_id', 'key'],
-                set_={
-                    'count': stat.count,
-                    'accuracy': stat.accuracy,
-                    'mean_interval': stat.mean_interval,
-                }
-            )
-            await db.execute(stmt)
-
-
-async def insert_graphs(db: AsyncSession, summary_id: UUID, data: UserStatsSessionCreate):
-    if data.unigraphs:
-        for key, stat in data.unigraphs.items():
-            db.add(Unigraph(
-                user_stats_summary_id=summary_id,
-                key=key,
-                count=stat.count,
-                accuracy=stat.accuracy,
-                mistyped=stat.mistyped or {}
-            ))
-    if data.digraphs:
-        for key, stat in data.digraphs.items():
-            db.add(Digraph(
-                user_stats_summary_id=summary_id,
-                key=key,
-                count=stat.count,
-                accuracy=stat.accuracy,
-                mean_interval=stat.mean_interval,
-            ))
-
 async def get_user_stats_session_by_id(
-    session_id: UUID, db: AsyncSession = Depends(get_db)
+    session_id: UUID, db: AsyncSession
 ) -> Optional[UserStatsSession]:
     return await db.get(UserStatsSession, session_id)
+
 
 async def get_user_stats_sessions_by_date_range(
     user_id: UUID,
@@ -207,6 +139,7 @@ async def get_user_stats_sessions_by_date_range(
     )
     return result.scalars().all()
 
+
 async def get_all_user_stats_sessions(
     db: AsyncSession = Depends(get_db)
 ) -> Sequence[UserStatsSession]:
@@ -214,32 +147,32 @@ async def get_all_user_stats_sessions(
     return result.scalars().all()
 
 
-async def update_user_stats_session(
-    update_data: UserStatsSessionUpdateInput, session_id: UUID, db: AsyncSession = Depends(get_db)
-) -> type[UserStatsSession] | None:
-    session = await db.get(UserStatsSession, session_id)
-    if not session:
-        return None
-
-    update_fields = {
-        field: value for field, value in update_data.__dict__.items()
-        if value is not None
-    }
-    for field, value in update_fields.items():
-        setattr(session, field, value)
-
-    await db.commit()
-    await db.refresh(session)
-    return session
-
-
-async def delete_user_stats_session(
-    session_id: UUID, db: AsyncSession = Depends(get_db)
-) -> bool:
-    session = await db.get(UserStatsSession, session_id)
-    if not session:
-        return False
-
-    await db.delete(session)
-    await db.commit()
-    return True
+# async def update_user_stats_session(
+#     update_data: UserStatsSessionUpdateInput, session_id: UUID, db: AsyncSession = Depends(get_db)
+# ) -> type[UserStatsSession] | None:
+#     session = await db.get(UserStatsSession, session_id)
+#     if not session:
+#         return None
+#
+#     update_fields = {
+#         field: value for field, value in update_data.__dict__.items()
+#         if value is not None
+#     }
+#     for field, value in update_fields.items():
+#         setattr(session, field, value)
+#
+#     await db.commit()
+#     await db.refresh(session)
+#     return session
+#
+#
+# async def delete_user_stats_session(
+#     session_id: UUID, db: AsyncSession = Depends(get_db)
+# ) -> bool:
+#     session = await db.get(UserStatsSession, session_id)
+#     if not session:
+#         return False
+#
+#     await db.delete(session)
+#     await db.commit()
+#     return True

@@ -20,6 +20,7 @@ class UnigraphType:
     key: str
     count: int
     accuracy: float
+    # raw_accuracy: float
 
     # avoid name clash with the SQLAlchemy column
     @strawberry.field(name="mistyped")
@@ -32,4 +33,5 @@ class UnigraphInput:
     key: str
     count: int
     accuracy: int
+    # raw_accuracy: int
     mistyped: Optional[list[MistypedEntryInput]] = None

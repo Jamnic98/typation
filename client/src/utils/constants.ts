@@ -47,6 +47,7 @@ export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
 export const TYPING_WIDGET_INITIAL_STATE: State = {
   wpm: 0,
   accuracy: 0,
+  rawAccuracy: 0,
   stopWatchTime: 0,
   isRunning: false,
   text: '',

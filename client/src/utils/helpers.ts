@@ -9,6 +9,7 @@ import {
   type Action,
   type State,
   type TypingSessionStats,
+  SpecialEvent,
 } from 'types'
 
 export const getCursorStyle = (cursorStyle: CursorStyles | undefined) => {
@@ -51,6 +52,8 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
         ...state,
         wpm: action.payload.wpm !== undefined ? action.payload.wpm : state.wpm,
         accuracy: action.payload.accuracy !== undefined ? action.payload.accuracy : state.accuracy,
+        rawAccuracy:
+          action.payload.rawAccuracy !== undefined ? action.payload.rawAccuracy : state.rawAccuracy,
       }
 
     case 'SET_STOPWATCH_TIME':
@@ -74,126 +77,132 @@ export const findDeleteFrom = (charObjArray: CharacterProps[], index: number): n
   return 0
 }
 
-export const calculateTypingSessionStats = (
-  keyEvents: KeyEvent[],
-  targetText: string,
-  correctedCharCount: number,
-  deletedCharCount: number,
-  startTime: number,
-  endTime: number,
-  mistyped: Record<string, Record<string, number>>
-): TypingSessionStats => {
-  const typedText = keyEvents.map((keyEvent) => keyEvent.key).join('')
+const rebuildFinalText = (events: KeyEvent[]): string => {
+  const buffer: { char: string; status: TypedStatus }[] = []
 
-  const correctCharsTyped = keyEvents.filter((e) => e.typedStatus === TypedStatus.HIT).length
-  const errorCharCount = keyEvents.filter((e) => e.typedStatus === TypedStatus.MISS).length
-  const totalCharsTyped = keyEvents.length + deletedCharCount
+  for (const e of events) {
+    if (e.key === SpecialEvent.BACKSPACE) {
+      let toDelete = e.deleteCount ?? 1
 
-  const unigraphStats: Record<
-    string,
-    { count: number; hit: number; mistyped: { key: string; count: number }[] }
-  > = {}
-  const digraphStats: Record<string, { count: number; hit: number }> = {}
-  const digraphTimings: Record<string, number[]> = {}
+      // Only MISS can be deleted
+      while (toDelete > 0 && buffer.length > 0) {
+        const last = buffer[buffer.length - 1]
 
-  for (let i = 0; i < keyEvents.length; i++) {
-    const { key, typedStatus } = keyEvents[i]
-
-    // --- Unigraph Stats ---
-    if (!unigraphStats[key]) {
-      unigraphStats[key] = { count: 0, hit: 0, mistyped: [] }
-    }
-    if (typedStatus === TypedStatus.HIT) {
-      unigraphStats[key].hit++
-    }
-    unigraphStats[key].count++
-
-    // --- Digraph Stats ---
-    if (i > 0 && i < targetText.length) {
-      const prev = keyEvents[i - 1]
-
-      // Expected digraph from target text (position i-1, i)
-      const expectedDigraph = targetText[i - 1] + targetText[i]
-
-      // Typed digraph from actual keys typed
-      const typedDigraph = prev.key + key
-
-      // Calculate interval as before
-      const interval = keyEvents[i].timestamp - prev.timestamp
-
-      // Initialize timings array
-      if (!digraphTimings[expectedDigraph]) digraphTimings[expectedDigraph] = []
-      digraphTimings[expectedDigraph].push(interval)
-
-      // Initialize stats for expected digraph
-      if (!digraphStats[expectedDigraph]) digraphStats[expectedDigraph] = { count: 0, hit: 0 }
-      digraphStats[expectedDigraph].count++
-
-      // Increment hit only if typed digraph matches expected and both keys are hits
-      if (
-        typedDigraph === expectedDigraph &&
-        prev.typedStatus === TypedStatus.HIT &&
-        typedStatus === TypedStatus.HIT
-      ) {
-        digraphStats[expectedDigraph].hit++
+        if (last.status === TypedStatus.MISS) {
+          buffer.pop()
+          toDelete--
+        } else {
+          // stop if we hit HIT, CORRECTED, or FAILED_CORRECTION
+          break
+        }
       }
+    } else {
+      // Append the typed char (HIT, MISS, CORRECTED, FAILED_CORRECTION)
+      buffer.push({ char: e.key, status: e.typedStatus ?? TypedStatus.NONE })
     }
   }
 
-  // create an array of incorrectly typed keys
-  for (const key of Object.keys(unigraphStats)) {
-    const mistypedDict = mistyped[key] ?? {}
-    const mistypedList = Object.entries(mistypedDict).map(([mistypedKey, count]) => ({
-      key: mistypedKey,
-      count,
-    }))
-    unigraphStats[key].mistyped = mistypedList
+  return buffer.map((b) => b.char).join('')
+}
+
+export const calculateTypingSessionStats = (
+  events: KeyEvent[],
+  targetText: string,
+  startTime: number,
+  endTime: number
+): TypingSessionStats => {
+  const typedText = rebuildFinalText(events)
+
+  let hits = 0
+  let fixed = 0
+  let misses = 0
+  let unfixed = 0
+  let deletes = 0
+
+  // const unigraphStats: Record<string, { count: number; hit: number; miss: number }> = {}
+  // const digraphTimings: Record<string, number[]> = {}
+
+  for (let i = 0; i < events.length; i++) {
+    const e = events[i]
+
+    if (e.key === SpecialEvent.BACKSPACE) {
+      deletes++
+      continue // don’t log in unigraph/digraph
+    }
+
+    // if (!unigraphStats[e.key]) {
+    //   unigraphStats[e.key] = { count: 0, hit: 0, miss: 0 }
+    // }
+    // unigraphStats[e.key].count++
+
+    console.log(e.typedStatus, e.key)
+    switch (e.typedStatus) {
+      case TypedStatus.HIT:
+        hits++
+        // unigraphStats[e.key].hit++
+        break
+      case TypedStatus.FIXED:
+        fixed++
+        // unigraphStats[e.key].hit++
+        break
+      case TypedStatus.MISS:
+        misses++
+        // unigraphStats[e.key].miss++
+        break
+      case TypedStatus.UNFIXED:
+        unfixed++
+        // unigraphStats[e.key].miss++
+        break
+    }
   }
 
-  // Compute unigraphs array with accuracy and array of mistyped characters
-  const unigraphs = Object.entries(unigraphStats).map(([key, { count, mistyped = [] }]) => {
-    const missCount = mistyped.reduce((acc, val) => acc + val.count, 0)
-    return {
-      key,
-      count,
-      accuracy: count ? Math.round(((count - missCount) / count) * 100) : 0,
-      mistyped,
-    }
-  })
+  //   // --- Digraph timings (only between non-backspace chars) ---
+  //   if (i > 0 && events[i - 1].key !== SpecialEvent.BACKSPACE) {
+  //     const prev = events[i - 1]
+  //     const expectedDigraph = (prev.expectedChar || '') + (e.expectedChar || '')
+  //     const interval = e.timestamp - prev.timestamp
+  //     if (!digraphTimings[expectedDigraph]) digraphTimings[expectedDigraph] = []
+  //     digraphTimings[expectedDigraph].push(interval)
+  //   }
+  // }
 
-  // Compute digraphs array with accuracy and mean intervals
-  const digraphs = Object.entries(digraphStats).map(([key, { count, hit }]) => {
-    const intervals = digraphTimings[key] || []
-    const meanInterval = intervals.length
-      ? Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length)
-      : 0
-    const accuracy = count > 0 ? Math.round((hit / count) * 100) : 0
-    return {
-      key,
-      count,
-      accuracy,
-      meanInterval,
-    }
-  })
+  const finalCorrect = hits + fixed
+  const accuracy = toPercent(finalCorrect, targetText.length)
+  const rawAccuracy = toPercent(finalCorrect, hits + fixed + misses + unfixed + deletes)
+
+  // const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
+  //   key,
+  //   count,
+  //   accuracy: count ? Math.round((hit / count) * 100) : 0,
+  //   // rawAccuracy: hit / count, // Placeholder: set to actual raw accuracy if available
+  //   mistyped: [], // TODO: Populate with actual mistyped data if available
+  // }))
+
+  // const digraphs = Object.entries(digraphTimings).map(([key, arr]) => ({
+  //   key,
+  //   count: arr.length,
+  //   meanInterval: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length),
+  //   // TODO: calculate digraph accuracy
+  //   accuracy: 1, // Placeholder: set to 1 (100%) or compute actual accuracy if available
+  // }))
 
   const elapsed = endTime - startTime
-  const practiceDuration = Math.round(elapsed / 1000)
   const wpm = calculateWpm(targetText, typedText, elapsed)
-  const accuracy = calculateAccuracy(targetText, typedText)
 
   return {
     startTime,
     endTime,
-    practiceDuration,
+    practiceDuration: Math.round(elapsed / 1000),
     wpm,
     accuracy,
-    correctedCharCount,
-    deletedCharCount,
-    correctCharsTyped,
-    totalCharsTyped,
-    errorCharCount,
-    digraphs,
-    unigraphs,
+    rawAccuracy,
+    correctedCharCount: fixed,
+    errorCharCount: misses,
+    deletedCharCount: deletes,
+    // unigraphs,
+    // digraphs,
+    correctCharsTyped: finalCorrect,
+    totalCharsTyped: hits + fixed + misses + unfixed + deletes,
   }
 }
 
@@ -252,4 +261,24 @@ export const trackMistypedKey = (
   const ref = mistypedRef.current
   ref[intended] ??= {}
   ref[intended][key] = (ref[intended][key] ?? 0) + 1
+}
+
+const toPercent = (numerator: number, denominator: number, decimals = 1): number => {
+  if (!denominator) return 0
+  return parseFloat(((numerator / denominator) * 100).toFixed(decimals))
+}
+
+export const displayValue = (val?: number | null, opts?: { percent?: boolean }): string => {
+  if (val == null) return 'n/a'
+  if (opts?.percent) return `${val.toFixed(1)}%`
+  return prettifyInt(val)
+}
+
+export const percentChange = (current: number, previous: number): string | null => {
+  if (previous !== 0) {
+    const change = ((current - previous) / previous) * 100
+    const sign = change > 0 ? '+' : ''
+    return `${sign}${change.toFixed(1)}%`
+  }
+  return null
 }

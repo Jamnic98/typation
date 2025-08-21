@@ -21,7 +21,9 @@ class Unigraph(Base):
 
     key: Mapped[str] = mapped_column(String(length=1), nullable=False)
     count: Mapped[int] = mapped_column(Integer, nullable=False)
+
     accuracy: Mapped[float] = mapped_column(Float, nullable=False)
+    # raw_accuracy: Mapped[float] = mapped_column(Float, nullable=False)
 
     mistyped = Column(MutableDict.as_mutable(JSONB), default=MutableDict)
 

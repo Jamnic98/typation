@@ -16,7 +16,10 @@ class UserStatsSession(Base):
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     wpm: Mapped[Optional[int]] = mapped_column(Integer)
+
     accuracy: Mapped[Optional[float]] = mapped_column(Float)
+    raw_accuracy: Mapped[Optional[float]] = mapped_column(Float)
+
     practice_duration: Mapped[Optional[int]] = mapped_column(Integer)
 
     start_time: Mapped[datetime] = mapped_column(

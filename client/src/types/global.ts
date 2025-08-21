@@ -1,10 +1,14 @@
 export enum TypedStatus {
   HIT = 'hit',
   MISS = 'miss',
-  CORRECTED = 'corrected',
+  FIXED = 'fixed',
+  UNFIXED = 'unfixed',
   PENDING = 'pending',
   NONE = 'none',
-  NON_FIX_DELETE = 'nonFixDelete',
+}
+
+export enum SpecialEvent {
+  BACKSPACE = 'backspace',
 }
 
 export enum SpaceSymbols {
@@ -64,22 +68,27 @@ export enum StopWatchState {
 export type State = {
   wpm: number
   accuracy: number
+  rawAccuracy: number
   stopWatchTime: number
   isRunning: boolean
   text: string
 }
 
 type UpdateStatsPayload = {
-  wpm?: number
-  accuracy?: number
   startTime?: number // Unix timestamp in ms
   endTime?: number // Unix timestamp in ms
   practiceDuration?: number // Duration of session in seconds
+
+  wpm?: number
+  accuracy?: number
+  rawAccuracy?: number
+
   correctedCharCount?: number // Times user fixed an error (e.g., backspace presses)
   deletedCharCount?: number // Total characters deleted
   correctCharsTyped?: number // Characters typed correctly as per the target text
   totalCharsTyped?: number // All characters typed by the user, including errors and corrections
   errorCharCount?: number // Incorrect characters typed
+
   unigraphStats?: Record<string, UnigraphStatistic> // e.g., { "a": { count: 12, accuracy: 91 } }
   digraphStats?: Record<string, DigraphStatistic> // e.g., { "th": { count: 5, accuracy: 80 } }
 }
@@ -98,6 +107,7 @@ export type UnigraphStatistic = {
   key: string
   count: number
   accuracy: number // float (0–1)
+  // rawAccuracy: number // float (0–1)
   mistyped: { key: string; count: number }[]
 }
 
@@ -114,7 +124,9 @@ export type TypingSessionStats = {
   endTime: number
   practiceDuration: number
   wpm: number
+
   accuracy: number
+  rawAccuracy: number
 
   correctedCharCount: number
   deletedCharCount: number
@@ -122,8 +134,8 @@ export type TypingSessionStats = {
   totalCharsTyped: number
   errorCharCount: number
 
-  digraphs: DigraphStatistic[]
-  unigraphs: UnigraphStatistic[]
+  digraphs?: DigraphStatistic[]
+  unigraphs?: UnigraphStatistic[]
 }
 
 export interface StatsSummary {
@@ -135,6 +147,7 @@ export interface StatsSummary {
 
   averageWpm: number
   averageAccuracy: number
+  averageRawAccuracy: number
   fastestWpm: number
 
   practiceStreak: number
@@ -195,9 +208,11 @@ export type DeleteUserResponse = {
 
 export type KeyEvent = {
   key: string
-  typedStatus: TypedStatus
+  expectedChar?: string
   cursorIndex: number
   timestamp: number
+  typedStatus?: TypedStatus
+  deleteCount?: number
 }
 
 export enum TypingAction {
@@ -208,7 +223,7 @@ export enum TypingAction {
 
 export interface OnTypeParams {
   key: string
-  typedStatus: TypedStatus
+  typedStatus?: TypedStatus
   cursorIndex: number
   timestamp: number
   action: TypingAction

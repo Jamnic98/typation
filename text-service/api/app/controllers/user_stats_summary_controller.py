@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -10,19 +11,39 @@ from ..models.unigraph_model import Unigraph
 from ..models.user_stats_summary_model import UserStatsSummary
 from ..graphql.types.user_stats_summary_type import UserStatsSummaryCreateInput, UserStatsSummaryUpdateInput, \
     UserStatsSummaryType
+from ..schemas.user_stats_session_schema import UserStatsSessionCreate
 
 
 async def create_user_stats_summary(
     user_id: UUID,
-    input_data: UserStatsSummaryCreateInput,
+    input_data: UserStatsSummaryCreateInput | None,
     db: AsyncSession
 ) -> UserStatsSummaryType:
+    # fallback to defaults if input_data is None
+    if input_data is None:
+        input_data = UserStatsSummaryCreateInput(
+            total_sessions=0,
+            total_practice_duration=0,
+            average_wpm=0.0,
+            average_accuracy=0.0,
+            average_raw_accuracy=0.0,
+            practice_streak=0,
+            longest_streak=0,
+            fastest_wpm=0,
+            total_corrected_char_count=0,
+            total_deleted_char_count=0,
+            total_keystrokes=0,
+            total_char_count=0,
+            error_char_count=0,
+        )
+
     summary = UserStatsSummary(
         user_id=user_id,
         total_sessions=input_data.total_sessions,
         total_practice_duration=input_data.total_practice_duration,
         average_wpm=input_data.average_wpm,
         average_accuracy=input_data.average_accuracy,
+        average_raw_accuracy=input_data.average_raw_accuracy,
         practice_streak=input_data.practice_streak,
         longest_streak=input_data.longest_streak,
         fastest_wpm=input_data.fastest_wpm,
@@ -146,18 +167,75 @@ async def update_user_stats_summary(
     return None
 
 
-async def delete_user_stats_summary(
-    user_id: UUID,
-    db: AsyncSession
-) -> bool:
-    result = await db.execute(
-        select(UserStatsSummary).where(UserStatsSummary.user_id == user_id)
-    )
-    summary = result.scalar_one_or_none()
-    # noinspection PyUnreachableCode
-    if summary:
-        await db.delete(summary)
-        await db.commit()
-        return True
+async def upsert_graphs(db: AsyncSession, summary_id: UUID, data: UserStatsSessionCreate):
+    if data.unigraphs:
+        for key, stat in data.unigraphs.items():
+            stmt = insert(Unigraph).values(
+                user_stats_summary_id=summary_id,
+                key=key,
+                count=stat.count,
+                accuracy=stat.accuracy,
+                mistyped=stat.mistyped
+            ).on_conflict_do_update(
+                index_elements=['user_stats_summary_id', 'key'],
+                set_={
+                    'count': stat.count,
+                    'accuracy': stat.accuracy,
+                }
+            )
+            await db.execute(stmt)
 
-    return False
+    if data.digraphs:
+        for key, stat in data.digraphs.items():
+            stmt = insert(Digraph).values(
+                user_stats_summary_id=summary_id,
+                key=key,
+                count=stat.count,
+                accuracy=stat.accuracy,
+                mean_interval=stat.mean_interval,
+            ).on_conflict_do_update(
+                index_elements=['user_stats_summary_id', 'key'],
+                set_={
+                    'count': stat.count,
+                    'accuracy': stat.accuracy,
+                    'mean_interval': stat.mean_interval,
+                }
+            )
+            await db.execute(stmt)
+
+
+async def insert_graphs(db: AsyncSession, summary_id: UUID, data: UserStatsSessionCreate):
+    if data.unigraphs:
+        for key, stat in data.unigraphs.items():
+            db.add(Unigraph(
+                user_stats_summary_id=summary_id,
+                key=key,
+                count=stat.count,
+                accuracy=stat.accuracy,
+                mistyped=stat.mistyped or {}
+            ))
+    if data.digraphs:
+        for key, stat in data.digraphs.items():
+            db.add(Digraph(
+                user_stats_summary_id=summary_id,
+                key=key,
+                count=stat.count,
+                accuracy=stat.accuracy,
+                mean_interval=stat.mean_interval,
+            ))
+
+# async def delete_user_stats_summary(
+#     user_id: UUID,
+#     db: AsyncSession
+# ) -> bool:
+#     result = await db.execute(
+#         select(UserStatsSummary).where(UserStatsSummary.user_id == user_id)
+#     )
+#     summary = result.scalar_one_or_none()
+#     # noinspection PyUnreachableCode
+#     if summary:
+#         await db.delete(summary)
+#         await db.commit()
+#         return True
+#
+#     return False

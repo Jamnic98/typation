@@ -76,28 +76,30 @@ class UsersQuery:
             ]
 
     @strawberry.field()
-    async def user_stats_session(self, info: Info, session_id: UUID) -> Optional[UserStatsSessionType]:
+    async def user_stats_session(
+            self, info: Info, session_id: UUID
+    ) -> Optional[UserStatsSessionType]:
         async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:
+        async with async_session_maker() as db:  # db is AsyncSession
             session = await get_user_stats_session_by_id(session_id, db)
-            if not session:
-                return None
 
             # noinspection PyUnreachableCode
-            return UserStatsSessionType(
-                id=session.id,
-                user_id=session.user_id,
-                wpm=session.wpm,
-                accuracy=session.accuracy,
-                practice_duration=session.practice_duration,
-                start_time=to_timestamp(session.start_time),
-                end_time=to_timestamp(session.end_time),
-                corrected_char_count=session.corrected_char_count,
-                deleted_char_count=session.deleted_char_count,
-                total_char_count=session.total_char_count,
-                total_keystrokes=session.total_keystrokes,
-                error_char_count=session.error_char_count
-            )
+            if session:
+                return UserStatsSessionType(
+                    id=session.id,
+                    user_id=session.user_id,
+                    wpm=session.wpm,
+                    accuracy=session.accuracy,
+                    raw_accuracy=session.raw_accuracy,
+                    start_time=session.start_time.timestamp() if session.start_time else None,
+                    end_time=session.end_time.timestamp() if session.end_time else None,
+                    practice_duration=session.practice_duration,
+                    corrected_char_count=session.corrected_char_count,
+                    deleted_char_count=session.deleted_char_count,
+                    total_char_count=session.total_char_count,
+                    total_keystrokes=session.total_keystrokes,
+                    error_char_count=session.error_char_count,
+                )
 
     @strawberry.field()
     async def user_stats_sessions_by_date_range(
@@ -154,7 +156,9 @@ class UsersQuery:
 
                 fastest_wpm=summary.fastest_wpm,
                 average_wpm=summary.average_wpm,
+
                 average_accuracy=summary.average_accuracy,
+                average_raw_accuracy=summary.average_raw_accuracy,
 
                 total_practice_duration=summary.total_practice_duration,
 

@@ -7,31 +7,14 @@ from ..types.digraph_type import DigraphInput
 from ..types.unigraph_type import UnigraphInput
 
 
-@strawberry.input
-class UserStatsSessionUpdateInput:
-    wpm: Optional[int] = None
-    accuracy: Optional[float] = None
-    practice_duration: Optional[int] = strawberry.field(name="practiceDuration", default=None)
-
-
-@strawberry.input
-class UnigraphStatisticInput:
-    count: int
-    accuracy: int
-
-
-@strawberry.input
-class DigraphStatisticInput:
-    count: int
-    accuracy: int
-
-
 @strawberry.type
 class UserStatsSessionType:
     id: UUID
     user_id: UUID = strawberry.field(name="userId")
     wpm: Optional[int]
+
     accuracy: Optional[float]
+    raw_accuracy: Optional[float] = strawberry.field(name="rawAccuracy", default=None)
 
     start_time: Optional[float] = strawberry.field(name="startTime", default=None)
     end_time: Optional[float] = strawberry.field(name="endTime", default=None)
@@ -47,7 +30,9 @@ class UserStatsSessionType:
 @strawberry.input
 class UserStatsSessionInput:
     wpm: Optional[int] = None
-    accuracy: Optional[float] = None
+
+    accuracy: Optional[float]
+    raw_accuracy: Optional[float] = strawberry.field(name="rawAccuracy", default=None)
 
     start_time: Optional[float] = strawberry.field(name="startTime", default=None)
     end_time: Optional[float] = strawberry.field(name="endTime", default=None)
@@ -68,6 +53,7 @@ class UnigraphStatEntryInput:
     key: str
     count: int
     accuracy: int
+    # raw_accuracy: int = strawberry.field(name="rawAccuracy")
 
 
 @strawberry.input

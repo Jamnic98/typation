@@ -1,11 +1,9 @@
-import { convertToGraphQLInput } from 'api/helpers'
 import { SAVE_STATS_MUTATION } from './mutations'
 import { GET_STATS_SUMMARY_QUERY, GET_UNIGRAPH_BY_ID } from './queries'
 import { baseUrl, GRAPHQL_ENDPOINT } from 'utils/constants'
 import { type StatsSummary, type TypingSessionStats } from 'types'
 
 export const saveStats = async (stats: TypingSessionStats, token: string): Promise<void> => {
-  const input = convertToGraphQLInput(stats)
   const response = await fetch(`${baseUrl}${GRAPHQL_ENDPOINT}`, {
     method: 'POST',
     headers: {
@@ -14,7 +12,7 @@ export const saveStats = async (stats: TypingSessionStats, token: string): Promi
     },
     body: JSON.stringify({
       query: SAVE_STATS_MUTATION,
-      variables: { userStatsSessionInput: input },
+      variables: { userStatsSessionInput: stats },
     }),
   })
 

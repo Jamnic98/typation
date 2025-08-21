@@ -10,6 +10,7 @@ import {
   TypingAction,
   SpaceSymbols,
   spaceSymbolMap,
+  SpecialEvent,
 } from 'types'
 import SvgKeyboardUK from './SvgKeyboardUK'
 
@@ -17,7 +18,7 @@ export interface TypingWidgetTextProps {
   textToType: string | null
   fontSettings?: FontSettings
   onStart: () => void
-  onComplete: (correctedCharCount: number) => Promise<void>
+  onComplete: () => Promise<void>
   onType: (params: OnTypeParams) => void
   reset: () => void
 }
@@ -73,27 +74,24 @@ export const TypingWidgetText = ({
 
     return charObjArray.map((obj, index) => {
       if (index !== cursorIndex) return obj
+
       let newStatus = typedStatus
-      // When correcting from MISS or PENDING to HIT
-      if (
-        typedStatus === TypedStatus.HIT &&
-        (obj.typedStatus === TypedStatus.MISS || obj.typedStatus === TypedStatus.PENDING)
-      ) {
-        newStatus = TypedStatus.CORRECTED
-      } else if (
-        typedStatus === TypedStatus.MISS &&
-        (obj.typedStatus === TypedStatus.MISS || obj.typedStatus === TypedStatus.PENDING)
-      ) {
-        newStatus = TypedStatus.NON_FIX_DELETE
+
+      if (obj.typedStatus === TypedStatus.PENDING) {
+        if (typedStatus === TypedStatus.HIT) {
+          newStatus = TypedStatus.FIXED
+        } else if (typedStatus === TypedStatus.MISS) {
+          newStatus = TypedStatus.UNFIXED
+        }
       }
 
       return {
         ...obj,
         typedStatus: newStatus,
-        ...((newStatus === TypedStatus.MISS || newStatus === TypedStatus.NON_FIX_DELETE) && key
-          ? obj.char === ' '
-            ? {} // ✅ leave spaces alone
-            : { typedChar: key } // show wrong typed letter separately
+        ...(newStatus === TypedStatus.MISS || newStatus === TypedStatus.UNFIXED
+          ? key && obj.char !== ' '
+            ? { typedChar: key } // record the wrong key
+            : {}
           : {}),
       }
     })
@@ -108,31 +106,47 @@ export const TypingWidgetText = ({
   const handleCharInput = async (key: string): Promise<void> => {
     if (!isFocused || !charObjArray) return
 
-    const typedStatus = charObjArray[cursorIndex]?.char === key ? TypedStatus.HIT : TypedStatus.MISS
-    const updated = applyTypingUpdate(typedStatus, key)
+    // If we're already at/past the end, just complete
+    if (cursorIndex >= charObjArray.length) {
+      try {
+        await onComplete()
+      } catch (err) {
+        console.error('Failed to complete typing session:', err)
+      }
+      return
+    }
 
-    if (updated) {
+    // Determine raw typed status
+    const typedStatusRaw =
+      charObjArray[cursorIndex]?.char === key ? TypedStatus.HIT : TypedStatus.MISS
+
+    // Apply update
+    const updated = applyTypingUpdate(typedStatusRaw, key)
+
+    if (updated && cursorIndex < updated.length) {
+      const finalStatus = updated[cursorIndex]?.typedStatus
+
       onType({
         key,
-        typedStatus,
+        typedStatus: finalStatus,
         cursorIndex,
         timestamp: Date.now(),
         action: TypingAction.AddKey,
       })
-
-      if (cursorIndex === charObjArray.length - 1) {
-        try {
-          setCursorIndex(-1)
-          await onComplete(
-            charObjArray.filter((charObj) => charObj.typedStatus === TypedStatus.CORRECTED).length
-          )
-        } catch (err) {
-          console.error('Failed to complete typing session:', err)
-        }
-        return
-      }
     }
 
+    // Handle last char vs continue typing
+    if (cursorIndex === charObjArray.length - 1) {
+      try {
+        setCursorIndex(-1) // mark finished
+        await onComplete()
+      } catch (err) {
+        console.error('Failed to complete typing session:', err)
+      }
+      return
+    }
+
+    // Otherwise, move forward
     shiftCursor(1)
   }
 
@@ -141,16 +155,17 @@ export const TypingWidgetText = ({
 
     const prevIndex = cursorIndex - 1
     const prevChar = charObjArray[prevIndex]
-    if (!prevChar || prevChar.typedStatus !== TypedStatus.MISS) return
+    if (!prevChar) return
 
     let updated = [...charObjArray]
 
     if (ctrl) {
+      // Bulk backspace (ctrl+backspace): clear a range of errors
       const deleteFrom = findDeleteFrom(updated, prevIndex)
       const deleteCount = prevIndex - deleteFrom + 1
+
       onType({
-        key: 'Backspace',
-        typedStatus: TypedStatus.NONE,
+        key: SpecialEvent.BACKSPACE,
         cursorIndex: prevIndex,
         timestamp: Date.now(),
         action: TypingAction.ClearMissRange,
@@ -161,9 +176,11 @@ export const TypingWidgetText = ({
         idx >= deleteFrom && idx <= prevIndex
           ? {
               ...char,
+              char: textToType[idx],
               typedStatus:
-                char.typedStatus === TypedStatus.MISS ? TypedStatus.PENDING : TypedStatus.NONE,
-              char: textToType[idx], // reset displayed char as before
+                char.typedStatus === TypedStatus.MISS
+                  ? TypedStatus.PENDING // 🔑 mark as pending correction
+                  : TypedStatus.NONE,
             }
           : char
       )
@@ -171,10 +188,9 @@ export const TypingWidgetText = ({
       setCharObjArray(updated)
       setCursorIndex(deleteFrom)
     } else {
-      // Single backspace — tell onType to pop last event
+      // Single backspace
       onType({
-        key: 'Backspace',
-        typedStatus: TypedStatus.NONE,
+        key: SpecialEvent.BACKSPACE,
         cursorIndex: prevIndex,
         timestamp: Date.now(),
         action: TypingAction.BackspaceSingle,
@@ -186,7 +202,7 @@ export const TypingWidgetText = ({
         char: textToType[prevIndex],
         typedStatus:
           updated[prevIndex].typedStatus === TypedStatus.MISS
-            ? TypedStatus.PENDING
+            ? TypedStatus.PENDING // 🔑 mark as pending correction
             : TypedStatus.NONE,
       }
 
@@ -227,7 +243,7 @@ export const TypingWidgetText = ({
           <div
             id="typing-widget-text"
             data-testid="typing-widget-text"
-            className={`font-mono outline-none transition duration-300 ease-in-out min-h-12 ${
+            className={`font-mono outline-none transition duration-300 ease-in-out min-h-6 ${
               isFocused ? '' : 'blur-xs hover:cursor-pointer'
             } flex justify-center text-center flex-wrap`}
             tabIndex={0}
@@ -270,7 +286,7 @@ export const TypingWidgetText = ({
         </div>
       </div>
 
-      <div className="w-fit m-auto  text-8xl my-8">
+      <div className="w-fit m-auto  text-8xl my-8 select-none">
         {charObjArray && charObjArray[cursorIndex]?.char
           ? charObjArray[cursorIndex]?.char === ' '
             ? spaceSymbolMap[SpaceSymbols.DOT]

@@ -23,8 +23,8 @@ export interface CharacterProps {
 
 export const typedStatusStyles: Record<TypedStatus, string> = {
   [TypedStatus.MISS]: STYLE_MISS,
-  [TypedStatus.CORRECTED]: STYLE_CORRECTED,
-  [TypedStatus.NON_FIX_DELETE]: STYLE_NON_FIX_DELETE,
+  [TypedStatus.FIXED]: STYLE_CORRECTED,
+  [TypedStatus.UNFIXED]: STYLE_NON_FIX_DELETE,
   [TypedStatus.PENDING]: STYLE_PENDING,
   [TypedStatus.HIT]: STYLE_HIT,
   [TypedStatus.NONE]: STYLE_NONE,
@@ -40,10 +40,10 @@ export const CharacterComponent = ({
   const [wasTyped, setWasTyped] = useState(false)
 
   useEffect(() => {
-    if ((typedStatus === TypedStatus.HIT || typedStatus === TypedStatus.CORRECTED) && !wasTyped) {
+    if ((typedStatus === TypedStatus.HIT || typedStatus === TypedStatus.FIXED) && !wasTyped) {
       setWasTyped(true)
     }
-    if (typedStatus !== TypedStatus.HIT && typedStatus !== TypedStatus.CORRECTED && wasTyped) {
+    if (typedStatus !== TypedStatus.HIT && typedStatus !== TypedStatus.FIXED && wasTyped) {
       setWasTyped(false)
     }
   }, [typedStatus, wasTyped])
