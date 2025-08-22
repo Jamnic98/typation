@@ -55,7 +55,7 @@ describe('Test Rendering', () => {
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      reset: function (): void {},
+      reset: (): void => {},
     })
     const typingWidget = screen.queryByTestId('typing-widget-text')
     expect(typingWidget).not.toBeInTheDocument()
@@ -68,7 +68,7 @@ describe('Test Rendering', () => {
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      reset: function (): void {},
+      reset: (): void => {},
     })
 
     // test background text
@@ -100,7 +100,7 @@ describe('Test functionality', () => {
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      reset: function (): void {},
+      reset: (): void => {},
     })
 
     const characters = screen.getAllByTestId('background-character')
@@ -142,7 +142,7 @@ describe('Test functionality', () => {
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      reset: function (): void {},
+      reset: (): void => {},
     })
 
     const characterCursors = screen.getAllByTestId('character-cursor')

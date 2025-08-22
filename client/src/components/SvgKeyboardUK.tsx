@@ -162,8 +162,7 @@ const rowQWERTY: RowDef = {
     { id: 'P', label: 'P' },
     { id: '[', label: '[' },
     { id: ']', label: ']' },
-    { id: 'Enter', label: 'Enter', width: 1.45 },
-    // UK has an extra key here usually ([ ] on US). Kept simple per request.
+    { id: 'Enter', label: 'Enter', shape: 'iso-enter' },
   ],
 }
 
@@ -183,7 +182,6 @@ const rowASDF: RowDef = {
     { id: ';', label: ';' },
     { id: "'", label: "'" },
     { id: '#', label: '#' },
-    { id: 'Enter', label: 'Enter', width: 1.2 },
   ],
 }
 
@@ -219,7 +217,7 @@ const rowBottom: RowDef = {
 }
 
 // Utility: map from an arbitrary character / event.key to our KeyId
-function mapInputToKeyId(input?: string | null): KeyId | null {
+const mapInputToKeyId = (input?: string | null): KeyId | null => {
   if (!input) return null
   const k = input.length === 1 ? input : input.toString()
   if (k === ' ') return 'Space'
@@ -252,7 +250,7 @@ function mapInputToKeyId(input?: string | null): KeyId | null {
 }
 
 // Convert layout definition to positioned rectangles for the SVG
-function computeLayoutRows(rows: RowDef[]) {
+const computeLayoutRows = (rows: RowDef[]) => {
   let maxWidthUnits = 0
   const prepared = rows.map((row) => {
     const { keys, xOffsetUnits = 0 } = row
@@ -291,7 +289,7 @@ const KEY_FONT_FAMILY =
 // --- Simple vector icons for special keys ---
 const ICON_STROKE_W = 2
 
-function IconWindows() {
+const IconWindows = () => {
   return (
     <g>
       {/* four squares */}
@@ -303,20 +301,23 @@ function IconWindows() {
   )
 }
 
-function IconEnter() {
+const IconEnter = () => {
   return (
     <g>
-      {/* bent arrow (return) */}
+      {/* Top bar → down → right */}
       <path
-        d="M-8,-4 H6 V4 H0"
+        d="M -6 -4 H 8 V 6 H 0"
         fill="none"
+        stroke="currentColor"
         strokeWidth={ICON_STROKE_W}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* Arrowhead pointing right */}
       <path
-        d="M0,4 l-4,-3 m4,3 l-4,3"
+        d="M 0 6 L 4 3 M 0 6 L 4 9"
         fill="none"
+        stroke="currentColor"
         strokeWidth={ICON_STROKE_W}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -325,7 +326,7 @@ function IconEnter() {
   )
 }
 
-function IconBackspace() {
+const IconBackspace = () => {
   return (
     <g>
       {/* left chevron body */}
@@ -347,7 +348,7 @@ function IconBackspace() {
   )
 }
 
-function IconShift() {
+const IconShift = () => {
   return (
     <g>
       {/* up arrow */}
@@ -361,7 +362,7 @@ function IconShift() {
   )
 }
 
-function renderIcon(id: KeyId): JSX.Element | null {
+const renderIcon = (id: KeyId): JSX.Element | null => {
   const generic = id.startsWith('Shift') ? 'Shift' : id.startsWith('Meta') ? 'Meta' : id
   switch (generic) {
     case 'Backspace':
@@ -377,32 +378,31 @@ function renderIcon(id: KeyId): JSX.Element | null {
   }
 }
 
-function renderIsoEnter(
+const renderIsoEnter = (
   x: number,
   y: number,
   theme: Required<KeyboardTheme>,
   isPressed: boolean,
   isHighlight: boolean
-) {
+) => {
   const fill = isPressed ? theme.pressedFill : isHighlight ? theme.highlightFill : theme.keyFill
   const stroke = theme.keyBorder
 
-  const topW = UNIT_W * 1.75 // wide top part
-  const legW = UNIT_W // bottom leg width
-  const h = UNIT_H
+  const topW = UNIT_W * 1.54 // full top width
+  const notchW = UNIT_W * 1.25 // width of the notch
+  const rowH = UNIT_H // height of one row
 
-  // Path: starts top-left of QWERTY row, spans down into ASDF row
-  const d = `
-    M ${x} ${y}             /* top-left */
-    h ${topW}               /* top edge */
-    v ${h}                  /* drop 1 row */
-    h -${topW - legW}       /* back left to make notch */
-    v ${h}                  /* down into ASDF row */
-    h -${legW}              /* bottom edge left */
-    Z
-  `
+  const d = [
+    `M ${x} ${y}`, // start top-left
+    `h ${topW}`, // → top edge
+    `v ${2.15 * rowH}`, // ↓ full 2 rows
+    `h -${notchW}`, // ← notch width
+    `v -${rowH * 1.15}`, // ↑ back up one row (forms notch)
+    `h -${topW - notchW}`, // ← rest of the top width
+    `Z`,
+  ].join(' ')
 
-  return <path d={d} fill={fill} stroke={stroke} strokeWidth={2} />
+  return <path d={d} fill={fill} stroke={stroke} strokeWidth={2} strokeLinejoin="round" />
 }
 
 const UKKeyboardSvg: FC<UKKeyboardSvgProps> = ({
