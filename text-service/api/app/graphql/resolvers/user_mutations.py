@@ -240,11 +240,19 @@ class UsersMutation:
                     user_id=user_id,
                     total_sessions=input_data.total_sessions,
                     total_practice_duration=input_data.total_practice_duration,
-                    average_wpm=input_data.average_wpm,
-                    average_accuracy=input_data.average_accuracy,
+
                     practice_streak=input_data.practice_streak,
                     longest_streak=input_data.longest_streak,
+
+                    average_wpm=input_data.average_wpm,
+                    average_net_wpm=input_data.average_net_wpm,
+
                     fastest_wpm=input_data.fastest_wpm,
+                    fastest_net_wpm=input_data.fastest_net_wpm,
+
+                    average_accuracy=input_data.average_accuracy,
+                    average_raw_accuracy=input_data.average_raw_accuracy,
+
                     total_corrected_char_count=input_data.total_corrected_char_count,
                     total_deleted_char_count=input_data.total_deleted_char_count,
                     total_keystrokes=input_data.total_keystrokes,
@@ -308,17 +316,25 @@ class UsersMutation:
                     user_id=summary.user_id,
                     total_sessions=summary.total_sessions,
                     total_practice_duration=summary.total_practice_duration,
-                    average_wpm=summary.average_wpm,
-                    average_accuracy=summary.average_accuracy,
-                    average_raw_accuracy=summary.average_raw_accuracy,
+
                     practice_streak=summary.practice_streak,
                     longest_streak=summary.longest_streak,
+
                     fastest_wpm=summary.fastest_wpm,
+                    average_wpm=summary.average_wpm,
+
+                    average_net_wpm=summary.average_net_wpm,
+                    fastest_net_wpm=summary.fastest_net_wpm,
+
+                    average_accuracy=summary.average_accuracy,
+                    average_raw_accuracy=summary.average_raw_accuracy,
+
                     total_corrected_char_count=summary.total_corrected_char_count,
                     total_deleted_char_count=summary.total_deleted_char_count,
                     total_keystrokes=summary.total_keystrokes,
                     total_char_count=summary.total_char_count,
                     error_char_count=summary.error_char_count,
+
                     unigraphs=unigraphs,
                     digraphs=digraphs,
                 )
@@ -355,19 +371,26 @@ class UsersMutation:
                         user_id=updated.user_id,
                         total_sessions=updated.total_sessions,
                         total_practice_duration=updated.total_practice_duration,
-                        average_wpm=updated.average_wpm,
-                        average_accuracy=updated.average_accuracy,
-                        fastest_wpm=updated.fastest_wpm,
                         practice_streak=updated.practice_streak,
                         longest_streak=updated.longest_streak,
+
+                        fastest_wpm=updated.fastest_wpm,
+                        average_wpm=updated.average_wpm,
+
+                        fastest_net_wpm=updated.fastest_net_wpm,
+                        average_net_wpm=updated.average_net_wpm,
+
+                        average_accuracy=updated.average_accuracy,
+                        average_raw_accuracy=updated.average_raw_accuracy,
+
                         total_corrected_char_count=updated.total_corrected_char_count,
                         total_deleted_char_count=updated.total_deleted_char_count,
                         total_keystrokes=updated.total_keystrokes,
                         total_char_count=updated.total_char_count,
                         error_char_count=updated.error_char_count,
+
                         unigraphs=updated.unigraphs,
                         digraphs=updated.digraphs
-
                     )
 
                 return None

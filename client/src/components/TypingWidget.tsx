@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 
-import { Accuracy, StopWatch, TypingWidgetText, WordsPerMin } from 'components'
+import { SessionStatsSummary, TypingWidgetText } from 'components'
 import { fetchTypingString, saveStats, useAlert, useUser } from 'api'
 import {
-  calculateAccuracy,
+  // calculateAccuracy,
   calculateTypingSessionStats,
-  calculateWpm,
+  // calculateWpm,
   typingWidgetStateReducer,
   getReadableErrorMessage,
   trackMistypedKey,
@@ -114,16 +114,16 @@ export const TypingWidget = () => {
     }
 
     // Live stats calculation of wpm and accuracy
-    const now = Date.now()
-    const elapsed = now - startTimestamp.current
-    const typedText = keyEventQueue.current.map((e) => e.key).join('')
+    // const now = Date.now()
+    // const elapsed = now - startTimestamp.current
+    // const typedText = keyEventQueue.current.map((e) => e.key).join('')
 
-    if (elapsed && typedText.length > 0) {
-      const targetText = state.text
-      const wpm = calculateWpm(targetText, typedText, elapsed)
-      const accuracy = calculateAccuracy(targetText, typedText)
-      dispatch({ type: 'UPDATE_STATS', payload: { wpm, accuracy } })
-    }
+    // if (elapsed && typedText.length > 0) {
+    //   const targetText = state.text
+    //   const wpm = calculateWpm(targetText, typedText, elapsed)
+    //   const accuracy = calculateAccuracy(targetText, typedText)
+    //   dispatch({ type: 'UPDATE_STATS', payload: { wpm, accuracy } })
+    // }
   }
 
   const onComplete = async (): Promise<void> => {
@@ -136,17 +136,17 @@ export const TypingWidget = () => {
     dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
     setDisplayTime(elapsedTime)
 
-    console.log(keyEventQueue.current)
     const sessionStats = calculateTypingSessionStats(
       keyEventQueue.current,
-      state.text,
       startTimestamp.current,
       now
     )
+    console.log(sessionStats)
     dispatch({
       type: 'UPDATE_STATS',
       payload: {
         wpm: sessionStats.wpm,
+        netWpm: sessionStats.netWpm,
         accuracy: sessionStats.accuracy,
         rawAccuracy: sessionStats.rawAccuracy,
       },
@@ -155,11 +155,11 @@ export const TypingWidget = () => {
     try {
       await fetchAndSetText()
       setShowStats(true)
-      console.log('Session stats:', sessionStats)
       token &&
         (await saveStats(
           {
             wpm: sessionStats.wpm,
+            netWpm: sessionStats.netWpm,
             accuracy: sessionStats.accuracy,
             rawAccuracy: sessionStats.rawAccuracy,
             practiceDuration: Math.floor(elapsedTime / 1000),
@@ -200,21 +200,15 @@ export const TypingWidget = () => {
       />
 
       {/* TODO: replace br tag with style */}
-      <br />
 
       {showStats ? (
-        <div id="stats" className="space-y-2 flex flex-col justify-center items-center">
-          <WordsPerMin wpm={state.wpm} />
-          <Accuracy accuracy={state.accuracy} />
-          {/* <Accuracy accuracy={state.rawAccuracy} />
-           */}
-          {/* TODO: fix  */}
-          <div className="text-xl font-mono ">
-            <span className="text-xl font-mono tracking-widest select-none">raw accuracy:</span>
-            <span>{state.rawAccuracy}%</span>
-          </div>
-          <StopWatch time={displayTime} />
-        </div>
+        <SessionStatsSummary
+          wpm={state.wpm}
+          netWpm={state.netWpm}
+          accuracy={state.accuracy}
+          rawAccuracy={state.rawAccuracy}
+          displayTime={displayTime}
+        />
       ) : null}
     </div>
   )

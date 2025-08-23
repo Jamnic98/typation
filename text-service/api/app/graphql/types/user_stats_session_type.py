@@ -11,9 +11,11 @@ from ..types.unigraph_type import UnigraphInput
 class UserStatsSessionType:
     id: UUID
     user_id: UUID = strawberry.field(name="userId")
-    wpm: Optional[int]
 
-    accuracy: Optional[float]
+    wpm: Optional[int] = strawberry.field(name="wpm", default=None)
+    net_wpm: Optional[int] = strawberry.field(name="netWpm", default=None)
+
+    accuracy: Optional[float] = strawberry.field(name="accuracy", default=None)
     raw_accuracy: Optional[float] = strawberry.field(name="rawAccuracy", default=None)
 
     start_time: Optional[float] = strawberry.field(name="startTime", default=None)
@@ -30,8 +32,9 @@ class UserStatsSessionType:
 @strawberry.input
 class UserStatsSessionInput:
     wpm: Optional[int] = None
+    net_wpm: Optional[int] = None
 
-    accuracy: Optional[float]
+    accuracy: Optional[float] = strawberry.field(name="accuracy", default=None)
     raw_accuracy: Optional[float] = strawberry.field(name="rawAccuracy", default=None)
 
     start_time: Optional[float] = strawberry.field(name="startTime", default=None)

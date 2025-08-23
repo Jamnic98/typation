@@ -3,6 +3,7 @@ export const SAVE_STATS_MUTATION = `
     createUserStatsSession(userStatsSessionInput: $userStatsSessionInput) {
       id
       wpm
+      netWpm
       accuracy
       practiceDuration
     }

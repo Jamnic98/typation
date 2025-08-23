@@ -3,7 +3,9 @@ export const GET_STATS_SUMMARY_QUERY = `
       userStatsSummary {
           userId
           fastestWpm
+          fastestNetWpm
           averageWpm
+          averageNetWpm
           averageAccuracy
           averageRawAccuracy
           totalSessions
@@ -37,7 +39,9 @@ export const GET_SESSIONS_BY_DATE_QUERY = `
       startTime
       endTime
       wpm
+      netWpm
       accuracy
+      rawAccuracy
       practiceDuration
       correctedCharCount
       deletedCharCount

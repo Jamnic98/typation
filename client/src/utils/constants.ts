@@ -46,6 +46,7 @@ export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
 
 export const TYPING_WIDGET_INITIAL_STATE: State = {
   wpm: 0,
+  netWpm: 0,
   accuracy: 0,
   rawAccuracy: 0,
   stopWatchTime: 0,
@@ -58,9 +59,9 @@ export const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 export const authEndpoint = `${baseUrl}/auth`
 
 // Character styles
+export const STYLE_HIT = 'text-green-600 font-extrabold'
 export const STYLE_MISS = 'text-red-600 line-through'
-export const STYLE_CORRECTED = 'text-green-400 italic'
+export const STYLE_FIXED = 'text-green-400 italic'
+export const STYLE_UNFIXED = 'text-gray-400 line-through italic opacity-60'
 export const STYLE_PENDING = 'text-yellow-600 italic'
-export const STYLE_HIT = 'text-green-600 font-bold'
-export const STYLE_NONE = 'text-black'
-export const STYLE_NON_FIX_DELETE = 'text-gray-400 line-through italic opacity-60'
+export const STYLE_NONE = 'text-black font-extralight'

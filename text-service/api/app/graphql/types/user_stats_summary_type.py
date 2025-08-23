@@ -19,6 +19,9 @@ class UserStatsSummaryCreateInput:
     fastest_wpm: int = strawberry.field(default=0, name="fastestWpm")
     average_wpm: float = strawberry.field(default=0.0, name="averageWpm")
 
+    fastest_net_wpm: int = strawberry.field(default=0, name="fastestNetWpm")
+    average_net_wpm: float = strawberry.field(default=0.0, name="averageNetWpm")
+
     practice_streak: int = strawberry.field(default=0, name="practiceStreak")
     longest_streak: int = strawberry.field(default=0, name="longestStreak")
 
@@ -42,6 +45,9 @@ class UserStatsSummaryUpdateInput:
 
     average_wpm: Optional[int] = strawberry.field(default=None, name="averageWpm")
     fastest_wpm: Optional[int] = strawberry.field(default=None, name="fastestWpm")
+
+    average_net_wpm: int = strawberry.field(default=None, name="averageNetWpm")
+    fastest_net_wpm: int = strawberry.field(default=None, name="fastestNetWpm")
 
     practice_streak: Optional[int] = strawberry.field(default=0, name="practiceStreak")
     longest_streak: Optional[int] = strawberry.field(default=0, name="longestStreak")
@@ -67,6 +73,9 @@ class UserStatsSummaryType:
 
     average_wpm: int = strawberry.field(name="averageWpm")
     fastest_wpm: int = strawberry.field(name="fastestWpm")
+
+    average_net_wpm: int = strawberry.field(name="averageNetWpm")
+    fastest_net_wpm: int = strawberry.field(name="fastestNetWpm")
 
     practice_streak: int = strawberry.field(
         name="practiceStreak"

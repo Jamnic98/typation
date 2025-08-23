@@ -16,6 +16,9 @@ class UserStatsSummary(Base):
     fastest_wpm: Mapped[int] = mapped_column(Integer, default=0)
     average_wpm: Mapped[int] = mapped_column(Integer, default=0)
 
+    fastest_net_wpm: Mapped[int] = mapped_column(Integer, default=0)
+    average_net_wpm: Mapped[int] = mapped_column(Integer, default=0)
+
     average_accuracy: Mapped[float] = mapped_column(Numeric(4, 1), default=0.0)
     average_raw_accuracy: Mapped[float] = mapped_column(Numeric(4, 1), default=0.0)
 

@@ -62,6 +62,7 @@ class UsersQuery:
                     id=s.id,
                     user_id=s.user_id,
                     wpm=s.wpm,
+                    net_wpm=s.net_wpm,
                     accuracy=s.accuracy,
                     practice_duration=s.practice_duration,
                     start_time=to_timestamp(s.start_time),
@@ -89,6 +90,7 @@ class UsersQuery:
                     id=session.id,
                     user_id=session.user_id,
                     wpm=session.wpm,
+                    net_wpm=session.net_wpm,
                     accuracy=session.accuracy,
                     raw_accuracy=session.raw_accuracy,
                     start_time=session.start_time.timestamp() if session.start_time else None,
@@ -121,7 +123,9 @@ class UsersQuery:
                     id=s.id,
                     user_id=s.user_id,
                     wpm=s.wpm,
+                    net_wpm=s.net_wpm,
                     accuracy=s.accuracy,
+                    raw_accuracy=s.raw_accuracy,
                     practice_duration=s.practice_duration,
                     start_time=to_timestamp(s.start_time),
                     end_time=to_timestamp(s.end_time),
@@ -154,11 +158,14 @@ class UsersQuery:
             return UserStatsSummaryType(
                 user_id=summary.user_id,
 
+                average_accuracy=summary.average_accuracy,
+                average_raw_accuracy=summary.average_raw_accuracy,
+
                 fastest_wpm=summary.fastest_wpm,
                 average_wpm=summary.average_wpm,
 
-                average_accuracy=summary.average_accuracy,
-                average_raw_accuracy=summary.average_raw_accuracy,
+                average_net_wpm=summary.average_net_wpm,
+                fastest_net_wpm=summary.fastest_net_wpm,
 
                 total_practice_duration=summary.total_practice_duration,
 

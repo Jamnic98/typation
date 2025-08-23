@@ -67,6 +67,7 @@ export enum StopWatchState {
 
 export type State = {
   wpm: number
+  netWpm: number
   accuracy: number
   rawAccuracy: number
   stopWatchTime: number
@@ -80,6 +81,7 @@ type UpdateStatsPayload = {
   practiceDuration?: number // Duration of session in seconds
 
   wpm?: number
+  netWpm?: number
   accuracy?: number
   rawAccuracy?: number
 
@@ -123,7 +125,9 @@ export type TypingSessionStats = {
   startTime: number
   endTime: number
   practiceDuration: number
+
   wpm: number
+  netWpm: number
 
   accuracy: number
   rawAccuracy: number
@@ -146,9 +150,13 @@ export interface StatsSummary {
   totalPracticeDuration: number
 
   averageWpm: number
+  fastestWpm: number
+
+  averageNetWpm: number
+  fastestNetWpm: number
+
   averageAccuracy: number
   averageRawAccuracy: number
-  fastestWpm: number
 
   practiceStreak: number
   longestStreak: number
@@ -250,4 +258,17 @@ export type AlertContextType = {
   alerts: AlertData[]
   showAlert: (alert: Omit<AlertData, 'id'>) => void
   removeAlert: (id: string) => void
+}
+
+export enum ActiveTab {
+  Summary = 'summary',
+  Trends = 'trends',
+}
+
+export interface MetricConfig {
+  label: string
+  tooltip: string
+  current: number
+  baseline: number
+  format: (v: number) => string | number
 }

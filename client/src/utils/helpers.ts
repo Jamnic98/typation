@@ -51,6 +51,7 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
       return {
         ...state,
         wpm: action.payload.wpm !== undefined ? action.payload.wpm : state.wpm,
+        netWpm: action.payload.netWpm !== undefined ? action.payload.netWpm : state.netWpm,
         accuracy: action.payload.accuracy !== undefined ? action.payload.accuracy : state.accuracy,
         rawAccuracy:
           action.payload.rawAccuracy !== undefined ? action.payload.rawAccuracy : state.rawAccuracy,
@@ -77,42 +78,11 @@ export const findDeleteFrom = (charObjArray: CharacterProps[], index: number): n
   return 0
 }
 
-const rebuildFinalText = (events: KeyEvent[]): string => {
-  const buffer: { char: string; status: TypedStatus }[] = []
-
-  for (const e of events) {
-    if (e.key === SpecialEvent.BACKSPACE) {
-      let toDelete = e.deleteCount ?? 1
-
-      // Only MISS can be deleted
-      while (toDelete > 0 && buffer.length > 0) {
-        const last = buffer[buffer.length - 1]
-
-        if (last.status === TypedStatus.MISS) {
-          buffer.pop()
-          toDelete--
-        } else {
-          // stop if we hit HIT, CORRECTED, or FAILED_CORRECTION
-          break
-        }
-      }
-    } else {
-      // Append the typed char (HIT, MISS, CORRECTED, FAILED_CORRECTION)
-      buffer.push({ char: e.key, status: e.typedStatus ?? TypedStatus.NONE })
-    }
-  }
-
-  return buffer.map((b) => b.char).join('')
-}
-
 export const calculateTypingSessionStats = (
   events: KeyEvent[],
-  targetText: string,
   startTime: number,
   endTime: number
 ): TypingSessionStats => {
-  const typedText = rebuildFinalText(events)
-
   let hits = 0
   let fixed = 0
   let misses = 0
@@ -126,7 +96,7 @@ export const calculateTypingSessionStats = (
     const e = events[i]
 
     if (e.key === SpecialEvent.BACKSPACE) {
-      deletes++
+      deletes += e.deleteCount ?? 1
       continue // don’t log in unigraph/digraph
     }
 
@@ -135,7 +105,6 @@ export const calculateTypingSessionStats = (
     // }
     // unigraphStats[e.key].count++
 
-    console.log(e.typedStatus, e.key)
     switch (e.typedStatus) {
       case TypedStatus.HIT:
         hits++
@@ -166,9 +135,18 @@ export const calculateTypingSessionStats = (
   //   }
   // }
 
-  const finalCorrect = hits + fixed
-  const accuracy = toPercent(finalCorrect, targetText.length)
-  const rawAccuracy = toPercent(finalCorrect, hits + fixed + misses + unfixed + deletes)
+  const corrected = Math.min(fixed, deletes)
+  const finalCorrect = hits + corrected
+
+  // attempts = all typed chars (hits + misses + unfixed + corrected)
+  const attempts = hits + misses + unfixed + corrected
+  const accuracy = toPercent(finalCorrect, attempts)
+
+  const rawAccuracy = toPercent(finalCorrect, attempts + deletes)
+
+  const elapsed = endTime - startTime
+  const grossWpm = calculateGrossWpm(attempts, elapsed)
+  const netWpm = calculateNetWpm(grossWpm, accuracy)
 
   // const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
   //   key,
@@ -186,23 +164,19 @@ export const calculateTypingSessionStats = (
   //   accuracy: 1, // Placeholder: set to 1 (100%) or compute actual accuracy if available
   // }))
 
-  const elapsed = endTime - startTime
-  const wpm = calculateWpm(targetText, typedText, elapsed)
-
   return {
     startTime,
     endTime,
     practiceDuration: Math.round(elapsed / 1000),
-    wpm,
+    wpm: grossWpm,
+    netWpm,
     accuracy,
     rawAccuracy,
-    correctedCharCount: fixed,
+    correctedCharCount: corrected,
     errorCharCount: misses,
     deletedCharCount: deletes,
-    // unigraphs,
-    // digraphs,
     correctCharsTyped: finalCorrect,
-    totalCharsTyped: hits + fixed + misses + unfixed + deletes,
+    totalCharsTyped: hits + corrected + misses + unfixed + deletes,
   }
 }
 
@@ -217,23 +191,6 @@ export const calculateAccuracy = (targetText: string, typedText: string) => {
   }
 
   return typedText.length > 0 ? parseFloat(((correct / typedText.length) * 100).toFixed(1)) : 0
-}
-
-export const calculateWpm = (targetText: string, typedText: string, elapsedTime: number) => {
-  const len = Math.min(targetText.length, typedText.length)
-  let correct = 0
-
-  for (let i = 0; i < len; i++) {
-    if (typedText[i] === targetText[i]) {
-      correct++
-    }
-  }
-
-  // const minutesElapsed = Math.max(elapsedTime, MIN_ELAPSED_TIME_MS) / (60 * 1000)
-  const minutesElapsed = elapsedTime / (60 * 1000)
-  const wordsTyped = correct / AVERAGE_WORD_LENGTH
-
-  return Math.round(wordsTyped / minutesElapsed)
 }
 
 export const prettifyInt = (num: number): string => num.toLocaleString('en-GB')
@@ -270,7 +227,7 @@ const toPercent = (numerator: number, denominator: number, decimals = 1): number
 
 export const displayValue = (val?: number | null, opts?: { percent?: boolean }): string => {
   if (val == null) return 'n/a'
-  if (opts?.percent) return `${val.toFixed(1)}%`
+  if (opts?.percent) return `${Math.round(val)}%`
   return prettifyInt(val)
 }
 
@@ -281,4 +238,23 @@ export const percentChange = (current: number, previous: number): string | null 
     return `${sign}${change.toFixed(1)}%`
   }
   return null
+}
+
+export const getGlobalIndex = (lineIndex: number, colIndex: number, lines: CharacterProps[][]) => {
+  let index = 0
+  for (let i = 0; i < lineIndex; i++) {
+    index += lines[i].length
+  }
+  return index + colIndex
+}
+
+export const calculateGrossWpm = (totalCharsTyped: number, elapsedTime: number) => {
+  const minutesElapsed = Math.max(elapsedTime, 1) / (60 * 1000) // avoid div/0
+  const wordsTyped = totalCharsTyped / AVERAGE_WORD_LENGTH
+  return Math.round(wordsTyped / minutesElapsed)
+}
+
+// Net WPM = gross WPM * accuracy
+export const calculateNetWpm = (grossWpm: number, accuracyPercent: number) => {
+  return Math.round(grossWpm * (accuracyPercent / 100))
 }

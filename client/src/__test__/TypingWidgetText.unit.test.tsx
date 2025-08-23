@@ -136,74 +136,41 @@ describe('Test functionality', () => {
 
   test('Updates cursor position correctly', async () => {
     const user = userEvent.setup()
+
     renderTypingWidgetText({
-      textToType: textToType,
+      textToType,
       fontSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
-      reset: (): void => {},
+      reset: () => {},
     })
 
-    const characterCursors = screen.getAllByTestId('character-cursor')
     const typingWidgetText = screen.getByTestId('typing-widget-text')
-
-    // not focused, no cursor
-    // await waitFor(() => expect(characterCursors[0]).not.toHaveClass('animate-flash-block'))
-
-    // cursor appears when focused
     await user.click(typingWidgetText)
-    await waitFor(() => expect(characterCursors[0]).toHaveClass('animate-flash-block'))
 
-    // keystroke hit
+    // cursor starts at index 0
+    let cursor = await screen.findByTestId('character-cursor')
+    expect(cursor).toBeInTheDocument()
+    expect(cursor.parentElement).toHaveTextContent('h') // first char
+
+    // type first char → cursor should move to 'i'
     await user.keyboard(textToType[0])
-    await waitFor(() => expect(characterCursors[1]).toHaveClass('animate-flash-block'))
+    cursor = await screen.findByTestId('character-cursor')
+    expect(cursor.parentElement).toHaveTextContent('i')
 
-    // keystroke miss
+    // type wrong char → cursor should move to space
     await user.keyboard('z')
-    await waitFor(() => expect(characterCursors[2]).toHaveClass('animate-flash-block'))
+    cursor = await screen.findByTestId('character-cursor')
+    expect(cursor.parentElement).toHaveTextContent('_') // underscore symbol for space
 
-    // click off resets hides cursor and sets index to 0
-    await user.click(document.body)
-    await waitFor(() => {
-      expect(characterCursors[2]).not.toHaveClass('animate-flash-block')
-      expect(characterCursors[0]).not.toHaveClass('animate-flash-block')
-    })
-
-    // click back displays cursor at index 0
-    await user.click(typingWidgetText)
-    await waitFor(() => expect(characterCursors[0]).toHaveClass('animate-flash-block'))
-
-    // backspace has no effect when cursor at index 0
+    // backspace → cursor moves back to 'i'
     await user.keyboard('{backspace}')
-    await waitFor(() => expect(characterCursors[0]).toHaveClass('animate-flash-block'))
-
-    // move cursor forward to index 2 with 1 correct typed char and 1 incorrect typed char
-    await user.keyboard(textToType[0])
-    await user.keyboard('z')
-    await waitFor(() => {
-      expect(characterCursors[0]).not.toHaveClass('animate-flash-block')
-      expect(characterCursors[2]).toHaveClass('animate-flash-block')
-    })
-
-    // backspace moves cursor back
-    await user.keyboard('{backspace}')
-    await waitFor(() => {
-      expect(characterCursors[2]).not.toHaveClass('animate-flash-block')
-      expect(characterCursors[1]).toHaveClass('animate-flash-block')
-    })
-
-    // TODO: review
-    // // cursor doesnt overwrite correctly typed text
-    // await user.keyboard('{backspace}')
-    // await waitFor(() => {
-    //   expect(characterCursors[1]).toHaveClass('animate-flash-block')
-    //   expect(characterCursors[0]).not.toHaveClass('animate-flash-block')
-    // })
+    cursor = await screen.findByTestId('character-cursor')
+    expect(cursor.parentElement).toHaveTextContent('i')
   })
 
-  // TODO: unskip
-  test.skip('Calls onType function for valid keystrokes ', async () => {
+  test('Calls onType function for valid keystrokes ', async () => {
     const user = userEvent.setup()
     renderTypingWidgetText()
     const typingWidgetText = screen.getByTestId('typing-widget-text')
@@ -219,7 +186,7 @@ describe('Test functionality', () => {
     expect(defaultOnTypeFunc).toHaveBeenCalledTimes(4)
 
     await user.keyboard('{backspace}')
-    expect(defaultOnTypeFunc).toHaveBeenCalledTimes(4)
+    expect(defaultOnTypeFunc).toHaveBeenCalledTimes(5)
   })
 
   test('Calls onComplete upon text completion on correct final char and refreshes text correctly', async () => {

@@ -54,12 +54,18 @@ async def apply_session_to_summary(summary: UserStatsSummaryType, data: UserStat
 
     if summary.total_sessions == 1:
         summary.average_wpm = data.wpm or 0
+        summary.average_net_wpm = data.net_wpm or 0
         summary.average_accuracy = float(round(Decimal(str(data.accuracy or 0)), 1))
         summary.average_raw_accuracy = float(round(Decimal(str(data.raw_accuracy or 0)), 1))
     else:
         summary.average_wpm = round(
             ((summary.average_wpm * (summary.total_sessions - 1)) + (data.wpm or 0)) / summary.total_sessions
         )
+
+        summary.average_net_wpm = round(
+            ((summary.average_net_wpm * (summary.total_sessions - 1)) + (data.net_wpm or 0)) / summary.total_sessions
+        )
+
         new_accuracy = (
             (Decimal(cast(float, summary.average_accuracy)) * (summary.total_sessions - 1)) +
             Decimal(str(data.accuracy or 0))
@@ -68,12 +74,15 @@ async def apply_session_to_summary(summary: UserStatsSummaryType, data: UserStat
 
         new_raw_accuracy = (
             (Decimal(cast(float, summary.average_raw_accuracy)) * (summary.total_sessions - 1)) +
-            Decimal(str(data.accuracy or 0))
+            Decimal(str(data.raw_accuracy or 0))
         ) / summary.total_sessions
         summary.average_raw_accuracy = float(round(new_raw_accuracy, 1))
 
     if data.wpm and data.wpm > (summary.fastest_wpm or 0):
         summary.fastest_wpm = data.wpm
+
+    if data.net_wpm and data.net_wpm > (summary.fastest_net_wpm or 0):
+        summary.fastest_net_wpm = data.net_wpm
 
     summary.total_corrected_char_count += data.corrected_char_count or 0
     summary.total_deleted_char_count += data.deleted_char_count or 0

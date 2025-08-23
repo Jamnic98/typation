@@ -7,14 +7,16 @@ import {
   ErrorDistributionPieChart,
   KeystrokesBreakdownChart,
   SessionPerformance,
+  // SessionPerformance,
 } from 'components/graphs'
 import { useUser } from 'api'
 import { displayValue, percentChange, prettifyInt } from 'utils/helpers'
-import { type TypingSessionStats, type StatsSummary } from 'types'
+import { type TypingSessionStats, type StatsSummary, type MetricConfig, ActiveTab } from 'types'
 
 export const Statistics = () => {
   const { statsSummary, sessionsByDateRange } = useUser()
 
+  const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.Summary)
   const [userStatsSummary, setUserStatsSummary] = useState<StatsSummary>()
   const [userSessions, setUserSessions] = useState<TypingSessionStats[]>([])
   const [baselineSessions, setBaselineSessions] = useState<TypingSessionStats[]>([])
@@ -66,20 +68,27 @@ export const Statistics = () => {
     sessions.length ? sumMetric(sessions, key) / sessions.length : 0
 
   // Current period stats
+  const wpmMax = userSessions.reduce((max, session) => (session.wpm > max ? session.wpm : max), 0)
   const completedSessionsCurr = userSessions.length
   const correctedCharCountCurr = sumMetric(userSessions, 'correctedCharCount')
   const deletedCharCountCurr = sumMetric(userSessions, 'deletedCharCount')
   const errorCharCountCurr = sumMetric(userSessions, 'errorCharCount')
   const wpmCurr = averageMetric(userSessions, 'wpm')
   const accuracyCurr = averageMetric(userSessions, 'accuracy')
+  const rawAccuracyCurr = averageMetric(userSessions, 'rawAccuracy')
 
   // Baseline period stats (7 days before current period)
+  const wpmMaxBaseline = baselineSessions.reduce(
+    (max, session) => (session.wpm > max ? session.wpm : max),
+    0
+  )
   const completedSessionsBaseline = baselineSessions.length
   const correctedCharCountBaseline = sumMetric(baselineSessions, 'correctedCharCount')
   const deletedCharCountBaseline = sumMetric(baselineSessions, 'deletedCharCount')
   const errorCharCountBaseline = sumMetric(baselineSessions, 'errorCharCount')
   const wpmBaseline = averageMetric(baselineSessions, 'wpm')
   const accuracyBaseline = averageMetric(baselineSessions, 'accuracy')
+  const rawAccuracyBaseline = averageMetric(baselineSessions, 'rawAccuracy')
 
   const sessionCountsConfig = [
     {
@@ -87,16 +96,16 @@ export const Statistics = () => {
       tooltip: 'Number of completed practice sessions.',
       value: displayValue(userStatsSummary?.totalSessions),
     },
-    {
-      label: 'Current Daily Practice Streak',
-      tooltip: 'Number of consecutive days with completed practice sessions.',
-      value: displayValue(userStatsSummary?.practiceStreak),
-    },
-    {
-      label: 'Longest Daily Practice Streak',
-      tooltip: 'All time longest streak of consecutive days with completed practice sessions.',
-      value: displayValue(userStatsSummary?.longestStreak),
-    },
+    // {
+    //   label: 'Current Daily Practice Streak',
+    //   tooltip: 'Number of consecutive days with completed practice sessions.',
+    //   value: displayValue(userStatsSummary?.practiceStreak),
+    // },
+    // {
+    //   label: 'Longest Daily Practice Streak',
+    //   tooltip: 'All time longest streak of consecutive days with completed practice sessions.',
+    //   value: displayValue(userStatsSummary?.longestStreak),
+    // },
   ]
 
   const summaryStatsConfig = [
@@ -128,24 +137,28 @@ export const Statistics = () => {
     {
       label: 'Keystroke Count',
       tooltip: 'Total number of keys pressed across all sessions.',
-      value: userStatsSummary?.totalKeystrokes
-        ? prettifyInt(userStatsSummary.totalKeystrokes)
-        : 'n/a',
+      value:
+        userStatsSummary?.totalKeystrokes !== undefined && userStatsSummary?.totalKeystrokes
+          ? prettifyInt(userStatsSummary.totalKeystrokes)
+          : 'n/a',
     },
     {
       label: 'Correctly Typed',
       tooltip: 'Total number of correctly typed keys.',
-      value: userStatsSummary?.totalCharCount
-        ? prettifyInt(userStatsSummary.totalCharCount)
-        : 'n/a',
+      value:
+        userStatsSummary?.totalCharCount !== undefined && userStatsSummary?.totalCharCount
+          ? prettifyInt(userStatsSummary.totalCharCount)
+          : 'n/a',
     },
     {
       label: 'Final Errors',
       tooltip: 'Total number of errors left uncorrected at the end of sessions.',
-      value: userStatsSummary?.errorCharCount
-        ? prettifyInt(userStatsSummary.errorCharCount)
-        : 'n/a',
+      value:
+        userStatsSummary?.errorCharCount !== undefined && userStatsSummary?.errorCharCount !== null
+          ? prettifyInt(userStatsSummary.errorCharCount)
+          : 'n/a',
     },
+
     {
       label: 'Errors Deleted',
       tooltip: 'Total number of errors removed using backspace.',
@@ -179,7 +192,7 @@ export const Statistics = () => {
     },
   ]
 
-  const metricsConfig = [
+  const metricsConfig: MetricConfig[] = [
     {
       label: 'Sessions Completed',
       tooltip: 'Number of practice sessions completed in the selected period.',
@@ -188,18 +201,33 @@ export const Statistics = () => {
       format: (v: number) => v,
     },
     {
+      label: 'Fastest WPM',
+      tooltip: 'Fastest words per minute in the selected period.',
+      current: wpmMax,
+      baseline: wpmMaxBaseline,
+      format: (v: number) => Math.floor(v),
+    },
+    {
       label: 'Average WPM',
       tooltip: 'Average words per minute in the selected period.',
       current: wpmCurr,
       baseline: wpmBaseline,
-      format: (v: number) => v.toFixed(1),
+      format: (v: number) => Math.floor(v),
     },
     {
       label: 'Average Accuracy',
       tooltip: 'Average typing accuracy in the selected period (percentage of correct keys).',
       current: accuracyCurr,
       baseline: accuracyBaseline,
-      format: (v: number) => v.toFixed(1) + '%',
+      format: (v: number) => Math.floor(v) + '%',
+    },
+    {
+      label: 'Average Raw Accuracy',
+      tooltip:
+        'Average raw typing accuracy in the selected period (percentage of correct keys ignoring corrections).',
+      current: rawAccuracyCurr,
+      baseline: rawAccuracyBaseline,
+      format: (v: number) => Math.floor(v) + '%',
     },
     {
       label: 'Final Errors',
@@ -227,136 +255,295 @@ export const Statistics = () => {
 
   return (
     <>
-      <header className="mb-12 space-y-4">
-        <h1 className="text-4xl font-semibold">Statistics</h1>
-        <hr className="w-full" />
+      <header className="mb-8">
+        <h1 className="text-3xl font-semibold">Statistics</h1>
       </header>
 
-      <section className="mb-12 space-y-6">
-        <h2 className="text-2xl font-semibold">All Time Stats Summary</h2>
-
-        <div className="space-y-2">
-          {sessionCountsConfig.map((stat) => (
-            <StatRow key={stat.label} {...stat} />
+      {/* Tabs */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex gap-6">
+          {[
+            { id: ActiveTab.Summary, label: 'Summary' },
+            { id: ActiveTab.Trends, label: 'Trends' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`pb-2 text-sm font-medium border-b-2 transition-colors hover:cursor-pointer ${
+                activeTab === tab.id
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+            </button>
           ))}
-        </div>
+        </nav>
+      </div>
 
-        <div className="space-y-2">
-          {summaryStatsConfig.map((stat) => (
-            <StatRow key={stat.label} {...stat} />
-          ))}
-        </div>
-
-        <div className="space-y-2">
-          {keyStrokeStatsConfig.map((stat) => (
-            <StatRow key={stat.label} {...stat} />
-          ))}
-        </div>
-      </section>
-
-      {/* TODO: add back Unigraphs */}
-
-      {/* <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4">Unigraphs</h2>
-        <ul className="flex flex-wrap gap-3 list-none p-0 m-0">
-          {userStatsSummary?.unigraphs
-            .sort((a, b) => a.key.localeCompare(b.key))
-            .map((unigraph) => (
-              <li key={unigraph.id}>
-                <UnigraphChips unigraphs={[unigraph]} />
-              </li>
+      {/* Tab Content */}
+      {activeTab === 'summary' && (
+        <section className="space-y-6">
+          {/* <h2 className="text-xl font-semibold">All Time Stats Summary</h2> */}
+          <div className="space-y-2">
+            {sessionCountsConfig.map((stat) => (
+              <StatRow key={stat.label} {...stat} />
             ))}
-        </ul>
-      </section> */}
-
-      <section className="mb-12 space-y-6">
-        <h2 className="text-2xl font-semibold">Statistics by Date Range</h2>
-
-        <div className="sticky top-[80px] z-1 bg-white">
-          <div className="flex gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Start</label>
-              <DatePicker
-                className="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm
-                         focus:border-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                selected={startDate}
-                onChange={(date) => setStartDate(date)}
-                selectsStart
-                startDate={startDate}
-                endDate={endDate}
-                maxDate={endDate || undefined}
-                showTimeSelect
-                timeFormat="HH:mm"
-                timeIntervals={15}
-                dateFormat="yyyy-MM-dd HH:mm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">End</label>
-              <DatePicker
-                className="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm
-                         focus:border-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                selectsEnd
-                startDate={startDate}
-                endDate={endDate}
-                minDate={startDate || undefined}
-                showTimeSelect
-                timeFormat="HH:mm"
-                timeIntervals={15}
-                dateFormat="yyyy-MM-dd HH:mm"
-              />
-            </div>
           </div>
-        </div>
+          <div className="space-y-2">
+            {summaryStatsConfig.map((stat) => (
+              <StatRow key={stat.label} {...stat} />
+            ))}
+          </div>
+          <div className="space-y-2">
+            {keyStrokeStatsConfig.map((stat) => (
+              <StatRow key={stat.label} {...stat} />
+            ))}
+          </div>
+        </section>
+      )}
 
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold">
-            Change vs Baseline (7-day moving average before period)
-          </h3>
-          <div className="grid grid-cols-2 gap-4 max-w-md">
-            {metricsConfig.map(({ label, current, baseline, format }) => {
-              const change = percentChange(current, baseline)
-              return (
-                <div key={label}>
-                  <div className="font-medium">{label}</div>
-                  <div className="flex items-center gap-2">
-                    {format(current)}
-                    {change && (
-                      <div className={current >= baseline ? 'text-green-600' : 'text-red-600'}>
-                        ({change})
-                      </div>
-                    )}
-                  </div>
+      {activeTab === 'trends' && (
+        <>
+          <section className="space-y-6">
+            {/* <h2 className="text-xl font-semibold">Statistics by Date Range</h2> */}
+            <div className="sticky top-[80px] z-1 bg-white">
+              <div className="flex gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Start</label>
+                  <DatePicker
+                    className="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm
+                         focus:border-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    selectsStart
+                    startDate={startDate}
+                    endDate={endDate}
+                    maxDate={endDate || undefined}
+                    showTimeSelect
+                    timeFormat="HH:mm"
+                    timeIntervals={15}
+                    dateFormat="yyyy-MM-dd HH:mm"
+                  />
                 </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
 
-      <section className="mb-12 space-y-6">
-        <h2 className="text-xl font-semibold">Session Performance</h2>
-        <SessionPerformance
-          sessions={(userSessions ?? []).map((s) => ({
-            startTime: s.startTime,
-            wpm: s.wpm,
-            accuracy: s.accuracy,
-          }))}
-        />
-      </section>
+                <div>
+                  <label className="block text-sm font-medium mb-1">End</label>
+                  <DatePicker
+                    className="w-48 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm
+                         focus:border-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    selected={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    selectsEnd
+                    startDate={startDate}
+                    endDate={endDate}
+                    minDate={startDate || undefined}
+                    showTimeSelect
+                    timeFormat="HH:mm"
+                    timeIntervals={15}
+                    dateFormat="yyyy-MM-dd HH:mm"
+                  />
+                </div>
+              </div>
+            </div>
 
-      <section className="mb-12 space-y-6">
-        <h2 className="text-xl font-semibold">Session Keystroke Breakdown</h2>
-        <KeystrokesBreakdownChart sessions={userSessions} />
-      </section>
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold">
+                Change vs Baseline
+                <span className="block text-sm font-normal text-neutral-500">
+                  (7-day moving average before period)
+                </span>
+              </h3>
 
-      <section className="mb-12 space-y-6">
-        <h2 className="text-xl font-semibold">Error Distribution</h2>
-        <ErrorDistributionPieChart sessions={userSessions} />
-      </section>
+              {/* Group: Speed */}
+              <div>
+                <h4 className="text-lg font-medium text-neutral-700 mb-2">Speed</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    metricsConfig.find((m) => m.label === 'Fastest WPM'),
+                    metricsConfig.find((m) => m.label === 'Average WPM'),
+                  ]
+                    .filter(Boolean)
+                    .map((metric) => {
+                      const { label, current, baseline, format } = metric!
+                      const change = percentChange(current, baseline)
+                      const isPositive = current >= baseline
+                      return (
+                        <div
+                          key={label}
+                          className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2"
+                        >
+                          <div className="text-xs font-medium text-neutral-600">{label}</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-lg font-semibold text-neutral-900">
+                              {format(current)}
+                            </span>
+                            {change && (
+                              <span
+                                className={`text-xs font-medium ${
+                                  isPositive ? 'text-green-600' : 'text-red-600'
+                                }`}
+                              >
+                                {isPositive ? '▲' : '▼'} {change}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-neutral-400">
+                            Baseline {format(baseline)}
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+              </div>
+
+              {/* Group: Accuracy */}
+              <div>
+                <h4 className="text-lg font-medium text-neutral-700 mb-2">Accuracy</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    metricsConfig.find((m) => m.label === 'Average Accuracy'),
+                    metricsConfig.find((m) => m.label === 'Average Raw Accuracy'),
+                  ]
+                    .filter(Boolean)
+                    .map((metric) => {
+                      const { label, current, baseline, format } = metric!
+                      const change = percentChange(current, baseline)
+                      const isPositive = current >= baseline
+                      return (
+                        <div
+                          key={label}
+                          className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2"
+                        >
+                          <div className="text-xs font-medium text-neutral-600">{label}</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-lg font-semibold text-neutral-900">
+                              {format(current)}
+                            </span>
+                            {change && (
+                              <span
+                                className={`text-xs font-medium ${
+                                  isPositive ? 'text-green-600' : 'text-red-600'
+                                }`}
+                              >
+                                {isPositive ? '▲' : '▼'} {change}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-neutral-400">
+                            Baseline {format(baseline)}
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+              </div>
+
+              {/* Group: Errors */}
+              <div>
+                <h4 className="text-lg font-medium text-neutral-700 mb-2">Errors</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    metricsConfig.find((m) => m.label === 'Final Errors'),
+                    metricsConfig.find((m) => m.label === 'Errors Deleted'),
+                    metricsConfig.find((m) => m.label === 'Errors Corrected'),
+                  ]
+                    .filter(Boolean)
+                    .map((metric) => {
+                      const { label, current, baseline, format } = metric!
+                      const change = percentChange(current, baseline)
+                      // For errors, fewer = good
+                      const isPositive = current <= baseline
+                      return (
+                        <div
+                          key={label}
+                          className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2"
+                        >
+                          <div className="text-xs font-medium text-neutral-600">{label}</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-lg font-semibold text-neutral-900">
+                              {format(current)}
+                            </span>
+                            {change && (
+                              <span
+                                className={`text-xs font-medium ${
+                                  isPositive ? 'text-green-600' : 'text-red-600'
+                                }`}
+                              >
+                                {isPositive ? '▲' : '▼'} {change}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-neutral-400">
+                            Baseline {format(baseline)}
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+              </div>
+
+              {/* Group: Sessions */}
+              <section className="mb-12 space-y-6">
+                <h4 className="text-lg font-medium text-neutral-700 mb-2">Sessions</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[metricsConfig.find((m) => m.label === 'Sessions Completed')]
+                    .filter((metric): metric is MetricConfig => metric !== undefined)
+                    .map(({ label, current, baseline, format }) => {
+                      const change = percentChange(current, baseline)
+                      const isPositive = current >= baseline
+                      return (
+                        <div
+                          key={label}
+                          className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2"
+                        >
+                          <div className="text-xs font-medium text-neutral-600">{label}</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-lg font-semibold text-neutral-900">
+                              {format(current)}
+                            </span>
+                            {change && (
+                              <span
+                                className={`text-xs font-medium ${
+                                  isPositive ? 'text-green-600' : 'text-red-600'
+                                }`}
+                              >
+                                {isPositive ? '▲' : '▼'} {change}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-neutral-400">
+                            Baseline {format(baseline)}
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+              </section>
+              <section className="mb-12 space-y-6">
+                <h2 className="text-xl font-semibold">Session Performance</h2>
+                <SessionPerformance
+                  sessions={(userSessions ?? []).map((s) => ({
+                    startTime: s.startTime,
+                    wpm: s.wpm,
+                    netWpm: s.netWpm,
+                    accuracy: s.accuracy,
+                    rawAccuracy: s.rawAccuracy,
+                  }))}
+                />
+              </section>
+              <section className="space-y-6">
+                <h2 className="text-xl font-semibold">Keystroke Analysis</h2>
+                <KeystrokesBreakdownChart sessions={userSessions} />
+              </section>
+              <section className="space-y-6">
+                <h2 className="text-xl font-semibold">Error Analysis</h2>
+                <ErrorDistributionPieChart sessions={userSessions} />
+              </section>
+            </div>
+          </section>
+        </>
+      )}
     </>
   )
 }

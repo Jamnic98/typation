@@ -3,10 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 import {
   defaultFontSettings,
-  STYLE_CORRECTED,
+  STYLE_FIXED,
   STYLE_HIT,
   STYLE_MISS,
-  STYLE_NON_FIX_DELETE,
+  STYLE_UNFIXED,
   STYLE_NONE,
   STYLE_PENDING,
 } from 'utils/constants'
@@ -23,8 +23,8 @@ export interface CharacterProps {
 
 export const typedStatusStyles: Record<TypedStatus, string> = {
   [TypedStatus.MISS]: STYLE_MISS,
-  [TypedStatus.FIXED]: STYLE_CORRECTED,
-  [TypedStatus.UNFIXED]: STYLE_NON_FIX_DELETE,
+  [TypedStatus.FIXED]: STYLE_FIXED,
+  [TypedStatus.UNFIXED]: STYLE_UNFIXED,
   [TypedStatus.PENDING]: STYLE_PENDING,
   [TypedStatus.HIT]: STYLE_HIT,
   [TypedStatus.NONE]: STYLE_NONE,
@@ -52,13 +52,12 @@ export const CharacterComponent = ({
     return Object.entries(fontSettings)
       .map(([key, value]) => {
         if (key === 'fontSize') return `text-${value}`
-        return
       })
       .join(' ')
   }, [fontSettings])
 
   const typedStatusClass = typedStatusStyles[typedStatus]
-  const cursorClass = isActive ? getCursorStyle(fontSettings?.cursorStyle) : ''
+  // const cursorClass = isActive ? getCursorStyle(fontSettings?.cursorStyle) : ''
   const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
 
   // Decide what to display
@@ -77,42 +76,50 @@ export const CharacterComponent = ({
   }
 
   return (
-    <span data-testid="character-cursor" className={cursorClass}>
-      <span className="w-[1ch] inline-block relative h-4">
-        <span
-          data-testid="background-character"
-          aria-hidden="true"
-          className={`${typedStatusClass} ${fontSettingsClass} absolute top-0 left-0 select-none`}
-        >
-          {displayChar}
-        </span>
-
-        <AnimatePresence mode="popLayout">
-          {!wasTyped && (
-            <motion.span
-              key={`${displayChar}-${typedStatus}`}
-              className={`${typedStatusClass} ${fontSettingsClass} z-10 inline-block ${
-                typedStatus === TypedStatus.MISS && typedChar === ' ' && char !== ' '
-                  ? 'line-through'
-                  : ''
-              }`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{
-                opacity: 0,
-                x: -Math.random() * 10,
-                y: Math.floor(Math.random() * 5) + 50,
-                rotate: (Math.random() - 0.5) * 360,
-                scale: 0.9 + Math.random() * 0.1,
-              }}
-              transition={{ duration: 0.5 }}
-              data-testid="foreground-character"
-            >
-              {displayChar}
-            </motion.span>
-          )}
-        </AnimatePresence>
+    <span className="inline-block relative w-[1ch] align-baseline">
+      {/* Character background */}
+      <span
+        aria-hidden="true"
+        data-testid="background-character"
+        className={`${typedStatusClass} ${fontSettingsClass} absolute inset-0 select-none`}
+      >
+        {displayChar}
       </span>
+
+      {/* Foreground animation */}
+      <AnimatePresence mode="popLayout">
+        {!wasTyped && (
+          <motion.span
+            data-testid="foreground-character"
+            key={`${displayChar}-${typedStatus}`}
+            className={`${typedStatusClass} ${fontSettingsClass} relative z-10 inline-block ${
+              typedStatus === TypedStatus.MISS && typedChar === ' ' && char !== ' '
+                ? 'line-through'
+                : ''
+            }`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{
+              opacity: 0,
+              x: -Math.random() * 10,
+              y: Math.floor(Math.random() * 5) + 50,
+              rotate: (Math.random() - 0.5) * 360,
+              scale: 0.9 + Math.random() * 0.1,
+            }}
+            transition={{ duration: 0.5 }}
+          >
+            {displayChar}
+          </motion.span>
+        )}
+      </AnimatePresence>
+
+      {/* Blinking cursor overlay */}
+      {isActive && (
+        <span
+          className={`absolute inset-0 ${getCursorStyle(fontSettings?.cursorStyle)}`}
+          data-testid="character-cursor"
+        />
+      )}
     </span>
   )
 }

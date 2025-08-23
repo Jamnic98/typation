@@ -19,6 +19,8 @@ class DigraphStatistic(BaseModel):
 
 class UserStatsSessionCreate(BaseModel):
     wpm: Optional[int] = None
+    net_wpm: Optional[int] = None
+
     accuracy: Optional[float] = None
     raw_accuracy: Optional[float] = None
 
@@ -40,7 +42,11 @@ class UserStatsSessionRead(BaseModel):
     id: UUID
     user_id: UUID
     wpm: Optional[int]
+    net_wpm: Optional[int]
+
     accuracy: Optional[float]
+    raw_accuracy: Optional[float]
+
     practice_duration: Optional[int]
     start_time: Optional[datetime]
     end_time: Optional[datetime]

@@ -24,7 +24,7 @@ export const Register = () => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegistration = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
       const response = await fetch(`${baseUrl}/auth/register`, {
@@ -36,8 +36,6 @@ export const Register = () => {
       if (!response.ok) {
         // try to parse error JSON
         const errorData = await response.json().catch(() => null)
-
-        console.log('Registration error:', errorData)
         throw new Error(errorData?.detail || 'Registration failed, please try again.')
       }
 
@@ -64,7 +62,7 @@ export const Register = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
-      <form onSubmit={handleRegister} className="space-y-4">
+      <form onSubmit={handleRegistration} className="space-y-4">
         <input
           type="text"
           name="user_name"
@@ -74,7 +72,8 @@ export const Register = () => {
           onChange={handleChange}
           required
         />
-        <input
+
+        {/* <input
           type="text"
           name="first_name"
           placeholder="First Name"
@@ -89,7 +88,11 @@ export const Register = () => {
           className="w-full border p-2 rounded"
           value={form.last_name}
           onChange={handleChange}
-        />
+        /> */}
+
+        {/* TODO> update styles */}
+        <br />
+        <br />
         <input
           type="email"
           name="email"
