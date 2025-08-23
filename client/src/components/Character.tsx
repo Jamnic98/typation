@@ -62,10 +62,9 @@ export const CharacterComponent = ({
 
   // Decide what to display
   let displayChar: string
-
-  if (typedStatus === TypedStatus.MISS && typedChar) {
+  if ((typedStatus === TypedStatus.MISS || typedStatus === TypedStatus.UNFIXED) && typedChar) {
     if (typedChar === ' ' && char !== ' ') {
-      // user typed a space instead of a letter → mark with dot + strikethrough
+      // user typed a space instead of a letter → show dot + strikethrough
       displayChar = '·'
     } else {
       displayChar = typedChar
@@ -101,12 +100,12 @@ export const CharacterComponent = ({
             animate={{ opacity: 1 }}
             exit={{
               opacity: 0,
-              x: -Math.random() * 10,
-              y: Math.floor(Math.random() * 5) + 50,
+              x: -Math.random() * 20,
+              y: Math.floor(Math.random()) + 30,
               rotate: (Math.random() - 0.5) * 360,
               scale: 0.9 + Math.random() * 0.1,
             }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
           >
             {displayChar}
           </motion.span>

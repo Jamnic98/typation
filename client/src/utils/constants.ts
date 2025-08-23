@@ -43,6 +43,7 @@ export const LOCAL_STORAGE_TOKEN_KEY = 'token'
 export const LOCAL_STORAGE_USER_KEY = 'user'
 export const LOCAL_STORAGE_TEXT_KEY = 'typingText'
 export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
+export const LOCAL_STORAGE_CORPUS_KEY = 'corpus'
 
 export const TYPING_WIDGET_INITIAL_STATE: State = {
   wpm: 0,
@@ -65,3 +66,10 @@ export const STYLE_FIXED = 'text-green-400 italic'
 export const STYLE_UNFIXED = 'text-gray-400 line-through italic opacity-60'
 export const STYLE_PENDING = 'text-yellow-600 italic'
 export const STYLE_NONE = 'text-black font-extralight'
+
+export const LABEL_MAP: Record<string, string> = {
+  wpm: 'WPM',
+  netWpm: 'Net WPM',
+  accuracy: 'Accuracy',
+  rawAccuracy: 'Raw Accuracy',
+}

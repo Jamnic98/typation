@@ -1,13 +1,27 @@
-import { LOCAL_STORAGE_TOKEN_KEY } from 'utils/constants'
+import { LOCAL_STORAGE_TOKEN_KEY, LOCAL_STORAGE_CORPUS_KEY } from 'utils/constants'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 const url = `${baseUrl}/text/generate-practice-text`
 
+const loadCorpus = async (): Promise<string[]> => await (await fetch('/corpus.json')).json()
+
 export const fetchTypingString = async (): Promise<string> => {
   try {
     const token = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)
-    if (!token) throw new Error('No token found')
+    if (!token) {
+      const corpusLocal = localStorage.getItem(LOCAL_STORAGE_CORPUS_KEY)
+      if (!corpusLocal) {
+        const corpus = await loadCorpus()
+        localStorage.setItem(LOCAL_STORAGE_CORPUS_KEY, JSON.stringify(corpus))
+        return corpus.join(' ')
+      }
+
+      const corpus = JSON.parse(corpusLocal)
+      // Use the corpus for text generation
+      const text = corpus.join(' ')
+      return text
+    }
 
     const response = await fetch(url, {
       method: 'POST',

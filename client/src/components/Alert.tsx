@@ -29,7 +29,7 @@ export const Alert: React.FC<AlertProps> = ({ type, title, message, onClose }) =
       {onClose && (
         <button
           onClick={onClose}
-          className="text-lg font-bold leading-none focus:outline-none ml-2"
+          className="text-lg font-bold leading-none focus:outline-none ml-2 hover:cursor-pointer"
           aria-label="Close alert"
           style={{ lineHeight: 1 }}
         >

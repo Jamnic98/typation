@@ -48,10 +48,15 @@ export const TypingWidget = () => {
       localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
       localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
     } catch (err) {
-      const errorMsg = 'Failed to fetch typing text'
-      console.error(errorMsg, err)
+      const fallback = 'practice typing text fallback lorem ipsum...'
+      console.error('Failed to fetch typing text', err)
+
+      // fall back to a local string
+      dispatch({ type: 'SET_TEXT', payload: fallback })
+      localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, fallback)
+
       showAlert({
-        title: errorMsg,
+        title: 'Failed to fetch typing text',
         message: getReadableErrorMessage(err),
         type: AlertType.ERROR,
       })
@@ -112,18 +117,6 @@ export const TypingWidget = () => {
     if (typedStatus === TypedStatus.MISS && cursorIndex < state.text.length) {
       trackMistypedKey(mistypedRef, key, state.text[cursorIndex])
     }
-
-    // Live stats calculation of wpm and accuracy
-    // const now = Date.now()
-    // const elapsed = now - startTimestamp.current
-    // const typedText = keyEventQueue.current.map((e) => e.key).join('')
-
-    // if (elapsed && typedText.length > 0) {
-    //   const targetText = state.text
-    //   const wpm = calculateWpm(targetText, typedText, elapsed)
-    //   const accuracy = calculateAccuracy(targetText, typedText)
-    //   dispatch({ type: 'UPDATE_STATS', payload: { wpm, accuracy } })
-    // }
   }
 
   const onComplete = async (): Promise<void> => {
@@ -141,7 +134,7 @@ export const TypingWidget = () => {
       startTimestamp.current,
       now
     )
-    console.log(sessionStats)
+
     dispatch({
       type: 'UPDATE_STATS',
       payload: {
@@ -155,26 +148,22 @@ export const TypingWidget = () => {
     try {
       await fetchAndSetText()
       setShowStats(true)
-      token &&
-        (await saveStats(
-          {
-            wpm: sessionStats.wpm,
-            netWpm: sessionStats.netWpm,
-            accuracy: sessionStats.accuracy,
-            rawAccuracy: sessionStats.rawAccuracy,
-            practiceDuration: Math.floor(elapsedTime / 1000),
-            correctedCharCount: sessionStats.correctedCharCount,
-            deletedCharCount: sessionStats.deletedCharCount,
-            correctCharsTyped: sessionStats.correctCharsTyped,
-            totalCharsTyped: sessionStats.totalCharsTyped,
-            errorCharCount: sessionStats.errorCharCount,
-            // unigraphs: sessionStats.unigraphs,
-            // digraphs: sessionStats.digraphs,
-            startTime: startTimestamp.current,
-            endTime: now,
-          },
-          token
-        ))
+
+      if (token) {
+        try {
+          await saveStats(
+            { ...sessionStats, startTime: startTimestamp.current, endTime: now },
+            token
+          )
+        } catch (err) {
+          console.error('Failed to save stats', err)
+          showAlert({
+            title: 'Failed to save stats',
+            message: getReadableErrorMessage(err),
+            type: AlertType.ERROR,
+          })
+        }
+      }
 
       localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
     } catch (err) {

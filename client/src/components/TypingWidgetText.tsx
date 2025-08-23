@@ -24,6 +24,12 @@ export interface TypingWidgetTextProps {
 }
 
 const LINE_LENGTH = 80 // adjust to fit your layout
+const ROW_HEIGHT = 1.5 // rem
+const GAP = 0.5 // rem
+const LINE_SPACING = ROW_HEIGHT + GAP
+const VISIBLE_LINES = 4
+const CONTAINER_HEIGHT = LINE_SPACING * VISIBLE_LINES
+const INITIAL_OFFSET = 1 // 👈
 
 export const TypingWidgetText = ({
   textToType,
@@ -69,7 +75,25 @@ export const TypingWidgetText = ({
 
       // Build lines from words
       for (const word of words) {
+        // If the word is just a space, try to attach it to the current line
+        if (word.length === 1 && word[0].char === ' ') {
+          if (currentLength + 1 > LINE_LENGTH) {
+            // If the space would overflow, still add it to this line,
+            // then break the line immediately.
+            currentLine.push(word[0])
+            chunks.push(currentLine)
+            currentLine = []
+            currentLength = 0
+          } else {
+            currentLine.push(word[0])
+            currentLength += 1
+          }
+          continue
+        }
+
+        // For normal words
         if (currentLength + word.length > LINE_LENGTH && currentLine.length > 0) {
+          // push current line and start new one
           chunks.push(currentLine)
           currentLine = []
           currentLength = 0
@@ -293,7 +317,7 @@ export const TypingWidgetText = ({
       </div>
 
       {/* Typing text area */}
-      <div className="relative overflow-hidden h-[4.5rem]">
+      <div className="relative overflow-hidden" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
         {!isFocused && (
           <span className="absolute inset-0 flex items-center justify-center text-lg font-medium text-neutral-500 pointer-events-none">
             Click here to start
@@ -303,35 +327,74 @@ export const TypingWidgetText = ({
         <div
           id="typing-widget-text"
           data-testid="typing-widget-text"
-          className={`font-mono outline-none transition-transform duration-300 ease-in-out ${
-            isFocused ? '' : 'blur-xs hover:cursor-pointer'
-          }`}
+          className={`font-mono outline-none ${isFocused ? '' : 'blur-xs hover:cursor-pointer'}`}
           tabIndex={-1}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          style={{
-            transform: `translateY(calc(1.5rem * ${1 - lineIndex}))`,
-          }}
         >
-          {lines.map((line, idx) => (
-            <div
-              key={idx}
-              className={`flex justify-center h-[1.5rem] ${idx !== lineIndex ? 'opacity-10' : ''}`}
-            >
-              {line.map((charObj, ci) => (
-                <Character
-                  {...charObj}
-                  fontSettings={fontSettings}
-                  isActive={idx === lineIndex && ci === colIndex && isFocused}
-                  key={`${idx}-${ci}-${sessionId}`}
-                />
-              ))}
-            </div>
-          ))}
+          <div
+            className="transition-transform duration-300 ease-in-out"
+            style={{
+              transform: `translateY(-${lineIndex * LINE_SPACING}rem)`, // scroll normally
+            }}
+          >
+            {/* 👇 add empty "padding" lines at the top */}
+            {Array.from({ length: INITIAL_OFFSET }).map((_, idx) => (
+              <div
+                key={`pad-${idx}`}
+                style={{
+                  height: `${ROW_HEIGHT}rem`,
+                  marginBottom: `${GAP}rem`,
+                  opacity: 0,
+                }}
+              />
+            ))}
+
+            {/* Actual typing lines */}
+            {lines.map((line, idx) => {
+              const relative = idx - lineIndex
+
+              // default opacity
+              let opacity = 0
+
+              if (relative === -1) {
+                // show prev line *only after first line is completed*
+                opacity = lineIndex > 0 ? 0.15 : 0
+              } else if (relative === 0) {
+                opacity = 1 // active
+              } else if (relative === 1) {
+                opacity = 0.15 // next
+              } else if (relative === 2) {
+                opacity = 0.05 // next+1
+              }
+
+              return (
+                <div
+                  key={idx}
+                  className="flex justify-center transition-opacity duration-300"
+                  style={{
+                    height: `${ROW_HEIGHT}rem`,
+                    marginBottom: `${GAP}rem`,
+                    opacity,
+                  }}
+                >
+                  {lineIndex > 0 || relative >= 0
+                    ? line.map((charObj, ci) => (
+                        <Character
+                          {...charObj}
+                          fontSettings={fontSettings}
+                          isActive={idx === lineIndex && ci === colIndex && isFocused}
+                          key={`${idx}-${ci}-${sessionId}`}
+                        />
+                      ))
+                    : null}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
-
       {/* Keyboard */}
       <UKKeyboardSvg
         highlightKey={lines[lineIndex]?.[colIndex]?.char}

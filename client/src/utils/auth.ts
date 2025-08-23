@@ -1,5 +1,9 @@
 import { type User, type UserLogin } from 'types'
-import { LOCAL_STORAGE_TOKEN_KEY, LOCAL_STORAGE_USER_KEY } from 'utils/constants'
+import {
+  LOCAL_STORAGE_TOKEN_KEY,
+  LOCAL_STORAGE_USER_KEY,
+  LOCAL_STORAGE_COMPLETED_KEY,
+} from 'utils/constants'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 const authEndpoint = `${baseUrl}/auth`
@@ -33,5 +37,6 @@ export const loginUser = async (userLogin: UserLogin): Promise<User> => {
 export const logoutUser = () => {
   localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
   localStorage.removeItem(LOCAL_STORAGE_USER_KEY)
+  localStorage.removeItem(LOCAL_STORAGE_COMPLETED_KEY)
   window.location.reload()
 }

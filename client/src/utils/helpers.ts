@@ -151,7 +151,7 @@ export const calculateTypingSessionStats = (
   // const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
   //   key,
   //   count,
-  //   accuracy: count ? Math.round((hit / count) * 100) : 0,
+  //   accuracy: count ? Math.floor((hit / count) * 100) : 0,
   //   // rawAccuracy: hit / count, // Placeholder: set to actual raw accuracy if available
   //   mistyped: [], // TODO: Populate with actual mistyped data if available
   // }))
@@ -159,7 +159,7 @@ export const calculateTypingSessionStats = (
   // const digraphs = Object.entries(digraphTimings).map(([key, arr]) => ({
   //   key,
   //   count: arr.length,
-  //   meanInterval: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length),
+  //   meanInterval: Math.floor(arr.reduce((a, b) => a + b, 0) / arr.length),
   //   // TODO: calculate digraph accuracy
   //   accuracy: 1, // Placeholder: set to 1 (100%) or compute actual accuracy if available
   // }))
@@ -167,7 +167,7 @@ export const calculateTypingSessionStats = (
   return {
     startTime,
     endTime,
-    practiceDuration: Math.round(elapsed / 1000),
+    practiceDuration: Math.floor(elapsed / 1000),
     wpm: grossWpm,
     netWpm,
     accuracy,
@@ -227,7 +227,7 @@ const toPercent = (numerator: number, denominator: number, decimals = 1): number
 
 export const displayValue = (val?: number | null, opts?: { percent?: boolean }): string => {
   if (val == null) return 'n/a'
-  if (opts?.percent) return `${Math.round(val)}%`
+  if (opts?.percent) return `${Math.floor(val)}%`
   return prettifyInt(val)
 }
 
@@ -251,10 +251,10 @@ export const getGlobalIndex = (lineIndex: number, colIndex: number, lines: Chara
 export const calculateGrossWpm = (totalCharsTyped: number, elapsedTime: number) => {
   const minutesElapsed = Math.max(elapsedTime, 1) / (60 * 1000) // avoid div/0
   const wordsTyped = totalCharsTyped / AVERAGE_WORD_LENGTH
-  return Math.round(wordsTyped / minutesElapsed)
+  return Math.floor(wordsTyped / minutesElapsed)
 }
 
 // Net WPM = gross WPM * accuracy
 export const calculateNetWpm = (grossWpm: number, accuracyPercent: number) => {
-  return Math.round(grossWpm * (accuracyPercent / 100))
+  return Math.floor(grossWpm * (accuracyPercent / 100))
 }
