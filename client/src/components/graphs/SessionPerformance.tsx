@@ -1,6 +1,14 @@
 import { useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, TooltipProps } from 'recharts'
-import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  type TooltipProps,
+} from 'recharts'
+import { type NameType, type ValueType } from 'recharts/types/component/DefaultTooltipContent'
 
 import { LABEL_MAP } from 'utils'
 

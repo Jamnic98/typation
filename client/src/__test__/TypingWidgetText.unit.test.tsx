@@ -28,6 +28,7 @@ const renderTypingWidgetText = (props?: TypingWidgetTextProps) => {
     onType: defaultOnTypeFunc,
     reset: props && typeof props.reset === 'function' ? props.reset : () => {},
     ...props,
+    typable: true,
   }
   const typingWidget = <TypingWidgetText {...currentProps} />
   render(typingWidget)
@@ -56,6 +57,7 @@ describe('Test Rendering', () => {
       onComplete: async () => {},
       onType: async () => {},
       reset: (): void => {},
+      typable: true,
     })
     const typingWidget = screen.queryByTestId('typing-widget-text')
     expect(typingWidget).not.toBeInTheDocument()
@@ -69,6 +71,7 @@ describe('Test Rendering', () => {
       onComplete: async () => {},
       onType: async () => {},
       reset: (): void => {},
+      typable: true,
     })
 
     // test background text
@@ -101,6 +104,7 @@ describe('Test functionality', () => {
       onComplete: async () => {},
       onType: async () => {},
       reset: (): void => {},
+      typable: true,
     })
 
     const characters = screen.getAllByTestId('background-character')
@@ -144,6 +148,7 @@ describe('Test functionality', () => {
       onComplete: async () => {},
       onType: async () => {},
       reset: () => {},
+      typable: true,
     })
 
     const typingWidgetText = screen.getByTestId('typing-widget-text')

@@ -28,5 +28,6 @@ export const TypingWidgetTextStory: Story = {
     onComplete: async () => {},
     onType: () => {},
     reset: () => {},
+    typable: true,
   },
 }

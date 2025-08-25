@@ -74,6 +74,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem(LOCAL_STORAGE_TEXT_KEY)
     setUser(null)
     setToken(null)
+    window.location.reload()
   }
 
   const statsSummary = async (): Promise<StatsSummary | undefined> => {

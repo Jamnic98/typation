@@ -21,6 +21,7 @@ export interface TypingWidgetTextProps {
   onComplete: () => Promise<void>
   onType: (params: OnTypeParams) => void
   reset: () => void
+  typable: boolean
 }
 
 const LINE_LENGTH = 80 // adjust to fit your layout
@@ -38,6 +39,7 @@ export const TypingWidgetText = ({
   onComplete,
   onType,
   reset,
+  typable,
 }: TypingWidgetTextProps) => {
   const [sessionId, setSessionId] = useState(Date.now())
   const [lines, setLines] = useState<CharacterProps[][]>([])
@@ -119,12 +121,13 @@ export const TypingWidgetText = ({
 
   const handleFocus = () => setIsFocused(true)
 
-  const handleBlur = () => {
-    reset()
-    setIsFocused(false)
-    resetTyping()
+  const handleBlur = (e: React.FocusEvent<HTMLElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      reset()
+      setIsFocused(false)
+      resetTyping()
+    }
   }
-
   const updateCharStatusAtCursor = (typedStatus: TypedStatus, key?: string): CharacterProps[][] => {
     const updated = [...lines]
     const line = [...updated[lineIndex]]
@@ -209,10 +212,21 @@ export const TypingWidgetText = ({
       let li = newLineIndex
       let ci = newColIndex
 
-      // Walk back through consecutive MISS/UNFIXED
-      while (li >= 0 && lines[li][ci].typedStatus === TypedStatus.MISS) {
+      // Step 1: walk backwards through consecutive MISS
+      while (li >= 0) {
+        const char = lines[li][ci]
+
+        if (!char || char.typedStatus !== TypedStatus.MISS) {
+          // stop at the first non-MISS
+          break
+        }
+
         if (ci === 0) {
-          if (li === 0) break
+          if (li === 0) {
+            // reached very beginning (0,0) and it's a MISS
+            ci = -1
+            break
+          }
           li--
           ci = lines[li].length - 1
         } else {
@@ -220,10 +234,10 @@ export const TypingWidgetText = ({
         }
       }
 
-      // Start point is just after that last non-deletable
+      // Step 2: compute start index = one after the stopping point
       let startLine = li
       let startCol = ci + 1
-      if (startCol >= lines[startLine].length) {
+      if (startCol >= (lines[startLine]?.length ?? 0)) {
         startLine++
         startCol = 0
       }
@@ -231,7 +245,7 @@ export const TypingWidgetText = ({
       const globalStart = getGlobalIndex(startLine, startCol, lines)
       const globalEnd = getGlobalIndex(newLineIndex, newColIndex, lines)
 
-      if (globalEnd < globalStart) return // nothing deletable
+      if (globalEnd < globalStart) return
 
       const updated = lines.map((line, li) =>
         line.map((char, ci) => {
@@ -288,6 +302,7 @@ export const TypingWidgetText = ({
   }
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
+    if (!typable) return
     const { key, ctrlKey } = e
     if (!ctrlKey) e.preventDefault()
     if (ctrlKey && key === 'r') return
@@ -306,9 +321,9 @@ export const TypingWidgetText = ({
   if (!textToType || !lines.length) return null
 
   return (
-    <div className="flex flex-col items-center gap-6 select-none">
+    <div className="flex flex-col items-center gap-12 select-none">
       {/* Big preview char */}
-      <div className="text-8xl">
+      <div className="text-8xl h-18">
         {lines[lineIndex]?.[colIndex]?.char
           ? lines[lineIndex][colIndex].char === ' '
             ? spaceSymbolMap[SpaceSymbols.DOT]
@@ -327,19 +342,24 @@ export const TypingWidgetText = ({
         <div
           id="typing-widget-text"
           data-testid="typing-widget-text"
-          className={`font-mono outline-none ${isFocused ? '' : 'blur-xs hover:cursor-pointer'}`}
-          tabIndex={-1}
+          role="textbox"
+          aria-label="Typing area"
+          tabIndex={0}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          autoFocus
+          className={`font-mono outline-none px-4 ${
+            isFocused ? '' : 'blur-xs hover:cursor-pointer'
+          }`}
         >
           <div
             className="transition-transform duration-300 ease-in-out"
             style={{
-              transform: `translateY(-${lineIndex * LINE_SPACING}rem)`, // scroll normally
+              transform: `translateY(-${lineIndex * LINE_SPACING}rem)`,
             }}
           >
-            {/* 👇 add empty "padding" lines at the top */}
+            {/* add empty "padding" lines at the top */}
             {Array.from({ length: INITIAL_OFFSET }).map((_, idx) => (
               <div
                 key={`pad-${idx}`}
@@ -355,18 +375,15 @@ export const TypingWidgetText = ({
             {lines.map((line, idx) => {
               const relative = idx - lineIndex
 
-              // default opacity
               let opacity = 0
-
               if (relative === -1) {
-                // show prev line *only after first line is completed*
                 opacity = lineIndex > 0 ? 0.15 : 0
               } else if (relative === 0) {
-                opacity = 1 // active
+                opacity = 1
               } else if (relative === 1) {
-                opacity = 0.15 // next
+                opacity = 0.15
               } else if (relative === 2) {
-                opacity = 0.05 // next+1
+                opacity = 0.05
               }
 
               return (
@@ -395,6 +412,7 @@ export const TypingWidgetText = ({
           </div>
         </div>
       </div>
+
       {/* Keyboard */}
       <UKKeyboardSvg
         highlightKey={lines[lineIndex]?.[colIndex]?.char}

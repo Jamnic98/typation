@@ -6,15 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     DATABASE_URL: str = None
-
     PYTHONPATH: str = "./"
-
     GRAPHQL_ENDPOINT: str = "/graphql"
-
-    # Redis
-    QUEUE_NAME: str = "task_queue"
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
 
     # Uvicorn
     DEBUG: bool = True
@@ -26,7 +19,7 @@ class Settings(BaseSettings):
     # TODO: reduce to 60 and implement refresh tokens
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200
 
-    WORD_LIMIT: int = 150
+    WORD_LIMIT: int = 40
 
     @cached_property
     def database_url(self) -> str:

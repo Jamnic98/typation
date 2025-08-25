@@ -55,6 +55,22 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
         accuracy: action.payload.accuracy !== undefined ? action.payload.accuracy : state.accuracy,
         rawAccuracy:
           action.payload.rawAccuracy !== undefined ? action.payload.rawAccuracy : state.rawAccuracy,
+        totalCharsTyped:
+          action.payload.totalCharsTyped !== undefined
+            ? action.payload.totalCharsTyped
+            : state.totalCharsTyped,
+        correctedCharCount:
+          action.payload.correctedCharCount !== undefined
+            ? action.payload.correctedCharCount
+            : state.correctedCharCount,
+        errorCharCount:
+          action.payload.errorCharCount !== undefined
+            ? action.payload.errorCharCount
+            : state.errorCharCount,
+        deletedCharCount:
+          action.payload.deletedCharCount !== undefined
+            ? action.payload.deletedCharCount
+            : state.deletedCharCount,
       }
 
     case 'SET_STOPWATCH_TIME':
@@ -257,4 +273,15 @@ export const calculateGrossWpm = (totalCharsTyped: number, elapsedTime: number) 
 // Net WPM = gross WPM * accuracy
 export const calculateNetWpm = (grossWpm: number, accuracyPercent: number) => {
   return Math.floor(grossWpm * (accuracyPercent / 100))
+}
+
+export const formatDateTime = (timestamp: number) => {
+  return new Intl.DateTimeFormat('en-GB', {
+    weekday: 'short', // Mon
+    day: '2-digit', // 25
+    month: 'short', // Aug
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(timestamp)
 }

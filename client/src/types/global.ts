@@ -70,6 +70,12 @@ export type State = {
   netWpm: number
   accuracy: number
   rawAccuracy: number
+
+  totalCharsTyped: number
+  correctedCharCount: number
+  errorCharCount: number
+  deletedCharCount: number
+
   stopWatchTime: number
   isRunning: boolean
   text: string

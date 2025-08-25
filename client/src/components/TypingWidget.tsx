@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 
-import { SessionStatsSummary, TypingWidgetText } from 'components'
+import { Modal, SessionStatsSummary, TypingWidgetText } from 'components'
 import { fetchTypingString, saveStats, useAlert, useUser } from 'api'
 import {
   // calculateAccuracy,
@@ -9,6 +9,7 @@ import {
   typingWidgetStateReducer,
   getReadableErrorMessage,
   trackMistypedKey,
+  formatDateTime,
 } from 'utils/helpers'
 import {
   defaultFontSettings,
@@ -33,11 +34,10 @@ export const TypingWidget = () => {
   const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
 
   const startTimestamp = useRef<number>(0)
-  const deletedCharCount = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
   const mistypedRef = useRef<Record<string, Record<string, number>>>({})
 
-  const [displayTime, setDisplayTime] = useState(0)
+  // const [displayTime, setDisplayTime] = useState(0)
   const [showStats, setShowStats] = useState<boolean>(false)
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
 
@@ -75,11 +75,8 @@ export const TypingWidget = () => {
   }, [fetchAndSetText])
 
   const reset = (): void => {
-    setShowStats(false)
-    dispatch({ type: 'RESET_SESSION' })
+    // dispatch({ type: 'RESET_SESSION' })
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
-    deletedCharCount.current = 0
-    mistypedRef.current = {}
     keyEventQueue.current = []
   }
 
@@ -127,7 +124,7 @@ export const TypingWidget = () => {
 
     dispatch({ type: 'STOP' })
     dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
-    setDisplayTime(elapsedTime)
+    // setDisplayTime(elapsedTime)
 
     const sessionStats = calculateTypingSessionStats(
       keyEventQueue.current,
@@ -142,6 +139,10 @@ export const TypingWidget = () => {
         netWpm: sessionStats.netWpm,
         accuracy: sessionStats.accuracy,
         rawAccuracy: sessionStats.rawAccuracy,
+        totalCharsTyped: sessionStats.totalCharsTyped,
+        correctedCharCount: sessionStats.correctedCharCount,
+        errorCharCount: sessionStats.errorCharCount,
+        deletedCharCount: sessionStats.deletedCharCount,
       },
     })
 
@@ -186,19 +187,26 @@ export const TypingWidget = () => {
         reset={reset}
         textToType={state.text ?? ''}
         fontSettings={fontSettings}
+        typable={!showStats}
       />
 
-      {/* TODO: replace br tag with style */}
-
-      {showStats ? (
+      <Modal
+        title={formatDateTime(startTimestamp.current)}
+        isOpen={showStats}
+        onClose={() => setShowStats(false)}
+        // onOk={() => dispatch({ type: 'RESET_SESSION' })}
+      >
         <SessionStatsSummary
           wpm={state.wpm}
           netWpm={state.netWpm}
           accuracy={state.accuracy}
           rawAccuracy={state.rawAccuracy}
-          displayTime={displayTime}
+          keystrokes={state.totalCharsTyped}
+          corrected={state.correctedCharCount}
+          missed={state.errorCharCount}
+          deleted={state.deletedCharCount}
         />
-      ) : null}
+      </Modal>
     </div>
   )
 }
