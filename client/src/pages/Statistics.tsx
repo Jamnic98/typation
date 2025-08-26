@@ -394,7 +394,6 @@ export const Statistics = () => {
                     .map((metric) => {
                       const { label, current, baseline, format } = metric!
                       const change = percentChange(current, baseline)
-                      const isPositive = metric?.inverse ? current <= baseline : current >= baseline
 
                       return (
                         <div
