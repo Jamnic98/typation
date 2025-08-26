@@ -22,6 +22,8 @@ export interface TypingWidgetTextProps {
   onType: (params: OnTypeParams) => void
   reset: () => void
   typable: boolean
+  onFocusChange?: (focused: boolean) => void
+  onBlurReset?: () => void
 }
 
 const LINE_LENGTH = 80 // adjust to fit your layout
@@ -40,6 +42,8 @@ export const TypingWidgetText = ({
   onType,
   reset,
   typable,
+  onFocusChange,
+  onBlurReset,
 }: TypingWidgetTextProps) => {
   const [sessionId, setSessionId] = useState(Date.now())
   const [lines, setLines] = useState<CharacterProps[][]>([])
@@ -119,13 +123,18 @@ export const TypingWidgetText = ({
     setSessionId(Date.now())
   }, [textToType, resetTyping])
 
-  const handleFocus = () => setIsFocused(true)
+  const handleFocus = () => {
+    setIsFocused(true)
+    onFocusChange?.(true)
+  }
 
   const handleBlur = (e: React.FocusEvent<HTMLElement>) => {
     if (!e.currentTarget.contains(e.relatedTarget)) {
       reset()
       setIsFocused(false)
       resetTyping()
+      onFocusChange?.(false)
+      onBlurReset?.()
     }
   }
   const updateCharStatusAtCursor = (typedStatus: TypedStatus, key?: string): CharacterProps[][] => {

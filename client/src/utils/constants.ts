@@ -59,6 +59,8 @@ export const TYPING_WIDGET_INITIAL_STATE: State = {
   text: '',
 }
 
+export const DEFAULT_SESSION_DURATION = 60
+
 // endpoints
 export const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 export const authEndpoint = `${baseUrl}/auth`
