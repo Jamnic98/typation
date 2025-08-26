@@ -277,4 +277,5 @@ export interface MetricConfig {
   current: number
   baseline: number
   format: (v: number) => string | number
+  inverse?: boolean
 }

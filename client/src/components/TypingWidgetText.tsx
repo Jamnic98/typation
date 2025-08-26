@@ -321,9 +321,9 @@ export const TypingWidgetText = ({
   if (!textToType || !lines.length) return null
 
   return (
-    <div className="flex flex-col items-center gap-12 select-none">
+    <div className="flex flex-col items-center select-none">
       {/* Big preview char */}
-      <div className="text-8xl h-18">
+      <div className="text-8xl h-18 mb-14">
         {lines[lineIndex]?.[colIndex]?.char
           ? lines[lineIndex][colIndex].char === ' '
             ? spaceSymbolMap[SpaceSymbols.DOT]
@@ -332,7 +332,7 @@ export const TypingWidgetText = ({
       </div>
 
       {/* Typing text area */}
-      <div className="relative overflow-hidden" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
+      <div className="relative overflow-hidden mb-6" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
         {!isFocused && (
           <span className="absolute inset-0 flex items-center justify-center text-lg font-medium text-neutral-500 pointer-events-none">
             Click here to start

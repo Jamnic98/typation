@@ -211,6 +211,24 @@ export const calculateAccuracy = (targetText: string, typedText: string) => {
 
 export const prettifyInt = (num: number): string => num.toLocaleString('en-GB')
 
+export const prettifyDuration = (v: number): string => {
+  if (v <= 0) return '0s'
+
+  const days = Math.floor(v / 86400)
+  const hours = Math.floor((v % 86400) / 3600)
+  const minutes = Math.floor((v % 3600) / 60)
+  const seconds = v % 60
+
+  const parts: string[] = []
+
+  if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`)
+  if (hours > 0) parts.push(`${hours} hr${hours !== 1 ? 's' : ''}`)
+  if (minutes > 0) parts.push(`${minutes} min${minutes !== 1 ? 's' : ''}`)
+  if (seconds > 0) parts.push(`${seconds}s`)
+
+  return parts.join(' ')
+}
+
 export const getReadableErrorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err)
 
@@ -247,13 +265,29 @@ export const displayValue = (val?: number | null, opts?: { percent?: boolean }):
   return prettifyInt(val)
 }
 
-export const percentChange = (current: number, previous: number): string | null => {
-  if (previous !== 0) {
-    const change = ((current - previous) / previous) * 100
-    const sign = change > 0 ? '+' : ''
-    return `${sign}${change.toFixed(1)}%`
+export const percentChange = (
+  current: number,
+  baseline: number
+): { text: string; arrow: '▲' | '▼' | null; positive: boolean | null } | null => {
+  // No data in both
+  if (baseline === 0 && current === 0) return null
+
+  // No baseline, but current exists -> meaningless
+  if (baseline === 0 && current > 0) return null
+
+  // No current, baseline exists -> skip (don't show ▼ 100%)
+  if (baseline > 0 && current === 0) return null
+
+  if (baseline > 0 && current === 0) {
+    return { text: '100%', arrow: '▼', positive: false }
   }
-  return null
+
+  const change = ((current - baseline) / baseline) * 100
+  return {
+    text: `${Math.abs(change).toFixed(1)}%`,
+    arrow: change >= 0 ? '▲' : '▼',
+    positive: change >= 0,
+  }
 }
 
 export const getGlobalIndex = (lineIndex: number, colIndex: number, lines: CharacterProps[][]) => {
@@ -284,4 +318,13 @@ export const formatDateTime = (timestamp: number) => {
     hour: '2-digit',
     minute: '2-digit',
   }).format(timestamp)
+}
+
+export const shuffleArray = <T>(array: T[]): T[] => {
+  const result = [...array]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
 }

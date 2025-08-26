@@ -10,7 +10,7 @@ import {
   // SessionPerformance,
 } from 'components/graphs'
 import { useUser } from 'api'
-import { displayValue, percentChange, prettifyInt } from 'utils/helpers'
+import { displayValue, percentChange, prettifyDuration, prettifyInt } from 'utils/helpers'
 import { type TypingSessionStats, type StatsSummary, type MetricConfig, ActiveTab } from 'types'
 
 export const Statistics = () => {
@@ -70,6 +70,8 @@ export const Statistics = () => {
   // Current period stats
   const wpmMax = userSessions.reduce((max, session) => (session.wpm > max ? session.wpm : max), 0)
   const completedSessionsCurr = userSessions.length
+  const totalPracticeDurationCurr = sumMetric(userSessions, 'practiceDuration')
+  const totalCharsTypedCurr = sumMetric(userSessions, 'totalCharsTyped')
   const correctedCharCountCurr = sumMetric(userSessions, 'correctedCharCount')
   const deletedCharCountCurr = sumMetric(userSessions, 'deletedCharCount')
   const errorCharCountCurr = sumMetric(userSessions, 'errorCharCount')
@@ -83,6 +85,8 @@ export const Statistics = () => {
     0
   )
   const completedSessionsBaseline = baselineSessions.length
+  const totalPracticeDurationBaseline = sumMetric(baselineSessions, 'practiceDuration')
+  const totalCharsTypedBaseline = sumMetric(baselineSessions, 'totalCharsTyped')
   const correctedCharCountBaseline = sumMetric(baselineSessions, 'correctedCharCount')
   const deletedCharCountBaseline = sumMetric(baselineSessions, 'deletedCharCount')
   const errorCharCountBaseline = sumMetric(baselineSessions, 'errorCharCount')
@@ -201,6 +205,13 @@ export const Statistics = () => {
       format: (v: number) => v,
     },
     {
+      label: 'Total Practice Duration',
+      tooltip: 'Total duration of practice sessions in the selected period.',
+      current: totalPracticeDurationCurr,
+      baseline: totalPracticeDurationBaseline,
+      format: (v: number) => prettifyDuration(v),
+    },
+    {
       label: 'Fastest WPM',
       tooltip: 'Fastest words per minute in the selected period.',
       current: wpmMax,
@@ -230,26 +241,42 @@ export const Statistics = () => {
       format: (v: number) => Math.floor(v) + '%',
     },
     {
-      label: 'Final Errors',
-      tooltip: 'Number of errors left uncorrected at the end of sessions in the selected period.',
-      current: errorCharCountCurr,
-      baseline: errorCharCountBaseline,
-      format: prettifyInt,
-    },
-
-    {
-      label: 'Errors Deleted',
-      tooltip: 'Number of errors removed using backspace in the selected period.',
-      current: deletedCharCountCurr,
-      baseline: deletedCharCountBaseline,
+      label: 'Total Keys',
+      tooltip: '',
+      current: totalCharsTypedCurr,
+      baseline: totalCharsTypedBaseline,
       format: prettifyInt,
     },
     {
-      label: 'Errors Corrected',
-      tooltip: 'Number of errors corrected by re-typing in the selected period.',
-      current: correctedCharCountCurr,
-      baseline: correctedCharCountBaseline,
-      format: prettifyInt,
+      label: 'Error Rate',
+      tooltip: 'Errors per 100 keys (lower is better).',
+      current: totalCharsTypedCurr > 0 ? (errorCharCountCurr / totalCharsTypedCurr) * 100 : 0,
+      baseline:
+        totalCharsTypedBaseline > 0 ? (errorCharCountBaseline / totalCharsTypedBaseline) * 100 : 0,
+      format: (v: number) => v.toFixed(1) + '%',
+      inverse: true, // tells your renderer lower = good
+    },
+    {
+      label: 'Correction Rate',
+      tooltip: 'Corrections per 100 keys (lower is better).',
+      current: totalCharsTypedCurr > 0 ? (correctedCharCountCurr / totalCharsTypedCurr) * 100 : 0,
+      baseline:
+        totalCharsTypedBaseline > 0
+          ? (correctedCharCountBaseline / totalCharsTypedBaseline) * 100
+          : 0,
+      format: (v: number) => v.toFixed(1) + '%',
+      inverse: true,
+    },
+    {
+      label: 'Backspace Rate',
+      tooltip: 'Backspaces per 100 keys (lower is better).',
+      current: totalCharsTypedCurr > 0 ? (deletedCharCountCurr / totalCharsTypedCurr) * 100 : 0,
+      baseline:
+        totalCharsTypedBaseline > 0
+          ? (deletedCharCountBaseline / totalCharsTypedBaseline) * 100
+          : 0,
+      format: (v: number) => v.toFixed(1) + '%',
+      inverse: true,
     },
   ]
 
@@ -367,7 +394,8 @@ export const Statistics = () => {
                     .map((metric) => {
                       const { label, current, baseline, format } = metric!
                       const change = percentChange(current, baseline)
-                      const isPositive = current >= baseline
+                      const isPositive = metric?.inverse ? current <= baseline : current >= baseline
+
                       return (
                         <div
                           key={label}
@@ -381,15 +409,17 @@ export const Statistics = () => {
                             {change && (
                               <span
                                 className={`text-xs font-medium ${
-                                  isPositive ? 'text-green-600' : 'text-red-600'
+                                  change.positive ? 'text-green-600' : 'text-red-600'
                                 }`}
                               >
-                                {isPositive ? '▲' : '▼'} {change}
+                                {change.arrow} {change.text}
                               </span>
                             )}
                           </div>
                           <div className="text-xs text-neutral-400">
-                            Baseline {format(baseline)}
+                            {baseline && baseline !== 0
+                              ? `Baseline ${format(baseline)}`
+                              : 'Baseline –'}
                           </div>
                         </div>
                       )
@@ -409,7 +439,6 @@ export const Statistics = () => {
                     .map((metric) => {
                       const { label, current, baseline, format } = metric!
                       const change = percentChange(current, baseline)
-                      const isPositive = current >= baseline
                       return (
                         <div
                           key={label}
@@ -423,15 +452,60 @@ export const Statistics = () => {
                             {change && (
                               <span
                                 className={`text-xs font-medium ${
-                                  isPositive ? 'text-green-600' : 'text-red-600'
+                                  change.positive ? 'text-green-600' : 'text-red-600'
                                 }`}
                               >
-                                {isPositive ? '▲' : '▼'} {change}
+                                {change.arrow} {change.text}
                               </span>
                             )}
                           </div>
                           <div className="text-xs text-neutral-400">
-                            Baseline {format(baseline)}
+                            {baseline && baseline !== 0
+                              ? `Baseline ${format(baseline)}`
+                              : 'Baseline –'}
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+              </div>
+
+              {/* Group: Keys */}
+              <div>
+                <h4 className="text-lg font-medium text-neutral-700 mb-2">Key presses</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    metricsConfig.find((m) => m.label === 'Total Keys'),
+                    metricsConfig.find((m) => m.label === 'Backspace Rate'),
+                  ]
+                    .filter(Boolean)
+                    .map((metric) => {
+                      const { label, current, baseline, format } = metric!
+                      const change = percentChange(current, baseline)
+                      return (
+                        <div
+                          key={label}
+                          className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2"
+                        >
+                          <div className="text-xs font-medium text-neutral-600">{label}</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-lg font-semibold text-neutral-900">
+                              {format(current)}
+                            </span>
+                            {change && (
+                              <span
+                                className={`text-xs font-medium ${
+                                  change.positive ? 'text-green-600' : 'text-red-600'
+                                }`}
+                              >
+                                {change.arrow} {change.text}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-neutral-400">
+                            {baseline && baseline !== 0
+                              ? `Baseline ${format(baseline)}`
+                              : 'Baseline –'}
                           </div>
                         </div>
                       )
@@ -444,16 +518,14 @@ export const Statistics = () => {
                 <h4 className="text-lg font-medium text-neutral-700 mb-2">Errors</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {[
-                    metricsConfig.find((m) => m.label === 'Final Errors'),
-                    metricsConfig.find((m) => m.label === 'Errors Deleted'),
-                    metricsConfig.find((m) => m.label === 'Errors Corrected'),
+                    metricsConfig.find((m) => m.label === 'Error Rate'),
+                    metricsConfig.find((m) => m.label === 'Correction Rate'),
                   ]
                     .filter(Boolean)
                     .map((metric) => {
                       const { label, current, baseline, format } = metric!
                       const change = percentChange(current, baseline)
-                      // For errors, fewer = good
-                      const isPositive = current <= baseline
+
                       return (
                         <div
                           key={label}
@@ -467,15 +539,17 @@ export const Statistics = () => {
                             {change && (
                               <span
                                 className={`text-xs font-medium ${
-                                  isPositive ? 'text-green-600' : 'text-red-600'
+                                  change.positive ? 'text-green-600' : 'text-red-600'
                                 }`}
                               >
-                                {isPositive ? '▲' : '▼'} {change}
+                                {change.arrow} {change.text}
                               </span>
                             )}
                           </div>
                           <div className="text-xs text-neutral-400">
-                            Baseline {format(baseline)}
+                            {baseline && baseline !== 0
+                              ? `Baseline ${format(baseline)}`
+                              : 'Baseline –'}
                           </div>
                         </div>
                       )
@@ -487,11 +561,13 @@ export const Statistics = () => {
               <section className="mb-12 space-y-6">
                 <h4 className="text-lg font-medium text-neutral-700 mb-2">Sessions</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {[metricsConfig.find((m) => m.label === 'Sessions Completed')]
+                  {[
+                    metricsConfig.find((m) => m.label === 'Sessions Completed'),
+                    metricsConfig.find((m) => m.label === 'Total Practice Duration'),
+                  ]
                     .filter((metric): metric is MetricConfig => metric !== undefined)
                     .map(({ label, current, baseline, format }) => {
                       const change = percentChange(current, baseline)
-                      const isPositive = current >= baseline
                       return (
                         <div
                           key={label}
@@ -505,15 +581,17 @@ export const Statistics = () => {
                             {change && (
                               <span
                                 className={`text-xs font-medium ${
-                                  isPositive ? 'text-green-600' : 'text-red-600'
+                                  change.positive ? 'text-green-600' : 'text-red-600'
                                 }`}
                               >
-                                {isPositive ? '▲' : '▼'} {change}
+                                {change.arrow} {change.text}
                               </span>
                             )}
                           </div>
                           <div className="text-xs text-neutral-400">
-                            Baseline {format(baseline)}
+                            {baseline && baseline !== 0
+                              ? `Baseline ${format(baseline)}`
+                              : 'Baseline –'}
                           </div>
                         </div>
                       )

@@ -1,6 +1,7 @@
 import React from 'react'
-import { Alert } from './Alert'
-import { useAlert } from '../api/context/AlertContext'
+
+import { Alert } from 'components'
+import { useAlert } from 'api'
 
 type AlertBannerProps = {
   position?: 'top-center' | 'bottom-right' | 'top-right' | 'bottom-left'

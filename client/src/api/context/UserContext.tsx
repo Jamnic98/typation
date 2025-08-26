@@ -16,6 +16,7 @@ import {
   type UserContextType,
   type UserLogin,
 } from 'types'
+import { useNavigate } from 'react-router'
 
 const UserContext = createContext<UserContextType | null>(null)
 
@@ -27,6 +28,7 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { showAlert } = useAlert()
+  const navigate = useNavigate()
 
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
@@ -75,6 +77,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null)
     setToken(null)
     window.location.reload()
+    navigate('')
   }
 
   const statsSummary = async (): Promise<StatsSummary | undefined> => {

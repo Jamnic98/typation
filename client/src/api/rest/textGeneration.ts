@@ -1,4 +1,5 @@
 import { LOCAL_STORAGE_TOKEN_KEY, LOCAL_STORAGE_CORPUS_KEY } from 'utils/constants'
+import { shuffleArray } from 'utils/helpers'
 
 const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
@@ -18,8 +19,9 @@ export const fetchTypingString = async (): Promise<string> => {
       }
 
       const corpus = JSON.parse(corpusLocal)
+      const randomised = shuffleArray(corpus)
       // Use the corpus for text generation
-      const text = corpus.join(' ')
+      const text = randomised.join(' ')
       return text
     }
 
