@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useUser } from 'api/context/UserContext'
+import { /* Link, */ useNavigate } from 'react-router-dom'
+// import { useUser } from 'api/context/UserContext'
 
 export const Header = () => {
   const navigate = useNavigate()
-  const { user, logout } = useUser()
+  // const { user, logout } = useUser()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -25,11 +25,11 @@ export const Header = () => {
     }
   }, [menuOpen])
 
-  const handleLogout = () => {
-    logout()
-    setMenuOpen(false)
-    navigate('/')
-  }
+  // const handleLogout = () => {
+  //   logout()
+  //   setMenuOpen(false)
+  //   navigate('/')
+  // }
 
   return (
     <div className="sticky top-0 z-10 h-20 bg-white border-b border-gray-200 flex justify-between items-center px-8">
@@ -37,7 +37,7 @@ export const Header = () => {
         Typation (beta)
       </h1>
 
-      <div className="relative">
+      {/* <div className="relative">
         {user ? (
           <div className="relative" ref={dropdownRef}>
             <button
@@ -77,7 +77,7 @@ export const Header = () => {
             Login
           </Link>
         )}
-      </div>
+      </div> */}
     </div>
   )
 }
