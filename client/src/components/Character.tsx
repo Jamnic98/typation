@@ -57,7 +57,6 @@ export const CharacterComponent = ({
   }, [fontSettings])
 
   const typedStatusClass = typedStatusStyles[typedStatus]
-  // const cursorClass = isActive ? getCursorStyle(fontSettings?.cursorStyle) : ''
   const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
 
   // Decide what to display

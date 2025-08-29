@@ -14,7 +14,10 @@ export const Login = () => {
     try {
       e.preventDefault()
       await login({ email, password })
-      navigate('/')
+      if (!authError) {
+        navigate('/')
+      }
+      throw new Error('Login failed')
     } catch (error) {
       console.error('Login failed:', error)
     }

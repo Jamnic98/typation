@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_create_stats_session(graphql_query_fixture, test_users, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     mutation = """
@@ -40,7 +40,7 @@ async def test_create_stats_session(graphql_query_fixture, test_users, auth_toke
     assert "id" in data
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_get_all_stats_sessions(graphql_query_fixture, test_users, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     # Assumes session(s) created in fixture or earlier test
@@ -52,7 +52,7 @@ async def test_get_all_stats_sessions(graphql_query_fixture, test_users, auth_to
     assert isinstance(json_data["data"]["userStatsSessions"], list)
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_get_stats_session_by_id(graphql_query_fixture, test_users, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     # First create one to retrieve
@@ -98,7 +98,7 @@ async def test_get_stats_session_by_id(graphql_query_fixture, test_users, auth_t
     assert data["id"] == session_id
 
 
-# @pytest.mark.anyio
+# @pytest.mark.asyncio
 # async def test_update_stats_session(graphql_query_fixture, test_user_stats_sessions, auth_token):
 #     headers = {"Authorization": f"Bearer {auth_token}"}
 #     # First create one
@@ -153,7 +153,7 @@ async def test_get_stats_session_by_id(graphql_query_fixture, test_users, auth_t
 #     assert data["accuracy"] == 95
 
 
-# @pytest.mark.anyio
+# @pytest.mark.asyncio
 # async def test_delete_stats_session(graphql_query_fixture, test_users, auth_token):
 #     headers = {"Authorization": f"Bearer {auth_token}"}
 #     # Create first

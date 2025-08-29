@@ -23,7 +23,7 @@ def generate_invalid_token():
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_create_user(graphql_query_fixture: Callable[[str, Optional[dict]], Coroutine[Any, Any, Response]]):
     mutation = """
         mutation CreateUser($userInput: UserCreateInput!) {
@@ -46,7 +46,7 @@ async def test_create_user(graphql_query_fixture: Callable[[str, Optional[dict]]
     assert json_data["data"]["createUser"]["email"] == "newuser@example.com"
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_duplicate_email(graphql_query_fixture):
     mutation = """
         mutation CreateUser($userInput: UserCreateInput!) {
@@ -73,7 +73,7 @@ async def test_duplicate_email(graphql_query_fixture):
     assert "email already exists" in res2.json()["errors"][0]["message"].lower()
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_create_user_duplicate_email(graphql_query_fixture):
     email = "duplicategql@example.com"
     mutation = """
@@ -96,7 +96,7 @@ async def test_create_user_duplicate_email(graphql_query_fixture):
     assert "already exists" in res2.json()["errors"][0]["message"].lower()
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_get_all_users(graphql_query_fixture, test_users):
     query = """query { users { id } }"""
     response = await graphql_query_fixture(query, None, None)
@@ -105,7 +105,7 @@ async def test_get_all_users(graphql_query_fixture, test_users):
     assert len(response.json()["data"]["users"]) >= len(test_users)
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_get_users_empty(graphql_query_fixture):
     query = """query { users { id } }"""
     response = await graphql_query_fixture(query, None, None)
@@ -113,7 +113,7 @@ async def test_get_users_empty(graphql_query_fixture):
     assert response.json()["data"]["users"] == []
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_update_user_invalid_id(graphql_query_fixture):
     token = generate_invalid_token()
     headers = {"Authorization": f"Bearer {token}"}
@@ -131,7 +131,7 @@ async def test_update_user_invalid_id(graphql_query_fixture):
     assert res.json()["data"]["updateUser"] is None
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_update_user_authenticated(graphql_query_fixture, auth_token):
     test_user_name = "newusername"
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -159,7 +159,7 @@ async def test_update_user_authenticated(graphql_query_fixture, auth_token):
         assert False, "updateUser returned None"
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_delete_user(graphql_query_fixture, auth_token, test_users):
     headers = {"Authorization": f"Bearer {auth_token}"}
     mutation = """

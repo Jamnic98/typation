@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_create_user_stats_summary(graphql_query_fixture, test_users, auth_token):
     user_id = str(test_users[0].id)
     fastest_wpm = 90
@@ -39,7 +39,7 @@ async def test_create_user_stats_summary(graphql_query_fixture, test_users, auth
     assert data["data"]["createUserStatsSummary"]["fastestWpm"] == fastest_wpm
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_get_user_stats_summary_by_user_id(graphql_query_fixture, test_users, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     mutation = """

@@ -19,7 +19,7 @@ fi
 # Optionally install requirements if needed
 # pip install -r requirements.txt
 
-pytest
-pylint api/app worker/app
+python3 -m pytest
+python3 -m pylint api/app worker/app
 
 exit 0
