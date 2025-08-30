@@ -18,8 +18,11 @@ import {
 import { AlertBanner, Layout } from 'components'
 import { UserProvider } from 'api/context/UserContext'
 import { AlertProvider } from 'api/context/AlertContext'
+import { usePageTracking } from './hooks/usePageTracking'
 
 const App = () => {
+  usePageTracking()
+
   return (
     <AlertProvider>
       <AlertBanner position="bottom-right" />
