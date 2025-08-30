@@ -196,6 +196,7 @@ export type UserContextType = {
   user: User | null
   token: string | null
   authError: string | null
+  loading: boolean
   login: (userLogin: UserLogin) => Promise<void>
   logout: () => void
   statsSummary: () => Promise<StatsSummary | undefined>

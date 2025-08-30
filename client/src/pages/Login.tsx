@@ -1,7 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
-import { useUser } from 'api/context/UserContext'
+import { useUser } from 'api/context'
 
 export const Login = () => {
   const navigate = useNavigate()

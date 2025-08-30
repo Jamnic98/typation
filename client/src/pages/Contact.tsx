@@ -1,6 +1,7 @@
+import { LegalLayout } from 'layouts'
+
 export const Contact = () => (
-  <div className="max-w-3xl mx-auto px-6 py-12">
-    <h1 className="text-3xl font-bold mb-6">Contact Us</h1>
+  <LegalLayout title="Contact Us">
     <p className="mb-4 text-gray-700">
       Got questions, feedback, or suggestions? We’d love to hear from you.
     </p>
@@ -11,5 +12,5 @@ export const Contact = () => (
       </a>
     </p>
     <p className="text-gray-700">We do our best to respond within a couple of days.</p>
-  </div>
+  </LegalLayout>
 )

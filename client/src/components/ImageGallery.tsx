@@ -24,7 +24,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
           <button
             key={index}
             onClick={() => setSelectedImage(shot.src)}
-            className="rounded-xl shadow-lg overflow-hidden flex flex-col text-left focus:outline-hidden transform transition-transform duration-300 hover:scale-105 hover:cursor-pointer"
+            className="rounded-xl shadow-lg overflow-hidden flex flex-col text-left focus:outline-hidden transform transition-transform duration-300 hover:scale-105 cursor-pointer"
           >
             <img
               src={shot.src}

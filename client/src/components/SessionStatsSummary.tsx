@@ -42,7 +42,7 @@ export const SessionStatsSummary = ({
       <div>
         <button
           onClick={() => setShowDetails((s) => !s)}
-          className="mx-auto block text-sm text-blue-600 hover:text-blue-800 transition hover:cursor-pointer"
+          className="mx-auto block text-sm text-blue-600 hover:text-blue-800 transition cursor-pointer"
         >
           {showDetails ? 'Hide Details ▲' : 'Show Details ▼'}
         </button>

@@ -1,4 +1,4 @@
-import { useUser } from 'api/context/UserContext'
+import { useUser } from 'api/context'
 
 export const Profile = () => {
   const { user } = useUser()
@@ -12,7 +12,6 @@ export const Profile = () => {
         </header>
 
         <div className="space-y-12">
-          {/* <h2 className="text-2xl mb-4">User</h2> */}
           <div className="space-y-2">
             <div>
               Username: <span>{user?.user_name ?? ''}</span>

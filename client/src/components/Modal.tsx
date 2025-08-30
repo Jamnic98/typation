@@ -47,7 +47,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, children }
               )}
               <button
                 onClick={onClose}
-                className="absolute top-3 right-3 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition hover:cursor-pointer"
+                className="absolute top-3 right-3 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition cursor-pointer"
               >
                 ✕
               </button>

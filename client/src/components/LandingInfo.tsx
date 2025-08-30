@@ -4,31 +4,45 @@ import { AnimatePresence, motion } from 'framer-motion'
 export const LandingInfo = () => {
   const [step, setStep] = useState(0)
   const [direction, setDirection] = useState(0)
-
   const slides = [
     {
-      title: 'Type Smarter, Not Harder',
-      content: (
-        <p className="text-gray-700 text-lg leading-relaxed">
-          Typation isn’t just another typing test — it studies how <em>you</em> type. From
-          single-key accuracy to digraph timings, Typation builds personalised practice sessions
-          that focus on where you need it most.
-        </p>
-      ),
-    },
-    {
-      title: '🚫 100% Ad-Free, Forever',
+      title: '🚫 Always Ad-Free',
       content: (
         <div className="space-y-3">
           <p className="text-gray-700 leading-relaxed">
-            I’m building Typation as a solo software engineer because I believe learning should be
-            distraction-free. The core typing interface will always be free and ad-free.
+            Typation is built to keep you focused. The core typing experience is completely free —
+            with zero ads, ever.
           </p>
           <p className="text-gray-700 leading-relaxed">
-            Premium features help keep the project alive — but anyone can practise typing without
-            barriers. Every bit of support means the world 🙏
+            Supporters will unlock extra features in the future, but practising your typing will
+            always be barrier-free.
           </p>
         </div>
+      ),
+    },
+    {
+      title: '🛠 A Work in Progress',
+      content: (
+        <div className="space-y-3">
+          <p className="text-gray-700 leading-relaxed">
+            Typation is being built by a solo indie developer. It’s still early days, and your
+            feedback helps shape where it goes next.
+          </p>
+          <p className="text-gray-700 leading-relaxed">
+            Expect bugs, changes, and plenty of new ideas as the project grows.
+          </p>
+        </div>
+      ),
+    },
+    {
+      title: '✨ Coming Soon',
+      content: (
+        <ul className="list-disc list-inside space-y-2 text-gray-700 leading-relaxed">
+          <li>🧠 Adaptive practice text tailored to your weaknesses</li>
+          <li>📊 Detailed analytics and progress tracking</li>
+          <li>👻 Ghost racing against your past scores</li>
+          <li>⚙️ User settings and persistence</li>
+        </ul>
       ),
     },
   ]

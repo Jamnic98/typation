@@ -1,6 +1,7 @@
+import { LegalLayout } from 'layouts'
+
 export const Terms = () => (
-  <div className="max-w-3xl mx-auto px-6 py-12">
-    <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
+  <LegalLayout title="Terms of Service">
     <p className="mb-4 text-gray-700">Last updated: {new Date().toLocaleDateString()}</p>
     <p className="mb-4 text-gray-700">By using Typation, you agree to the following terms:</p>
     <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
@@ -14,5 +15,5 @@ export const Terms = () => (
       </li>
     </ul>
     <p className="text-gray-700">These terms may be updated as Typation evolves.</p>
-  </div>
+  </LegalLayout>
 )

@@ -31,6 +31,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     try {
@@ -42,10 +43,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       console.warn('Failed to parse saved user from localStorage:', err)
       localStorage.removeItem(LOCAL_STORAGE_USER_KEY)
       localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
   const login = async (userLogin: UserLogin) => {
+    setLoading(true)
     try {
       const { email, password } = userLogin
       if (!email || !password) throw new Error('Email and password are required')
@@ -114,7 +118,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <UserContext.Provider
-      value={{ user, token, login, logout, statsSummary, sessionsByDateRange, authError: null }}
+      value={{
+        user,
+        token,
+        login,
+        logout,
+        statsSummary,
+        sessionsByDateRange,
+        authError: null,
+        loading,
+      }}
     >
       {children}
     </UserContext.Provider>

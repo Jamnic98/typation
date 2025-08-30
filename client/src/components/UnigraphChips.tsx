@@ -38,7 +38,7 @@ export const UnigraphChips = ({ unigraphs }: { unigraphs: UnigraphStatistic[] })
                   color: '#1f2937', // tailwind gray-800
                 }}
                 className="inline-block px-3 py-1 rounded-full 
-             hover:cursor-pointer border border-gray-200 
+             cursor-pointer border border-gray-200 
              transition shadow-sm"
               >
                 {uni.key === ' ' ? spaceSymbolMap[SpaceSymbols.DOT] : uni.key}

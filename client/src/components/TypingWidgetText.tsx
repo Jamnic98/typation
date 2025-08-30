@@ -26,22 +26,22 @@ export interface TypingWidgetTextProps {
   onBlurReset?: () => void
 }
 
-const LINE_LENGTH = 80 // adjust to fit your layout
-const ROW_HEIGHT = 1.5 // rem
-const GAP = 0.5 // rem
+const LINE_LENGTH = 80
+const ROW_HEIGHT = 1.5
+const GAP = 0.5
 const LINE_SPACING = ROW_HEIGHT + GAP
 const VISIBLE_LINES = 4
 const CONTAINER_HEIGHT = LINE_SPACING * VISIBLE_LINES
-const INITIAL_OFFSET = 1 // 👈
+const INITIAL_OFFSET = 1
 
 export const TypingWidgetText = ({
   textToType,
   fontSettings = defaultFontSettings,
+  typable,
   onStart,
   onComplete,
   onType,
   reset,
-  typable,
   onFocusChange,
   onBlurReset,
 }: TypingWidgetTextProps) => {
@@ -358,9 +358,7 @@ export const TypingWidgetText = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           autoFocus
-          className={`font-mono outline-none px-4 ${
-            isFocused ? '' : 'blur-xs hover:cursor-pointer'
-          }`}
+          className={`font-mono outline-none px-4 ${isFocused ? '' : 'blur-xs cursor-pointer'}`}
         >
           <div
             className="transition-transform duration-300 ease-in-out"

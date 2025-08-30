@@ -43,7 +43,7 @@ export const FeaturesCarousel = () => {
   }
 
   const next = useCallback(() => {
-    setDirection(1)
+    setDirection(-1)
     paginate(index + 1)
   }, [index])
 
@@ -57,13 +57,13 @@ export const FeaturesCarousel = () => {
 
   const variants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 150 : -150,
+      x: direction > 0 ? -150 : 150,
       opacity: 0,
       position: 'absolute',
     }),
     center: { x: 0, opacity: 1, position: 'relative' },
     exit: (direction: number) => ({
-      x: direction > 0 ? -150 : 150,
+      x: direction > 0 ? 150 : -150,
       opacity: 0,
       position: 'absolute',
     }),
@@ -99,7 +99,7 @@ export const FeaturesCarousel = () => {
             <button
               key={i}
               onClick={() => setIndex(i)}
-              className={`w-3 h-3 rounded-full transition hover:cursor-pointer ${
+              className={`w-3 h-3 rounded-full transition cursor-pointer ${
                 index === i ? 'bg-blue-600' : 'bg-gray-300'
               }`}
             />

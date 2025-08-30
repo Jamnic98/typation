@@ -15,10 +15,10 @@ import {
   // Statistics,
   // Unigraph,
 } from 'pages'
-import { AlertBanner, Layout } from 'components'
-import { UserProvider } from 'api/context/UserContext'
-import { AlertProvider } from 'api/context/AlertContext'
-import { usePageTracking } from './hooks/usePageTracking'
+import { AlertBanner } from 'components'
+import { AppLayout } from 'layouts'
+import { AlertProvider, UserProvider } from 'api/context'
+import { usePageTracking } from 'hooks'
 
 const App = () => {
   usePageTracking()
@@ -28,7 +28,7 @@ const App = () => {
       <AlertBanner position="bottom-right" />
       <UserProvider>
         <Routes>
-          <Route path="/" element={<Layout />}>
+          <Route path="/" element={<AppLayout />}>
             <Route index element={<Home />} />
             <Route path="waitlist" element={<Waitlist />} />
             <Route path="privacy" element={<Privacy />} />
