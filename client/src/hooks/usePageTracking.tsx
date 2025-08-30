@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
+import { type GtagParams } from 'types'
+
 const GA_TRACKING_ID = 'G-K6KQGP4TKX'
 
 export const usePageTracking = () => {
@@ -15,8 +17,8 @@ export const usePageTracking = () => {
   }, [location])
 }
 
-export const trackEvent = (name: string, params: Record<string, any> = {}) => {
+export const trackEvent = (name: string, params?: GtagParams) => {
   if (typeof window.gtag === 'function') {
-    window.gtag('event', name, params)
+    window.gtag('event', name, params ?? {})
   }
 }

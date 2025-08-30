@@ -35,13 +35,7 @@ export const Header = () => {
       {/* Logo */}
       <h1
         onClick={() => navigate('/')}
-        className="
-    text-xl font-bold cursor-pointer 
-    text-black 
-    hover:text-gray-800 
-    hover:scale-105 
-    transition-transform transition-colors duration-200
-  "
+        className="text-xl font-bold cursor-pointer text-black hover:text-gray-800 hover:scale-105 transition-transform duration-200"
       >
         Typation (beta)
       </h1>

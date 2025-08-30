@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { DEFAULT_CAROUSEL_INTERVAL } from 'utils'
 
@@ -68,12 +68,15 @@ export const LandingInfo = () => {
   }
 
   // “Wrapped” paginate
-  const paginate = (newStep: number) => {
-    const slideCount = slides.length
-    const wrappedStep = (newStep + slideCount) % slideCount
-    setDirection(newStep > step ? 1 : -1)
-    setStep(wrappedStep)
-  }
+  const paginate = useCallback(
+    (newStep: number) => {
+      const slideCount = slides.length
+      const wrappedStep = (newStep + slideCount) % slideCount
+      setDirection(newStep > step ? 1 : -1)
+      setStep(wrappedStep)
+    },
+    [slides.length, step]
+  )
 
   // Auto-scroll
   useEffect(() => {
@@ -81,7 +84,7 @@ export const LandingInfo = () => {
       paginate(step + 1)
     }, DEFAULT_CAROUSEL_INTERVAL)
     return () => clearInterval(interval)
-  }, [step])
+  }, [step, paginate])
 
   return (
     <div className="space-y-6 text-center max-w-xl mx-auto">

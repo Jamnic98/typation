@@ -280,3 +280,5 @@ export interface MetricConfig {
   format: (v: number) => string | number
   inverse?: boolean
 }
+
+export type GtagParams = Record<string, string | number | boolean | undefined>
