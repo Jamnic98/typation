@@ -1,18 +1,23 @@
 import { Route, Routes } from 'react-router-dom'
 
 import {
-  ForgotPassword,
   Home,
-  Login,
   NotFound,
-  Profile,
-  Register,
-  ResetPassword,
-  Statistics,
-  Unigraph,
+  Waitlist,
+  Privacy,
+  Terms,
+  Contact,
+  // ForgotPassword,
+  // Login,
+  // Profile,
+  // Register,
+  // ResetPassword,
+  // Statistics,
+  // Unigraph,
 } from 'pages'
-import { AlertProvider, AlertBanner, Layout } from 'components'
+import { AlertBanner, Layout } from 'components'
 import { UserProvider } from 'api/context/UserContext'
+import { AlertProvider } from 'api/context/AlertContext'
 
 const App = () => {
   return (
@@ -22,7 +27,12 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="profile" element={<Profile />} />
+            <Route path="waitlist" element={<Waitlist />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="contact" element={<Contact />} />
+
+            {/* <Route path="profile" element={<Profile />} />
             <Route path="statistics" element={<Statistics />} />
             <Route path="statistics/unigraphs/:id" element={<Unigraph />} />
             <Route path="auth">
@@ -30,7 +40,8 @@ const App = () => {
               <Route path="register" element={<Register />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
               <Route path="reset-password/:token" element={<ResetPassword />} />
-            </Route>
+            </Route> */}
+
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

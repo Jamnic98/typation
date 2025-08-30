@@ -44,6 +44,7 @@ export const LOCAL_STORAGE_USER_KEY = 'user'
 export const LOCAL_STORAGE_TEXT_KEY = 'typingText'
 export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
 export const LOCAL_STORAGE_CORPUS_KEY = 'corpus'
+export const LOCAL_STORAGE_FIRST_VISIT_FLAG_KEY = 'firstVisitFlag'
 
 export const TYPING_WIDGET_INITIAL_STATE: State = {
   wpm: 0,

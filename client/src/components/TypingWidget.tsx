@@ -160,7 +160,7 @@ export const TypingWidget = () => {
     return () => {
       cancelAnimationFrame(rafId)
     }
-  }, [state.isRunning, onComplete])
+  }, [state.isRunning, isFocused, onComplete])
 
   useEffect(() => {
     const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)

@@ -15,7 +15,7 @@ export const fetchTypingString = async (): Promise<string> => {
       if (!corpusLocal) {
         const corpus = await loadCorpus()
         localStorage.setItem(LOCAL_STORAGE_CORPUS_KEY, JSON.stringify(corpus))
-        return corpus.join(' ')
+        return shuffleArray(corpus).join(' ')
       }
 
       const corpus = JSON.parse(corpusLocal)

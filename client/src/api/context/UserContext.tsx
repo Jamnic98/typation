@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
-import { useAlert } from 'components'
-import { fetchUserStatsSummary, fetchUserSessionsByDateRange } from 'api'
+import { fetchUserStatsSummary, fetchUserSessionsByDateRange, useAlert } from 'api'
 import { loginUser } from 'utils/auth'
 import {
   LOCAL_STORAGE_TEXT_KEY,
