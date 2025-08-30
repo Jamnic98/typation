@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { DEFAULT_CAROUSEL_INTERVAL } from 'utils'
 
 export const LandingInfo = () => {
   const [step, setStep] = useState(0)
   const [direction, setDirection] = useState(0)
+
   const slides = [
     {
       title: '🚫 Always Ad-Free',
@@ -25,8 +27,8 @@ export const LandingInfo = () => {
       content: (
         <div className="space-y-3">
           <p className="text-gray-700 leading-relaxed">
-            Typation is being built by a solo indie developer. It’s still early days, and your
-            feedback helps shape where it goes next.
+            Typation is being crafted by a solo indie developer. It’s still in its early stages, and
+            your feedback plays a big role in shaping where it goes next.
           </p>
           <p className="text-gray-700 leading-relaxed">
             Expect bugs, changes, and plenty of new ideas as the project grows.
@@ -65,15 +67,25 @@ export const LandingInfo = () => {
     }),
   }
 
+  // “Wrapped” paginate
   const paginate = (newStep: number) => {
+    const slideCount = slides.length
+    const wrappedStep = (newStep + slideCount) % slideCount
     setDirection(newStep > step ? 1 : -1)
-    setStep(newStep)
+    setStep(wrappedStep)
   }
 
+  // Auto-scroll
+  useEffect(() => {
+    const interval = setInterval(() => {
+      paginate(step + 1)
+    }, DEFAULT_CAROUSEL_INTERVAL)
+    return () => clearInterval(interval)
+  }, [step])
+
   return (
-    <div className="p-6 space-y-6 text-center max-w-xl mx-auto">
-      {/* Animated content box */}
-      <div className="relative min-h-[260px] flex items-center justify-center overflow-hidden">
+    <div className="space-y-6 text-center max-w-xl mx-auto">
+      <div className="p-2 relative min-h-[240px] flex overflow-hidden">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={step}
@@ -91,7 +103,6 @@ export const LandingInfo = () => {
         </AnimatePresence>
       </div>
 
-      {/* Dots */}
       <div className="flex justify-center gap-2">
         {slides.map((_, i) => (
           <button

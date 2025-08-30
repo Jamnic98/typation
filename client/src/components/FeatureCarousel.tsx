@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+import { DEFAULT_CAROUSEL_INTERVAL } from 'utils'
+
 interface Feature {
   title: string
   desc: string
@@ -30,8 +32,6 @@ const features: Feature[] = [
   },
 ]
 
-const FEATURE_CAROUSEL_INTERVAL = 8000 // 8 seconds
-
 export const FeaturesCarousel = () => {
   const [index, setIndex] = useState(0)
   const [direction, setDirection] = useState(0)
@@ -51,7 +51,7 @@ export const FeaturesCarousel = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       next()
-    }, FEATURE_CAROUSEL_INTERVAL)
+    }, DEFAULT_CAROUSEL_INTERVAL)
     return () => clearInterval(timer)
   }, [index, next])
 
