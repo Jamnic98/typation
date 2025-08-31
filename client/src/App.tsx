@@ -8,6 +8,7 @@ import {
   Privacy,
   Terms,
   Contact,
+  Roadmap,
   // ForgotPassword,
   // Login,
   // Profile,
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/" element={<AppLayout />}>
               <Route index element={<Home />} />
               <Route path="about" element={<About />} />
+              <Route path="roadmap" element={<Roadmap />} />
               <Route path="waitlist" element={<Waitlist />} />
               <Route path="privacy" element={<Privacy />} />
               <Route path="terms" element={<Terms />} />

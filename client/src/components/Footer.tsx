@@ -11,20 +11,32 @@ export const Footer = () => (
     <div className="max-w-4xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center">
       <p className="mb-4 md:mb-0">© {new Date().getFullYear()} Typation. All rights reserved.</p>
       <nav className="flex items-center space-x-6">
-        <Link to="/about" className="hover:text-gray-700">
+        {/* Informational */}
+        <Link to="/about" className="text-gray-700 hover:text-gray-900 font-medium">
           About
         </Link>
-        <Link to="/privacy" className="hover:text-gray-700">
+        <Link to="/roadmap" className="text-gray-700 hover:text-gray-900 font-medium">
+          Roadmap
+        </Link>
+
+        <DonateButton />
+
+        {/* Divider */}
+        <span className="mx-3 text-gray-300">|</span>
+
+        {/* Legal */}
+        <Link to="/privacy" className="hover:text-gray-500">
           Privacy
         </Link>
-        <Link to="/terms" className="hover:text-gray-700">
+        <Link to="/terms" className="hover:text-gray-500">
           Terms
         </Link>
-        <Link to="/contact" className="hover:text-gray-700">
+        <Link to="/contact" className="hover:text-gray-500">
           Contact
         </Link>
-        <DonateButton />
       </nav>
+
+      {/* <DonateButton /> */}
     </div>
   </footer>
 )
