@@ -43,9 +43,8 @@ export const TypingWidget = () => {
   const startTimestamp = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
   const mistypedRef = useRef<Record<string, Record<string, number>>>({})
-
-  // const [displayTime, setDisplayTime] = useState(0)
   const [showStats, setShowStats] = useState<boolean>(false)
+
   const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
 
   useEffect(() => {
@@ -57,23 +56,21 @@ export const TypingWidget = () => {
   }, [isFocused])
 
   const fetchAndSetText = useCallback(async () => {
-    try {
-      const newText = await fetchTypingString()
-      dispatch({ type: 'SET_TEXT', payload: newText })
-      localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, newText)
-      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
-    } catch (err) {
-      const fallback = 'practice typing text fallback lorem ipsum...'
-      console.error('Failed to fetch typing text', err)
+    const { text, source } = await fetchTypingString()
 
-      // fall back to a local string
-      dispatch({ type: 'SET_TEXT', payload: fallback })
-      localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, fallback)
+    dispatch({ type: 'SET_TEXT', payload: text })
+    localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, text)
+    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
 
+    if (source !== 'server') {
+      // Optional: gentle heads-up only when we didn’t get server text
       showAlert({
-        title: 'Failed to fetch typing text',
-        message: getReadableErrorMessage(err),
-        type: AlertType.ERROR,
+        title: 'Using local practice text',
+        message:
+          source === 'hardcoded-fallback'
+            ? 'Couldn’t reach the server or load the corpus. Using a tiny fallback.'
+            : 'Server unavailable. Loaded text from your local corpus.',
+        type: AlertType.WARNING,
       })
     }
   }, [showAlert])

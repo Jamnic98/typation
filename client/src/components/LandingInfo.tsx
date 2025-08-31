@@ -13,9 +13,10 @@ export const LandingInfo = () => {
       content: (
         <div className="space-y-3">
           <p className="text-gray-700 leading-relaxed">
-            Typation is being crafted by a solo indie developer. It’s still in its early stages, and
-            your feedback plays a big role in shaping where it goes next.
+            Typation is in its early stages, created by a solo indie developer. The project will
+            continue to evolve with new features and refinements along the way.
           </p>
+
           <p className="text-gray-700 leading-relaxed">
             Check out upcoming features{' '}
             <Link to="/waitlist" className="text-blue-600 cursor-pointer hover:text-blue-700">
@@ -45,7 +46,7 @@ export const LandingInfo = () => {
       content: (
         <ul className="list-disc list-inside space-y-2 text-gray-700 leading-relaxed">
           <li>🧠 Adaptive practice text tailored to your weaknesses</li>
-          <li>📊 Detailed analytics and progress tracking</li>
+          <li>📊 Detailed typing analytics and progress tracking</li>
           <li>👻 Ghost racing against your past scores</li>
           <li>⚙️ User settings and persistence</li>
         </ul>
