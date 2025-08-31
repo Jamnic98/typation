@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 
 import {
   Home,
+  About,
   NotFound,
   Waitlist,
   Privacy,
@@ -17,8 +18,9 @@ import {
 } from 'pages'
 import { AlertBanner } from 'components'
 import { AppLayout } from 'layouts'
-import { AlertProvider, UserProvider } from 'api/context'
+import { AlertProvider, UserProvider } from 'api'
 import { usePageTracking } from 'hooks'
+import { GlobalModalProvider } from 'providers'
 
 const App = () => {
   usePageTracking()
@@ -27,15 +29,17 @@ const App = () => {
     <AlertProvider>
       <AlertBanner position="bottom-right" />
       <UserProvider>
-        <Routes>
-          <Route path="/" element={<AppLayout />}>
-            <Route index element={<Home />} />
-            <Route path="waitlist" element={<Waitlist />} />
-            <Route path="privacy" element={<Privacy />} />
-            <Route path="terms" element={<Terms />} />
-            <Route path="contact" element={<Contact />} />
+        <GlobalModalProvider>
+          <Routes>
+            <Route path="/" element={<AppLayout />}>
+              <Route index element={<Home />} />
+              <Route path="about" element={<About />} />
+              <Route path="waitlist" element={<Waitlist />} />
+              <Route path="privacy" element={<Privacy />} />
+              <Route path="terms" element={<Terms />} />
+              <Route path="contact" element={<Contact />} />
 
-            {/* <Route path="profile" element={<Profile />} />
+              {/* <Route path="profile" element={<Profile />} />
             <Route path="statistics" element={<Statistics />} />
             <Route path="statistics/unigraphs/:id" element={<Unigraph />} />
             <Route path="auth">
@@ -45,9 +49,10 @@ const App = () => {
               <Route path="reset-password/:token" element={<ResetPassword />} />
             </Route> */}
 
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </GlobalModalProvider>
       </UserProvider>
     </AlertProvider>
   )

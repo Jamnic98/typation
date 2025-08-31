@@ -1,54 +1,57 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 export const Header = () => {
-  const navigate = useNavigate()
-  // const { user, logout } = useUser()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setMenuOpen(false)
       }
     }
-
-    if (menuOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
+    if (menuOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [menuOpen])
 
-  // const handleLogout = () => {
-  //   logout()
-  //   setMenuOpen(false)
-  //   navigate('/')
-  // }
-
   return (
-    <div className="sticky top-0 z-10 h-20 bg-white border-b border-gray-200 flex justify-between items-center px-8">
-      {/* Logo */}
-      <h1
-        onClick={() => navigate('/')}
-        className="text-xl font-bold cursor-pointer text-black hover:text-gray-800 hover:scale-105 transition-transform duration-200"
+    <div className="sticky top-0 z-10 h-20 bg-white border-b border-gray-200 flex justify-between items-center px-8 select-none">
+      {/* Logo + Text */}
+      <Link
+        to="/"
+        className="flex items-center gap-3 focus:outline-none cursor-pointer"
+        tabIndex={-1}
       >
-        Typation (beta)
-      </h1>
+        <img src="/typation_logo.svg" alt="Typation logo" className="h-10 w-10 object-contain" />
+
+        <div className="flex flex-col justify-center text-left leading-tight">
+          <span className="text-2xl font-bold text-black hover:text-gray-800 transition-colors">
+            Typation
+          </span>
+          <span className="text-xs text-gray-500">(Public Alpha)</span>
+        </div>
+      </Link>
 
       {/* Right section */}
       <div className="flex items-center gap-6">
-        {/* Join Waitlist CTA */}
-        <Link to="/waitlist" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <Link
+          to="/waitlist"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          tabIndex={-1}
+        >
           Join Waitlist
         </Link>
+      </div>
+    </div>
+  )
+}
 
-        {/* User / Auth */}
-        {/* <div className="relative">
+{
+  /* User / Auth */
+}
+{
+  /* <div className="relative">
           {user ? (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -88,8 +91,5 @@ export const Header = () => {
               Login
             </Link>
           )}
-        </div> */}
-      </div>
-    </div>
-  )
+        </div> */
 }

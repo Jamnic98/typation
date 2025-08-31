@@ -70,7 +70,7 @@ export const Waitlist = () => {
           screenshots={[
             {
               src: '/images/stats_summary.webp',
-              caption: 'Detailed session summaries showing speed, accuracy, and technical stats.',
+              caption: 'All time statistics showing speed, accuracy, and keystroke data.',
             },
             {
               src: '/images/statistical_trends.webp',
@@ -79,6 +79,10 @@ export const Waitlist = () => {
             {
               src: '/images/stats_graph.webp',
               caption: 'Interactive graphs for speed, accuracy, and keystroke analysis.',
+            },
+            {
+              src: '/images/typing_widget.webp',
+              caption: 'Smart practice that evolves with your typing trends.',
             },
           ]}
         />

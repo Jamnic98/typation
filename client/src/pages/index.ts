@@ -1,3 +1,4 @@
+export * from './About'
 export * from './Contact'
 export * from './ForgotPassword'
 export * from './Home'

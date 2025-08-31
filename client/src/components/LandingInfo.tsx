@@ -1,12 +1,30 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { DEFAULT_CAROUSEL_INTERVAL } from 'utils'
+import { Link } from 'react-router-dom'
 
 export const LandingInfo = () => {
   const [step, setStep] = useState(0)
   const [direction, setDirection] = useState(0)
 
   const slides = [
+    {
+      title: '🛠 A Work in Progress',
+      content: (
+        <div className="space-y-3">
+          <p className="text-gray-700 leading-relaxed">
+            Typation is being crafted by a solo indie developer. It’s still in its early stages, and
+            your feedback plays a big role in shaping where it goes next.
+          </p>
+          <p className="text-gray-700 leading-relaxed">
+            Check out upcoming features{' '}
+            <Link to="/waitlist" className="text-blue-600 cursor-pointer hover:text-blue-700">
+              here
+            </Link>
+          </p>
+        </div>
+      ),
+    },
     {
       title: '🚫 Always Ad-Free',
       content: (
@@ -18,20 +36,6 @@ export const LandingInfo = () => {
           <p className="text-gray-700 leading-relaxed">
             Supporters will unlock extra features in the future, but practising your typing will
             always be barrier-free.
-          </p>
-        </div>
-      ),
-    },
-    {
-      title: '🛠 A Work in Progress',
-      content: (
-        <div className="space-y-3">
-          <p className="text-gray-700 leading-relaxed">
-            Typation is being crafted by a solo indie developer. It’s still in its early stages, and
-            your feedback plays a big role in shaping where it goes next.
-          </p>
-          <p className="text-gray-700 leading-relaxed">
-            Expect bugs, changes, and plenty of new ideas as the project grows.
           </p>
         </div>
       ),
@@ -67,7 +71,6 @@ export const LandingInfo = () => {
     }),
   }
 
-  // “Wrapped” paginate
   const paginate = useCallback(
     (newStep: number) => {
       const slideCount = slides.length
@@ -78,7 +81,6 @@ export const LandingInfo = () => {
     [slides.length, step]
   )
 
-  // Auto-scroll
   useEffect(() => {
     const interval = setInterval(() => {
       paginate(step + 1)
@@ -88,7 +90,7 @@ export const LandingInfo = () => {
 
   return (
     <div className="space-y-6 text-center max-w-xl mx-auto">
-      <div className="p-2 relative min-h-[240px] flex overflow-hidden">
+      <div className="px-2 relative min-h-[200px] flex overflow-hidden">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={step}
@@ -100,8 +102,8 @@ export const LandingInfo = () => {
             transition={{ duration: 0.4 }}
             className="absolute w-full space-y-4"
           >
-            <h1 className="text-2xl font-bold">{slides[step].title}</h1>
-            <div>{slides[step].content}</div>
+            <h1 className="text-2xl font-bold">{slides[step]?.title}</h1>
+            <div>{slides[step]?.content}</div>
           </motion.div>
         </AnimatePresence>
       </div>

@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 
 import { type GtagParams } from 'types'
 
-const GA_TRACKING_ID = 'G-K6KQGP4TKX'
+const GA_TRACKING_ID = import.meta.env.VITE_GA_ID
 
 export const usePageTracking = () => {
   const location = useLocation()
