@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { LegalLayout } from 'layouts'
+import { trackEvent } from 'hooks'
 
 export const About = () => (
   <LegalLayout title="About Typation">
@@ -16,17 +17,17 @@ export const About = () => (
     <h2 className="mt-6 mb-2 font-semibold text-gray-900">What Typation aims to do</h2>
     <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
       <li>
-        <span className="font-medium">A clean interface:</span> a focused environment with no noise{' '}
-        <span className="text-gray-500">(available now)</span>.
+        <span className="font-medium">A clean interface: </span>designed to imitate typing on a
+        typewriter. <span className="text-gray-500">(available now)</span>
       </li>
       <li>
         <span className="font-medium">Adaptive practice:</span> sessions that target weaker keys and
-        patterns so you improve faster <span className="text-gray-500">(coming in beta)</span>.
+        patterns so you improve faster. <span className="text-gray-500">(coming in beta)</span>
       </li>
       <li>
         <span className="font-medium">Useful analytics:</span> insights into accuracy, speed, and
-        tricky key combinations you can actually act on{' '}
-        <span className="text-gray-500">(coming in beta)</span>.
+        tricky key combinations you can actually act on.{' '}
+        <span className="text-gray-500">(coming in beta)</span>
       </li>
     </ul>
 
@@ -73,7 +74,15 @@ export const About = () => (
 
     <p className="text-gray-700">
       Got questions or ideas? Drop us a line at{' '}
-      <a href="mailto:contact@typation.co.uk" className="text-blue-600 font-medium hover:underline">
+      <a
+        href="mailto:contact@typation.co.uk"
+        onClick={() =>
+          trackEvent('mailto_click', {
+            page: window.location.pathname,
+          })
+        }
+        className="text-blue-600 font-medium hover:underline"
+      >
         contact@typation.co.uk
       </a>
       .

@@ -69,7 +69,7 @@ export const TypingWidget = () => {
         message:
           source === 'hardcoded-fallback'
             ? 'Couldn’t reach the server or load the corpus. Using a tiny fallback.'
-            : 'Server unavailable. Loaded text from your local corpus.',
+            : 'Server is unavailable, loading text from your local corpus.',
         type: AlertType.WARNING,
       })
     }

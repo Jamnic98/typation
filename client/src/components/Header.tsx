@@ -1,3 +1,4 @@
+import { trackEvent } from 'hooks'
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -16,7 +17,7 @@ export const Header = () => {
   }, [menuOpen])
 
   return (
-    <div className="sticky top-0 z-10 h-20 bg-white border-b border-gray-200 flex justify-between items-center px-8 select-none">
+    <div className="sticky top-0 z-10 h-20 border-b bg-white border-gray-200 flex justify-between items-center px-8 select-none">
       {/* Logo + Text */}
       <Link
         to="/"
@@ -39,57 +40,16 @@ export const Header = () => {
           to="/waitlist"
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           tabIndex={-1}
+          onClick={() =>
+            trackEvent('donate_button_click', {
+              location: 'header',
+              page: window.location.pathname,
+            })
+          }
         >
           Join Waitlist
         </Link>
       </div>
     </div>
   )
-}
-
-{
-  /* User / Auth */
-}
-{
-  /* <div className="relative">
-          {user ? (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setMenuOpen((prev) => !prev)}
-                className="text-black hover:underline focus:outline-none cursor-pointer"
-              >
-                {user.user_name}
-              </button>
-
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                  <Link
-                    to="/profile"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    to="/statistics"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Statistics
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded-b-md"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link to="/auth/login" className="text-black hover:underline">
-              Login
-            </Link>
-          )}
-        </div> */
 }

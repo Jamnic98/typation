@@ -1,3 +1,4 @@
+import { trackEvent } from 'hooks'
 import { LegalLayout } from 'layouts'
 
 export const Terms = () => (
@@ -37,7 +38,15 @@ export const Terms = () => (
 
     <p className="text-gray-700">
       If you have questions about these terms, please email{' '}
-      <a href="mailto:contact@typation.co.uk" className="text-blue-600 font-medium hover:underline">
+      <a
+        href="mailto:contact@typation.co.uk"
+        onClick={() =>
+          trackEvent('mailto_click', {
+            page: window.location.pathname,
+          })
+        }
+        className="text-blue-600 font-medium hover:underline"
+      >
         contact@typation.co.uk
       </a>{' '}
       before using Typation.

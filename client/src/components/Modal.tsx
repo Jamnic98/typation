@@ -39,7 +39,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, children }
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               {title && (
                 <h2 className="mx-auto text-xl font-semibold text-gray-800 tracking-wide">
                   {title}

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react'
 import { type AlertData, type AlertContextType } from 'types'
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined)
@@ -12,22 +12,30 @@ export const useAlert = () => {
 export const AlertProvider = ({ children }: { children: ReactNode }) => {
   const [alerts, setAlerts] = useState<AlertData[]>([])
 
-  const showAlert = (alert: Omit<AlertData, 'id'>) => {
-    const id = crypto.randomUUID()
-    const newAlert = { ...alert, id }
-    setAlerts((prev) => [...prev, newAlert])
+  const removeAlert = useCallback((id: string) => {
+    setAlerts((prev) => prev.filter((a) => a.id !== id))
+  }, [])
 
-    // Auto-remove after 4s
-    setTimeout(() => removeAlert(id), 4000)
-  }
+  const showAlert = useCallback(
+    (alert: Omit<AlertData, 'id'>) => {
+      const exists = alerts.some(
+        (a) => a.title === alert.title && a.message === alert.message && a.type === alert.type
+      )
+      if (exists) return
 
-  const removeAlert = (id: string) => {
-    setAlerts((prev) => prev.filter((alert) => alert.id !== id))
-  }
-
-  return (
-    <AlertContext.Provider value={{ alerts, showAlert, removeAlert }}>
-      {children}
-    </AlertContext.Provider>
+      const id = crypto.randomUUID()
+      const newAlert = { ...alert, id }
+      setAlerts((prev) => [...prev, newAlert])
+      const timer = setTimeout(() => removeAlert(id), 4000)
+      return () => clearTimeout(timer)
+    },
+    [alerts, removeAlert]
   )
+
+  const value = useMemo(
+    () => ({ alerts, showAlert, removeAlert }),
+    [alerts, showAlert, removeAlert]
+  )
+
+  return <AlertContext.Provider value={value}>{children}</AlertContext.Provider>
 }

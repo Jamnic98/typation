@@ -19,7 +19,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({ position = 'top-center
 
   return (
     <div
-      className={`fixed z-50 space-y-2 ${positionStyles[position]}`}
+      className={`fixed z-100 space-y-2 ${positionStyles[position]}`}
       style={{ pointerEvents: 'none', maxWidth: 320 }}
     >
       {alerts.map((alert) => (

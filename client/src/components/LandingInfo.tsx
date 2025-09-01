@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+
 import { DEFAULT_CAROUSEL_INTERVAL } from 'utils'
-import { Link } from 'react-router-dom'
+
+const ANIMATION_DURATION = 400
 
 export const LandingInfo = () => {
   const [step, setStep] = useState(0)
   const [direction, setDirection] = useState(0)
+  const [canNavigate, setCanNavigate] = useState(true)
 
   const slides = [
     {
@@ -15,13 +18,6 @@ export const LandingInfo = () => {
           <p className="text-gray-700 leading-relaxed">
             Typation is in its early stages, created by a solo indie developer. The project will
             continue to evolve with new features and refinements along the way.
-          </p>
-
-          <p className="text-gray-700 leading-relaxed">
-            Check out upcoming features{' '}
-            <Link to="/waitlist" className="text-blue-600 cursor-pointer hover:text-blue-700">
-              here
-            </Link>
           </p>
         </div>
       ),
@@ -72,26 +68,49 @@ export const LandingInfo = () => {
     }),
   }
 
-  const paginate = useCallback(
-    (newStep: number) => {
-      const slideCount = slides.length
-      const wrappedStep = (newStep + slideCount) % slideCount
-      setDirection(newStep > step ? 1 : -1)
-      setStep(wrappedStep)
+  const safeSetStep = useCallback(
+    (newStep: number, dir: number) => {
+      if (!canNavigate) return
+      setCanNavigate(false)
+      setDirection(dir)
+      setStep(newStep)
+
+      // re-enable after animation
+      setTimeout(() => setCanNavigate(true), ANIMATION_DURATION)
     },
-    [slides.length, step]
+    [canNavigate]
   )
+
+  const next = useCallback(() => {
+    const slideCount = slides.length
+    const nextStep = step + 1 >= slideCount ? 0 : step + 1
+    safeSetStep(nextStep, 1)
+  }, [slides.length, step, safeSetStep])
+
+  const prev = () => {
+    const slideCount = slides.length
+    const previousStep = step - 1 < 0 ? slideCount - 1 : step - 1
+    safeSetStep(previousStep, -1)
+  }
+
+  const paginate = (newStep: number) => {
+    if (newStep === step) return
+    const slideCount = slides.length
+    const wrappedStep = (newStep + slideCount) % slideCount
+    safeSetStep(wrappedStep, newStep > step ? 1 : -1)
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
-      paginate(step + 1)
+      next()
     }, DEFAULT_CAROUSEL_INTERVAL)
     return () => clearInterval(interval)
-  }, [step, paginate])
+  }, [step, next])
 
   return (
-    <div className="space-y-6 text-center max-w-xl mx-auto">
-      <div className="px-2 relative min-h-[200px] flex overflow-hidden">
+    <div className="py-6">
+      {/* Slide container */}
+      <div className="relative h-full min-h-[220px] flex items-center justify-center overflow-hidden">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={step}
@@ -100,25 +119,43 @@ export const LandingInfo = () => {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.4 }}
-            className="absolute w-full space-y-4"
+            transition={{ duration: ANIMATION_DURATION / 1000 }}
+            className="w-full max-w-[640px] text-center flex flex-col items-center gap-4"
           >
             <h1 className="text-2xl font-bold">{slides[step]?.title}</h1>
-            <div>{slides[step]?.content}</div>
+            <div className="min-w-[300px] max-w-prose mx-auto">{slides[step]?.content}</div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <div className="flex justify-center gap-2">
+      {/* Dots + arrows */}
+      <div className="flex justify-center items-center gap-5">
+        <button
+          type="button"
+          className="w-10 h-10 cursor-pointer text-center hover:bg-gray-50 rounded-full select-none outline-none"
+          onClick={prev}
+          disabled={!canNavigate}
+        >
+          {'<'}
+        </button>
         {slides.map((_, i) => (
           <button
             key={i}
             onClick={() => paginate(i)}
+            disabled={!canNavigate}
             className={`w-3 h-3 rounded-full transition cursor-pointer ${
               step === i ? 'bg-blue-600' : 'bg-gray-300'
             }`}
           />
         ))}
+        <button
+          type="button"
+          className="w-10 h-10 cursor-pointer text-center hover:bg-gray-50 rounded-full select-none outline-none"
+          onClick={next}
+          disabled={!canNavigate}
+        >
+          {'>'}
+        </button>
       </div>
     </div>
   )

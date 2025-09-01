@@ -1,3 +1,4 @@
+import { trackEvent } from 'hooks'
 import { LegalLayout } from 'layouts'
 
 export const Privacy = () => (
@@ -16,7 +17,15 @@ export const Privacy = () => (
 
     <p className="mb-4 text-gray-700">
       You may request removal of your data at any time by emailing{' '}
-      <a href="mailto:contact@typation.co.uk" className="text-blue-600 font-medium hover:underline">
+      <a
+        href="mailto: typation.co.uk"
+        onClick={() =>
+          trackEvent('mailto_click', {
+            page: window.location.pathname,
+          })
+        }
+        className="text-blue-600 font-medium hover:underline"
+      >
         contact@typation.co.uk
       </a>
       .

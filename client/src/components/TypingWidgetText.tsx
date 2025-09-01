@@ -343,7 +343,7 @@ export const TypingWidgetText = ({
       {/* Typing text area */}
       <div className="relative overflow-hidden mb-6" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
         {!isFocused && (
-          <span className="absolute inset-0 flex items-center justify-center text-lg font-medium text-neutral-500 pointer-events-none">
+          <span className="absolute inset-0 flex items-center justify-center text-lg text-neutral-500 pointer-events-none">
             Click here to start
           </span>
         )}
