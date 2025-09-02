@@ -108,7 +108,7 @@ export const LandingInfo = () => {
   }, [step, next])
 
   return (
-    <div className="py-6">
+    <div>
       {/* Slide container */}
       <div className="relative h-full min-h-[220px] flex items-center justify-center overflow-hidden">
         <AnimatePresence custom={direction} mode="wait">

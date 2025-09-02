@@ -82,7 +82,7 @@ export const Waitlist = () => {
             },
             {
               src: '/images/typing_widget.webp',
-              caption: 'Smart practice that evolves with your typing trends.',
+              caption: 'Practice text that evolves with your typing trends.',
             },
           ]}
         />

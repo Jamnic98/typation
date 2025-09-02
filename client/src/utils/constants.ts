@@ -60,7 +60,7 @@ export const TYPING_WIDGET_INITIAL_STATE: State = {
   text: '',
 }
 
-export const DEFAULT_CAROUSEL_INTERVAL = 8000
+export const DEFAULT_CAROUSEL_INTERVAL = 8000 // 8 seconds
 
 export const DEFAULT_SESSION_DURATION = 60
 

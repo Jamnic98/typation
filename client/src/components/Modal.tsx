@@ -11,52 +11,49 @@ interface ModalProps {
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, children }) => {
   return createPortal(
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          {/* Backdrop */}
+        <>
+          {/* Backdrop: blur is immediate; only the tint fades */}
           <motion.div
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="fixed inset-0 z-40 backdrop-blur-sm"
+            initial={{ backgroundColor: 'rgba(0,0,0,0)' }}
+            animate={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
+            exit={{ backgroundColor: 'rgba(0,0,0,0)' }}
+            transition={{ duration: 0.2, ease: 'linear' }}
             onClick={onClose}
+            style={{ willChange: 'backdrop-filter, background-color' }}
           />
 
-          {/* Modal box */}
-          <motion.div
-            className="relative w-full max-w-lg rounded-lg bg-white shadow-lg p-6 flex flex-col z-10"
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }} // springy ease
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-              {title && (
-                <h2 className="mx-auto text-xl font-semibold text-gray-800 tracking-wide">
-                  {title}
-                </h2>
-              )}
-              <button
-                onClick={onClose}
-                className="absolute top-3 right-3 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
+          {/* Modal layer (no wrapper opacity animation) */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <motion.div
+              className="relative w-full max-w-lg rounded-lg bg-white shadow-lg p-6 flex flex-col"
+              initial={{ opacity: 0, scale: 0.92, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 8 }}
+              transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                {title && (
+                  <h2 className="mx-auto text-xl font-semibold text-gray-800 tracking-wide">
+                    {title}
+                  </h2>
+                )}
+                <button
+                  onClick={onClose}
+                  className="absolute top-3 right-3 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition cursor-pointer"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              </div>
 
-            {/* Content */}
-            <div>{children}</div>
-          </motion.div>
-        </motion.div>
+              <div>{children}</div>
+            </motion.div>
+          </div>
+        </>
       )}
     </AnimatePresence>,
     document.body
