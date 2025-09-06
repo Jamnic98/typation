@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import {
-  defaultFontSettings,
+  defaultWidgetSettings,
   STYLE_FIXED,
   STYLE_HIT,
   STYLE_MISS,
@@ -35,7 +35,7 @@ export const CharacterComponent = ({
   typedChar,
   isActive = false,
   typedStatus = TypedStatus.NONE,
-  typingWidgetSettings = defaultFontSettings,
+  typingWidgetSettings = defaultWidgetSettings,
 }: CharacterProps) => {
   const [wasTyped, setWasTyped] = useState(false)
 

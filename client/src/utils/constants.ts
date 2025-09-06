@@ -1,19 +1,17 @@
-import { CursorStyles, SpaceSymbols, type State, type TypingWidgetSettings } from 'types'
+import { type ComponentSettings } from 'components'
+import { type State, CursorStyles, SpaceSymbols } from 'types'
 
-export const defaultFontSettings: TypingWidgetSettings = {
-  textColor: 'black',
+export const defaultWidgetSettings: ComponentSettings = {
   spaceSymbol: SpaceSymbols.DOT,
   cursorStyle: CursorStyles.UNDERSCORE,
 
+  showBigKeyboard: true,
+  showCurrentLetter: true,
+  characterAnimationEnabled: true,
+
   // fontFamily: 'monospace',
-  // fontWeight: 'bold',
-  // textAlign: 'left',
-  // textDecoration: 'none',
-  // textTransform: 'none',
-  // textShadow: 'none',
-  // textOverflow: 'clip',
-  // textIndent: '0px',
-  // textJustify: 'auto',
+  // fontWeight: 'bold',',
+
   // textLineHeight: 'normal',
   // textLetterSpacing: 'normal',
   // textWordSpacing: 'normal',

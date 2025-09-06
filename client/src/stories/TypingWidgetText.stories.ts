@@ -23,6 +23,9 @@ export const TypingWidgetTextStory: Story = {
     typingWidgetSettings: {
       spaceSymbol: SpaceSymbols.DOT,
       cursorStyle: CursorStyles.UNDERSCORE,
+      showBigKeyboard: false,
+      showCurrentLetter: false,
+      characterAnimationEnabled: true,
     },
     onStart: () => {},
     onComplete: async () => {},

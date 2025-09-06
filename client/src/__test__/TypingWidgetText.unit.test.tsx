@@ -52,7 +52,12 @@ describe('Test Rendering', () => {
   test("Doesn't render with no text to type", async () => {
     renderTypingWidgetText({
       textToType: '',
-      typingWidgetSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
+      typingWidgetSettings: {
+        spaceSymbol: SpaceSymbols.UNDERSCORE,
+        showBigKeyboard: false,
+        showCurrentLetter: false,
+        characterAnimationEnabled: false,
+      },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
@@ -66,7 +71,12 @@ describe('Test Rendering', () => {
   test('Renders characters with spaces', () => {
     renderTypingWidgetText({
       textToType: textToType,
-      typingWidgetSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
+      typingWidgetSettings: {
+        spaceSymbol: SpaceSymbols.UNDERSCORE,
+        showBigKeyboard: false,
+        showCurrentLetter: false,
+        characterAnimationEnabled: false,
+      },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
@@ -99,7 +109,13 @@ describe('Test functionality', () => {
     const user = userEvent.setup()
     renderTypingWidgetText({
       textToType: textToType,
-      typingWidgetSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
+      typingWidgetSettings: {
+        textColor: 'black',
+        cursorStyle: CursorStyles.BLOCK,
+        showBigKeyboard: false,
+        showCurrentLetter: false,
+        characterAnimationEnabled: true,
+      },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
@@ -143,7 +159,13 @@ describe('Test functionality', () => {
 
     renderTypingWidgetText({
       textToType,
-      typingWidgetSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
+      typingWidgetSettings: {
+        textColor: 'black',
+        cursorStyle: CursorStyles.BLOCK,
+        showBigKeyboard: false,
+        showCurrentLetter: false,
+        characterAnimationEnabled: true,
+      },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},

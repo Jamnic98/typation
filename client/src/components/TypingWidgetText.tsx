@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { type CharacterProps, Character } from 'components'
+import { type ComponentSettings, type CharacterProps, Character } from 'components'
 import { getGlobalIndex, resetTypedStatus } from 'utils/helpers'
-import { defaultFontSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
+import { defaultWidgetSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
 import {
   type OnTypeParams,
-  type TypingWidgetSettings,
   TypedStatus,
   TypingAction,
   SpaceSymbols,
@@ -16,7 +15,7 @@ import UKKeyboardSvg from './UKKeyboardSvg'
 
 export interface TypingWidgetTextProps {
   textToType: string | null
-  typingWidgetSettings?: TypingWidgetSettings
+  typingWidgetSettings?: ComponentSettings
   onStart: () => void
   onComplete: () => Promise<void>
   onType: (params: OnTypeParams) => void
@@ -36,7 +35,6 @@ const INITIAL_OFFSET = 1
 
 export const TypingWidgetText = ({
   textToType,
-  typingWidgetSettings = defaultFontSettings,
   typable,
   onStart,
   onComplete,
@@ -44,6 +42,7 @@ export const TypingWidgetText = ({
   reset,
   onFocusChange,
   onBlurReset,
+  typingWidgetSettings = defaultWidgetSettings,
 }: TypingWidgetTextProps) => {
   const [sessionId, setSessionId] = useState(Date.now())
   const [lines, setLines] = useState<CharacterProps[][]>([])
@@ -333,11 +332,13 @@ export const TypingWidgetText = ({
     <div className="flex flex-col items-center select-none">
       {/* Big preview char */}
       <div className="text-8xl h-18 mb-14">
-        {lines[lineIndex]?.[colIndex]?.char
-          ? lines[lineIndex][colIndex].char === ' '
-            ? spaceSymbolMap[SpaceSymbols.DOT]
-            : lines[lineIndex][colIndex].char
-          : ''}
+        {typingWidgetSettings.showCurrentLetter
+          ? lines[lineIndex]?.[colIndex]?.char
+            ? lines[lineIndex][colIndex].char === ' '
+              ? spaceSymbolMap[SpaceSymbols.DOT]
+              : lines[lineIndex][colIndex].char
+            : ''
+          : null}
       </div>
 
       {/* Typing text area */}
@@ -421,11 +422,13 @@ export const TypingWidgetText = ({
       </div>
 
       {/* Keyboard */}
-      <UKKeyboardSvg
-        highlightKey={lines[lineIndex]?.[colIndex]?.char}
-        showNumberRow
-        className="w-full h-auto"
-      />
+      {typingWidgetSettings.showBigKeyboard ? (
+        <UKKeyboardSvg
+          highlightKey={lines[lineIndex]?.[colIndex]?.char}
+          showNumberRow
+          className="w-full h-auto"
+        />
+      ) : null}
     </div>
   )
 }

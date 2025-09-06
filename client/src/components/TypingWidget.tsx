@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 
-import { Modal, SessionStatsSummary, TypingWidgetText } from 'components'
+import {
+  type ComponentSettings,
+  Modal,
+  SessionStatsSummary,
+  Toolbar,
+  TypingWidgetText,
+} from 'components'
 import { fetchTypingString, saveStats, useAlert, useUser } from 'api'
 import {
   // calculateAccuracy,
@@ -12,22 +18,20 @@ import {
   formatDateTime,
 } from 'utils/helpers'
 import {
-  defaultFontSettings,
   LOCAL_STORAGE_COMPLETED_KEY,
   LOCAL_STORAGE_TEXT_KEY,
   TYPING_WIDGET_INITIAL_STATE,
   DEFAULT_SESSION_DURATION,
+  defaultWidgetSettings,
 } from 'utils/constants'
 import {
   TypingAction,
   AlertType,
   type KeyEvent,
-  type TypingWidgetSettings,
   type OnTypeParams,
   TypedStatus,
   SpecialEvent,
 } from 'types'
-import ToolbarWithOverlay from './Toolbar'
 
 export const TypingWidget = () => {
   const [isFocused, setIsFocused] = useState(false)
@@ -46,8 +50,7 @@ export const TypingWidget = () => {
   const mistypedRef = useRef<Record<string, Record<string, number>>>({})
   const [showStats, setShowStats] = useState<boolean>(false)
 
-  const [typingWidgetSettings /* , setFontSettings */] =
-    useState<TypingWidgetSettings>(defaultFontSettings)
+  const [widgetSettings, setWidgetSettings] = useState<ComponentSettings>(defaultWidgetSettings)
 
   useEffect(() => {
     if (!isFocused) {
@@ -223,7 +226,11 @@ export const TypingWidget = () => {
   return (
     <div id="typing-widget" data-testid="typing-widget" className="w-full h-full -m-8">
       <div className="flex flex-row">
-        <ToolbarWithOverlay />
+        <Toolbar
+          settings={widgetSettings}
+          onSaveSettings={(next) => setWidgetSettings(next)}
+          containerMaxWidthClass="max-w-4xl"
+        />
       </div>
       <TypingWidgetText
         onStart={onStart}
@@ -231,7 +238,7 @@ export const TypingWidget = () => {
         onType={onType}
         reset={reset}
         textToType={state.text ?? ''}
-        typingWidgetSettings={typingWidgetSettings}
+        typingWidgetSettings={widgetSettings}
         typable={!showStats}
         onFocusChange={setIsFocused}
         onBlurReset={handleBlurReset}

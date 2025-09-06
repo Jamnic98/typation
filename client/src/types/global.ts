@@ -23,11 +23,11 @@ export const spaceSymbolMap: Record<SpaceSymbols, string> = {
   [SpaceSymbols.NONE]: ' ',
 }
 
-export type TypingWidgetSettings = {
+export interface TypingWidgetSettings {
   cursorStyle?: CursorStyles
   spaceSymbol?: SpaceSymbols
-  textColor?: string
   fontSize?: FontSizes
+  textColor?: string
   fontFamily?: string
   fontWeight?: string
   textAlign?: string

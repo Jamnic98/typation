@@ -1,41 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-
-import { TypingWidgetSettings } from 'components'
 import { LuSettings } from 'react-icons/lu'
 
-/**
- * ToolbarWithOverlay (minimal + layout-safe)
- * - Transparent toolbar; only a big bold caret is visible.
- * - Clicking opens a full-page overlay (no layout shift) directly above the typing UI.
- * - The overlay is a blank surface (full width/height) for settings you can add later.
- * - ESC/click-outside closes. Caret flips with animation (flipped when closed by default).
- */
-export default function ToolbarWithOverlay({
-  onToggle,
-  initialOpen = false,
+import { type ComponentSettings, TypingWidgetSettings } from 'components'
+
+export const Toolbar = ({
   title = 'Settings',
-  containerMaxWidthClass = 'max-w-5xl', // align with your page container
+  containerMaxWidthClass = 'max-w-5xl',
+  initialOpen = false,
+  settings, // <- current settings from parent
+  onSaveSettings, // <- parent save handler
 }: {
-  onToggle?: (open: boolean) => void
-  initialOpen?: boolean
   title?: string
-  /** Tailwind class that matches your page/container width (e.g., max-w-4xl/5xl/6xl). */
   containerMaxWidthClass?: string
-}) {
-  const [isOpen, setIsOpen] = useState<boolean>(initialOpen)
+  initialOpen?: boolean
+  settings: ComponentSettings
+  onSaveSettings: (next: ComponentSettings) => void
+}) => {
+  const [isOpen, setIsOpen] = useState(initialOpen)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
 
-  const handleToggle = () => {
-    setIsOpen((prev) => {
-      const next = !prev
-      onToggle?.(next)
-      return next
-    })
-  }
+  const handleToggle = () => setIsOpen((o) => !o)
 
-  // Close on ESC
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsOpen(false)
@@ -44,17 +31,14 @@ export default function ToolbarWithOverlay({
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // Focus management
   useEffect(() => {
     if (isOpen) panelRef.current?.focus()
     else buttonRef.current?.focus()
   }, [isOpen])
 
-  // const handleClickSave: any = () => {}
-
   return (
     <>
-      {/* Toolbar (transparent, only shows caret); place above TypingWidgetText */}
+      {/* Transparent toolbar with only the icon visible */}
       <div className="relative z-30 h-8 w-full bg-transparent pointer-events-none">
         <div className="flex h-full items-center justify-end px-2 pointer-events-auto">
           <button
@@ -64,9 +48,8 @@ export default function ToolbarWithOverlay({
             aria-expanded={isOpen}
             aria-controls="toolbar-dropdown"
             className="select-none bg-transparent p-1 outline-none"
-            title={isOpen ? 'Close text settings' : 'Open text settings'}
+            title={isOpen ? 'Close interface settings' : 'Open interface settings'}
           >
-            {/* Large bold caret; flipped by default when closed */}
             <span
               className={[
                 'cursor-pointer text-3xl font-extrabold leading-none transition-transform duration-300 will-change-transform select-none',
@@ -74,13 +57,13 @@ export default function ToolbarWithOverlay({
               ].join(' ')}
               aria-hidden
             >
-              <LuSettings className="text-[1.5rem] text-gray-200 hover:text-gray-500 transition-transform duration-300 hover:rotate-90" />
+              <LuSettings className="text-[1.2rem] text-gray-200 hover:text-gray-500 transition-transform duration-300 hover:rotate-90" />
             </span>
           </button>
         </div>
       </div>
 
-      {/* Scrim covers page to catch outside clicks; dropdown is constrained to your page width */}
+      {/* Scrim + dropdown */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -92,15 +75,12 @@ export default function ToolbarWithOverlay({
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           >
-            {/* translucent background */}
             <div className="absolute inset-0 bg-black/30" />
 
-            {/* Constrained container that matches your page width */}
             <div
               className={['relative mx-auto', containerMaxWidthClass].join(' ')}
               aria-label={`${title} container`}
             >
-              {/* Dropdown panel positioned near the top, underneath the toolbar area */}
               <motion.div
                 id="toolbar-dropdown"
                 role="dialog"
@@ -115,20 +95,25 @@ export default function ToolbarWithOverlay({
                 className="relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 mt-28"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Close X button */}
                 <button
                   type="button"
                   aria-label="Close settings"
                   onClick={() => setIsOpen(false)}
                   className="text-lg cursor-pointer absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100"
                 >
-                  x
+                  ×
                 </button>
 
-                {/* Blank interior; stretch full width of container; height auto so it's a dropdown */}
                 <div className="w-full p-4">
-                  <h1 className="text-xl font-semibold">Typing Interface Settings</h1>
-                  <TypingWidgetSettings />
+                  <h1 className="text-xl font-semibold mb-2">Typing Interface Settings</h1>
+
+                  <TypingWidgetSettings
+                    initial={settings}
+                    onSave={(next) => {
+                      onSaveSettings(next) // update parent
+                      setIsOpen(false) // close on save
+                    }}
+                  />
                 </div>
               </motion.div>
             </div>
