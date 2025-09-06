@@ -23,7 +23,7 @@ export const spaceSymbolMap: Record<SpaceSymbols, string> = {
   [SpaceSymbols.NONE]: ' ',
 }
 
-export type FontSettings = {
+export type TypingWidgetSettings = {
   cursorStyle?: CursorStyles
   spaceSymbol?: SpaceSymbols
   textColor?: string

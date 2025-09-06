@@ -20,7 +20,7 @@ type Story = StoryObj<typeof meta>
 export const TypingWidgetTextStory: Story = {
   args: {
     textToType: 'Testing! 123',
-    fontSettings: {
+    typingWidgetSettings: {
       spaceSymbol: SpaceSymbols.DOT,
       cursorStyle: CursorStyles.UNDERSCORE,
     },

@@ -10,7 +10,7 @@ const defaultProps: CharacterProps = {
   char: 'a',
   isActive: false,
   typedStatus: TypedStatus.NONE,
-  fontSettings: {
+  typingWidgetSettings: {
     textColor: 'black',
     fontSize: FontSizes.XL,
     spaceSymbol: SpaceSymbols.DOT,
@@ -37,14 +37,14 @@ describe('Character render tests', () => {
     const { rerender } = renderCharacter({ char: ' ' })
     const character = screen.getByTestId('background-character')
     expect(character.innerHTML).toBe(
-      spaceSymbolMap[defaultProps.fontSettings?.spaceSymbol || SpaceSymbols.DOT]
+      spaceSymbolMap[defaultProps.typingWidgetSettings?.spaceSymbol || SpaceSymbols.DOT]
     )
 
     // Re-render with spaceSymbol
     rerender(
       getTestCharacter({
         char: ' ',
-        fontSettings: {
+        typingWidgetSettings: {
           spaceSymbol: SpaceSymbols.DOT,
         },
       })

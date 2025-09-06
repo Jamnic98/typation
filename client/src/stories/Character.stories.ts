@@ -26,7 +26,7 @@ const meta = {
       description: 'The status of the character (miss, hit, none)',
       defaultValue: TypedStatus.NONE,
     },
-    fontSettings: {
+    typingWidgetSettings: {
       control: 'object',
       description: 'Font settings for the character',
       defaultValue: {
@@ -72,7 +72,7 @@ export const Highlighted: Story = {
     char: 'H',
     isActive: true,
     typedStatus: TypedStatus.NONE,
-    fontSettings: {
+    typingWidgetSettings: {
       // cursorStyle: CursorStyles.BLOCK,
       fontSize: FontSizes.MD,
     },

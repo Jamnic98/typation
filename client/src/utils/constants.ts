@@ -1,6 +1,6 @@
-import { CursorStyles, SpaceSymbols, type State, type FontSettings } from 'types'
+import { CursorStyles, SpaceSymbols, type State, type TypingWidgetSettings } from 'types'
 
-export const defaultFontSettings: FontSettings = {
+export const defaultFontSettings: TypingWidgetSettings = {
   textColor: 'black',
   spaceSymbol: SpaceSymbols.DOT,
   cursorStyle: CursorStyles.UNDERSCORE,

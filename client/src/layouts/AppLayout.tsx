@@ -12,7 +12,7 @@ export const AppLayout = ({ maxWidth = 'max-w-4xl', padded = true }: AppLayoutPr
   const { user, loading } = useUser()
 
   if (loading) {
-    return <Loader />
+    return <Loader label="loading user" />
   }
 
   return (

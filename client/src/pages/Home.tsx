@@ -6,7 +6,7 @@ const TypingWidget = lazy(() => import('components').then((m) => ({ default: m.T
 
 export const Home = () => {
   return (
-    <Suspense fallback={<Loader />}>
+    <Suspense fallback={<Loader label="loading interface" />}>
       <article className="justify-center items-center flex flex-col select-none">
         <TypingWidget />
       </article>

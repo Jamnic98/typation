@@ -52,7 +52,7 @@ describe('Test Rendering', () => {
   test("Doesn't render with no text to type", async () => {
     renderTypingWidgetText({
       textToType: '',
-      fontSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
+      typingWidgetSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
@@ -66,7 +66,7 @@ describe('Test Rendering', () => {
   test('Renders characters with spaces', () => {
     renderTypingWidgetText({
       textToType: textToType,
-      fontSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
+      typingWidgetSettings: { spaceSymbol: SpaceSymbols.UNDERSCORE },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
@@ -99,7 +99,7 @@ describe('Test functionality', () => {
     const user = userEvent.setup()
     renderTypingWidgetText({
       textToType: textToType,
-      fontSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
+      typingWidgetSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},
@@ -143,7 +143,7 @@ describe('Test functionality', () => {
 
     renderTypingWidgetText({
       textToType,
-      fontSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
+      typingWidgetSettings: { textColor: 'black', cursorStyle: CursorStyles.BLOCK },
       onStart: async () => {},
       onComplete: async () => {},
       onType: async () => {},

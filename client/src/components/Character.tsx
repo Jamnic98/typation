@@ -11,14 +11,14 @@ import {
   STYLE_PENDING,
 } from 'utils/constants'
 import { getCursorStyle } from 'utils/helpers'
-import { type FontSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
+import { type TypingWidgetSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 
 export interface CharacterProps {
   char: string
   typedChar?: string
   isActive: boolean
   typedStatus: TypedStatus
-  fontSettings?: FontSettings
+  typingWidgetSettings?: TypingWidgetSettings
 }
 
 export const typedStatusStyles: Record<TypedStatus, string> = {
@@ -35,7 +35,7 @@ export const CharacterComponent = ({
   typedChar,
   isActive = false,
   typedStatus = TypedStatus.NONE,
-  fontSettings = defaultFontSettings,
+  typingWidgetSettings = defaultFontSettings,
 }: CharacterProps) => {
   const [wasTyped, setWasTyped] = useState(false)
 
@@ -49,15 +49,15 @@ export const CharacterComponent = ({
   }, [typedStatus, wasTyped])
 
   const fontSettingsClass = useMemo(() => {
-    return Object.entries(fontSettings)
+    return Object.entries(typingWidgetSettings)
       .map(([key, value]) => {
         if (key === 'fontSize') return `text-${value}`
       })
       .join(' ')
-  }, [fontSettings])
+  }, [typingWidgetSettings])
 
   const typedStatusClass = typedStatusStyles[typedStatus]
-  const spaceSymbol = spaceSymbolMap[fontSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
+  const spaceSymbol = spaceSymbolMap[typingWidgetSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
 
   // Decide what to display
   let displayChar: string
@@ -114,7 +114,7 @@ export const CharacterComponent = ({
       {/* Blinking cursor overlay */}
       {isActive && (
         <span
-          className={`absolute inset-0 ${getCursorStyle(fontSettings?.cursorStyle)}`}
+          className={`absolute inset-0 ${getCursorStyle(typingWidgetSettings?.cursorStyle)}`}
           data-testid="character-cursor"
         />
       )}

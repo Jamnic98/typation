@@ -22,11 +22,12 @@ import {
   TypingAction,
   AlertType,
   type KeyEvent,
-  type FontSettings,
+  type TypingWidgetSettings,
   type OnTypeParams,
   TypedStatus,
   SpecialEvent,
 } from 'types'
+import ToolbarWithOverlay from './Toolbar'
 
 export const TypingWidget = () => {
   const [isFocused, setIsFocused] = useState(false)
@@ -45,7 +46,8 @@ export const TypingWidget = () => {
   const mistypedRef = useRef<Record<string, Record<string, number>>>({})
   const [showStats, setShowStats] = useState<boolean>(false)
 
-  const [fontSettings /* , setFontSettings */] = useState<FontSettings>(defaultFontSettings)
+  const [typingWidgetSettings /* , setFontSettings */] =
+    useState<TypingWidgetSettings>(defaultFontSettings)
 
   useEffect(() => {
     if (!isFocused) {
@@ -219,14 +221,17 @@ export const TypingWidget = () => {
   }
 
   return (
-    <div id="typing-widget" data-testid="typing-widget" className="w-full h-full">
+    <div id="typing-widget" data-testid="typing-widget" className="w-full h-full -m-8">
+      <div className="flex flex-row">
+        <ToolbarWithOverlay />
+      </div>
       <TypingWidgetText
         onStart={onStart}
         onComplete={onComplete}
         onType={onType}
         reset={reset}
         textToType={state.text ?? ''}
-        fontSettings={fontSettings}
+        typingWidgetSettings={typingWidgetSettings}
         typable={!showStats}
         onFocusChange={setIsFocused}
         onBlurReset={handleBlurReset}

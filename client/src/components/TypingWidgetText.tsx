@@ -5,7 +5,7 @@ import { getGlobalIndex, resetTypedStatus } from 'utils/helpers'
 import { defaultFontSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
 import {
   type OnTypeParams,
-  type FontSettings,
+  type TypingWidgetSettings,
   TypedStatus,
   TypingAction,
   SpaceSymbols,
@@ -16,7 +16,7 @@ import UKKeyboardSvg from './UKKeyboardSvg'
 
 export interface TypingWidgetTextProps {
   textToType: string | null
-  fontSettings?: FontSettings
+  typingWidgetSettings?: TypingWidgetSettings
   onStart: () => void
   onComplete: () => Promise<void>
   onType: (params: OnTypeParams) => void
@@ -36,7 +36,7 @@ const INITIAL_OFFSET = 1
 
 export const TypingWidgetText = ({
   textToType,
-  fontSettings = defaultFontSettings,
+  typingWidgetSettings = defaultFontSettings,
   typable,
   onStart,
   onComplete,
@@ -407,7 +407,7 @@ export const TypingWidgetText = ({
                     ? line.map((charObj, ci) => (
                         <Character
                           {...charObj}
-                          fontSettings={fontSettings}
+                          typingWidgetSettings={typingWidgetSettings}
                           isActive={idx === lineIndex && ci === colIndex && isFocused}
                           key={`${idx}-${ci}-${sessionId}`}
                         />
