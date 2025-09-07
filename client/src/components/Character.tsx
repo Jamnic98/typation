@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
+import { type ComponentSettings } from 'components'
 import {
   defaultWidgetSettings,
   STYLE_FIXED,
@@ -11,14 +12,14 @@ import {
   STYLE_PENDING,
 } from 'utils/constants'
 import { getCursorStyle } from 'utils/helpers'
-import { type TypingWidgetSettings, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
+import { SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 
 export interface CharacterProps {
   char: string
   typedChar?: string
   isActive: boolean
   typedStatus: TypedStatus
-  typingWidgetSettings?: TypingWidgetSettings
+  typingWidgetSettings?: ComponentSettings
 }
 
 export const typedStatusStyles: Record<TypedStatus, string> = {
@@ -73,6 +74,8 @@ export const CharacterComponent = ({
     displayChar = char === ' ' && spaceSymbol ? spaceSymbol : char
   }
 
+  const characterAnimationEnabled = typingWidgetSettings.characterAnimationEnabled
+
   return (
     <span className="inline-block relative w-[1ch] align-baseline">
       {/* Character background */}
@@ -95,16 +98,22 @@ export const CharacterComponent = ({
                 ? 'line-through'
                 : ''
             }`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{
-              opacity: 0,
-              x: Math.random() * -20 - 0.5,
-              y: Math.floor(Math.random()) + 25,
-              rotate: (Math.random() - 0.5) * 360,
-              scale: 0.9 + Math.random() * 0.1,
-            }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            initial={characterAnimationEnabled ? { opacity: 0 } : false}
+            animate={characterAnimationEnabled ? { opacity: 1 } : {}}
+            exit={
+              characterAnimationEnabled
+                ? {
+                    opacity: 0,
+                    x: Math.random() * -20 - 0.5,
+                    y: Math.floor(Math.random()) + 25,
+                    rotate: (Math.random() - 0.5) * 360,
+                    scale: 0.9 + Math.random() * 0.1,
+                  }
+                : {}
+            }
+            transition={
+              characterAnimationEnabled ? { duration: 0.4, ease: 'easeOut' } : { duration: 0 }
+            }
           >
             {displayChar}
           </motion.span>

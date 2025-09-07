@@ -15,6 +15,10 @@ const defaultProps: CharacterProps = {
     fontSize: FontSizes.XL,
     spaceSymbol: SpaceSymbols.DOT,
     cursorStyle: CursorStyles.BLOCK,
+    showCurrentLetter: true,
+    characterAnimationEnabled: false,
+    showBigKeyboard: false,
+    testDuration: 60,
   },
 }
 
@@ -46,6 +50,11 @@ describe('Character render tests', () => {
         char: ' ',
         typingWidgetSettings: {
           spaceSymbol: SpaceSymbols.DOT,
+          cursorStyle: CursorStyles.BLOCK,
+          showCurrentLetter: true,
+          characterAnimationEnabled: false,
+          showBigKeyboard: false,
+          testDuration: 60,
         },
       })
     )

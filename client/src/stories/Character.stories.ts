@@ -72,9 +72,5 @@ export const Highlighted: Story = {
     char: 'H',
     isActive: true,
     typedStatus: TypedStatus.NONE,
-    typingWidgetSettings: {
-      // cursorStyle: CursorStyles.BLOCK,
-      fontSize: FontSizes.MD,
-    },
   },
 }

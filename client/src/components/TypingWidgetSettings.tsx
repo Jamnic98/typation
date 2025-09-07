@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react'
 
-import { CursorStyles, SpaceSymbols, type TypingWidgetSettings as InterfaceSettings } from 'types'
+import { Character } from 'components'
+import {
+  CursorStyles,
+  SpaceSymbols,
+  TypedStatus,
+  type TypingWidgetSettings as InterfaceSettings,
+} from 'types'
 
 export type TypingWidgetUIFlags = {
   showBigKeyboard: boolean
@@ -9,7 +15,10 @@ export type TypingWidgetUIFlags = {
   characterAnimationEnabled: boolean
 }
 
-export type ComponentSettings = InterfaceSettings & TypingWidgetUIFlags
+export type ComponentSettings = InterfaceSettings &
+  TypingWidgetUIFlags & {
+    testDuration: number
+  }
 
 const DEFAULTS: ComponentSettings = {
   // UI flags
@@ -20,6 +29,7 @@ const DEFAULTS: ComponentSettings = {
   // Font-related
   cursorStyle: CursorStyles.BLOCK,
   spaceSymbol: SpaceSymbols.DOT,
+  testDuration: 60,
   // fontSize: 'base',
   // fontFamily: 'Inter, ui-sans-serif, system-ui',
   // textColor: '#111827', // neutral-900
@@ -51,11 +61,6 @@ export const TypingWidgetSettings = ({
   const initialState = useMemo(() => ({ ...DEFAULTS, ...(initial ?? {}) }), [initial])
   const [settings, setSettings] = useState<ComponentSettings>(initialState)
 
-  const handleCheckbox =
-    (key: keyof TypingWidgetUIFlags) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSettings((s) => ({ ...s, [key]: e.target.checked }))
-    }
-
   const handleCursorStyle = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSettings((s) => ({ ...s, cursorStyle: Number(e.target.value) as CursorStyles }))
   }
@@ -70,74 +75,152 @@ export const TypingWidgetSettings = ({
 
   return (
     <div className="space-y-6 p-4 mt-4">
+      {/* Duration Settings */}
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold text-neutral-700">Test Duration</h3>
+        <select
+          className="rounded border px-2 py-1 text-sm"
+          value={settings.testDuration}
+          onChange={(e) => setSettings((s) => ({ ...s, testDuration: Number(e.target.value) }))}
+        >
+          <option value={30}>30 seconds</option>
+          <option value={60}>60 seconds</option>
+          <option value={120}>2 minutes</option>
+          <option value={300}>5 minutes</option>
+        </select>
+      </section>
+
       {/* Keyboard Settings */}
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-neutral-700">Keyboard</h3>
         <div className="flex flex-col gap-3">
-          <label className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
-            <input
-              type="checkbox"
-              className="rounded cursor-pointer"
-              checked={settings.showBigKeyboard}
-              onChange={handleCheckbox('showBigKeyboard')}
-            />
-            Show Big Keyboard
-          </label>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-neutral-700">Show Big Keyboard</span>
+            <button
+              type="button"
+              onClick={() => setSettings((s) => ({ ...s, showBigKeyboard: !s.showBigKeyboard }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                settings.showBigKeyboard ? 'bg-blue-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  settings.showBigKeyboard ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </section>
 
       {/* Display Settings */}
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-neutral-700">Display</h3>
-        <label className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
-          <input
-            type="checkbox"
-            className="rounded cursor-pointer"
-            checked={settings.showCurrentLetter}
-            onChange={handleCheckbox('showCurrentLetter')}
-          />
-          Show Current Letter
-        </label>
-        <label className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
-          <input
-            type="checkbox"
-            className="rounded cursor-pointer"
-            checked={settings.characterAnimationEnabled}
-            onChange={handleCheckbox('characterAnimationEnabled')}
-          />
-          Enable Character Animation
-        </label>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-neutral-700">Show Current Letter</span>
+          <button
+            type="button"
+            onClick={() => setSettings((s) => ({ ...s, showCurrentLetter: !s.showCurrentLetter }))}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              settings.showCurrentLetter ? 'bg-blue-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                settings.showCurrentLetter ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-neutral-700">Enable Character Animation</span>
+          <button
+            type="button"
+            onClick={() =>
+              setSettings((s) => ({
+                ...s,
+                characterAnimationEnabled: !s.characterAnimationEnabled,
+              }))
+            }
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              settings.characterAnimationEnabled ? 'bg-blue-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                settings.characterAnimationEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
       </section>
 
       {/* Font Settings */}
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-neutral-700">Font</h3>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-4">
+          {/* Cursor Style */}
+          <div className="flex flex-col gap-2">
             <label className="text-sm">Cursor Style</label>
-            <select
-              className="rounded border px-2 py-1 text-sm"
-              value={settings.cursorStyle}
-              onChange={handleCursorStyle}
-            >
-              <option value={CursorStyles.UNDERSCORE}>Underscore</option>
-              <option value={CursorStyles.BLOCK}>Block</option>
-              <option value={CursorStyles.OUTLINE}>Outline</option>
-              <option value={CursorStyles.PIPE}>Pipe</option>
-            </select>
+            <div className="flex items-center gap-4">
+              <select
+                className="rounded border px-2 py-1 text-sm"
+                value={settings.cursorStyle}
+                onChange={handleCursorStyle}
+              >
+                <option value={CursorStyles.UNDERSCORE}>Underscore</option>
+                <option value={CursorStyles.BLOCK}>Block</option>
+                <option value={CursorStyles.OUTLINE}>Outline</option>
+                <option value={CursorStyles.PIPE}>Pipe</option>
+              </select>
+
+              {/* Live preview */}
+              <div className="flex items-center gap-2 border rounded px-2 py-1 bg-neutral-50">
+                <Character
+                  char="A"
+                  isActive={true} // force show cursor
+                  typedStatus={TypedStatus.NONE}
+                  typingWidgetSettings={{
+                    ...settings,
+                    cursorStyle: settings.cursorStyle,
+                  }}
+                />
+                <span className="text-xs text-neutral-500">Preview</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-1">
+          {/* Space Symbol */}
+          <div className="flex flex-col gap-2">
             <label className="text-sm">Space Symbol</label>
-            <select
-              className="rounded border px-2 py-1 text-sm"
-              value={settings.spaceSymbol}
-              onChange={handleSpaceSymbol}
-            >
-              <option value={SpaceSymbols.UNDERSCORE}>Underscore</option>
-              <option value={SpaceSymbols.DOT}>Dot</option>
-              <option value={SpaceSymbols.NONE}>None</option>
-            </select>
+            <div className="flex items-center gap-4">
+              <select
+                className="rounded border px-2 py-1 text-sm"
+                value={settings.spaceSymbol}
+                onChange={handleSpaceSymbol}
+              >
+                <option value={SpaceSymbols.UNDERSCORE}>Underscore</option>
+                <option value={SpaceSymbols.DOT}>Dot</option>
+                <option value={SpaceSymbols.NONE}>None</option>
+              </select>
+
+              {/* Live preview */}
+              <div className="flex items-center gap-2 border rounded px-2 py-1 bg-neutral-50">
+                <Character
+                  char=" "
+                  isActive={false}
+                  typedStatus={TypedStatus.NONE}
+                  typingWidgetSettings={{
+                    ...settings,
+                    spaceSymbol: settings.spaceSymbol,
+                    characterAnimationEnabled: false,
+                  }}
+                />
+                <span className="text-xs text-neutral-500">Preview</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>

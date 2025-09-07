@@ -8,6 +8,7 @@ export const defaultWidgetSettings: ComponentSettings = {
   showBigKeyboard: true,
   showCurrentLetter: true,
   characterAnimationEnabled: true,
+  testDuration: 60,
 
   // fontFamily: 'monospace',
   // fontWeight: 'bold',',

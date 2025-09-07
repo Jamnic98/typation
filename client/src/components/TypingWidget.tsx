@@ -9,9 +9,7 @@ import {
 } from 'components'
 import { fetchTypingString, saveStats, useAlert, useUser } from 'api'
 import {
-  // calculateAccuracy,
   calculateTypingSessionStats,
-  // calculateWpm,
   typingWidgetStateReducer,
   getReadableErrorMessage,
   trackMistypedKey,
@@ -21,7 +19,6 @@ import {
   LOCAL_STORAGE_COMPLETED_KEY,
   LOCAL_STORAGE_TEXT_KEY,
   TYPING_WIDGET_INITIAL_STATE,
-  DEFAULT_SESSION_DURATION,
   defaultWidgetSettings,
 } from 'utils/constants'
 import {
@@ -42,15 +39,15 @@ export const TypingWidget = () => {
   const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
   const [elapsed, setElapsed] = useState(0) // ms
 
-  const timeLeft = Math.max(DEFAULT_SESSION_DURATION - Math.floor(elapsed / 1000), 0)
-  const progress = Math.min(elapsed / (DEFAULT_SESSION_DURATION * 1000), 1) // 0 → 1
-
   const startTimestamp = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
   const mistypedRef = useRef<Record<string, Record<string, number>>>({})
   const [showStats, setShowStats] = useState<boolean>(false)
 
   const [widgetSettings, setWidgetSettings] = useState<ComponentSettings>(defaultWidgetSettings)
+
+  const timeLeft = Math.max(widgetSettings.testDuration - Math.floor(elapsed / 1000), 0)
+  const progress = Math.min(elapsed / (widgetSettings.testDuration * 1000), 1) // 0 → 1
 
   useEffect(() => {
     if (!isFocused) {
@@ -150,7 +147,7 @@ export const TypingWidget = () => {
       const diff = Date.now() - startTimestamp.current
       setElapsed(diff) // forces re-render every frame
 
-      if (diff >= DEFAULT_SESSION_DURATION * 1000) {
+      if (diff >= widgetSettings.testDuration * 1000) {
         onComplete()
       } else {
         rafId = requestAnimationFrame(tick)
@@ -162,7 +159,7 @@ export const TypingWidget = () => {
     return () => {
       cancelAnimationFrame(rafId)
     }
-  }, [state.isRunning, isFocused, onComplete])
+  }, [state.isRunning, widgetSettings.testDuration, isFocused, onComplete])
 
   useEffect(() => {
     const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
@@ -176,10 +173,9 @@ export const TypingWidget = () => {
   }, [fetchAndSetText])
 
   const reset = (): void => {
-    // dispatch({ type: 'RESET_SESSION' })
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
     keyEventQueue.current = []
-    // setTimeLeft(DEFAULT_SESSION_DURATION)
+    setElapsed(0)
   }
 
   const onStart = (): void => {
@@ -223,15 +219,26 @@ export const TypingWidget = () => {
     setElapsed(0)
   }
 
+  const handleSaveSettings = (next: ComponentSettings) => {
+    setWidgetSettings(next)
+
+    showAlert({
+      type: AlertType.SUCCESS,
+      title: 'Settings Updated',
+      message: 'Your preferences have been saved successfully.',
+    })
+  }
+
   return (
     <div id="typing-widget" data-testid="typing-widget" className="w-full h-full -m-8">
       <div className="flex flex-row">
         <Toolbar
           settings={widgetSettings}
-          onSaveSettings={(next) => setWidgetSettings(next)}
+          onSaveSettings={(next) => handleSaveSettings(next)}
           containerMaxWidthClass="max-w-4xl"
         />
       </div>
+
       <TypingWidgetText
         onStart={onStart}
         onComplete={onComplete}
@@ -248,7 +255,6 @@ export const TypingWidget = () => {
         title={formatDateTime(startTimestamp.current)}
         isOpen={showStats}
         onClose={() => setShowStats(false)}
-        // onOk={() => dispatch({ type: 'RESET_SESSION' })}
       >
         <SessionStatsSummary
           wpm={state.wpm}

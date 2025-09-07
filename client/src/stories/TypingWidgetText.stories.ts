@@ -26,6 +26,7 @@ export const TypingWidgetTextStory: Story = {
       showBigKeyboard: false,
       showCurrentLetter: false,
       characterAnimationEnabled: true,
+      testDuration: 60,
     },
     onStart: () => {},
     onComplete: async () => {},
