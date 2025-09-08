@@ -6,11 +6,11 @@
     0%,
     100% {
       background-color: #000;
-      color: #fff;
+      color: #fff; /* always visible */
     }
     50% {
       background-color: #fff;
-      color: #000;
+      color: #fff; /* stays white */
     }
   }
 

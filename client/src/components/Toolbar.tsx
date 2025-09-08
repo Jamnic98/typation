@@ -18,10 +18,32 @@ export const Toolbar = ({
   onSaveSettings: (next: ComponentSettings) => void
 }) => {
   const [isOpen, setIsOpen] = useState(initialOpen)
+
+  const [isAnimating, setIsAnimating] = useState(false)
+
   const panelRef = useRef<HTMLDivElement | null>(null)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
 
-  const handleToggle = () => setIsOpen((o) => !o)
+  const handleToggle = () => {
+    // prevent flicker during animation
+    if (isAnimating) return
+    setIsAnimating(true)
+    setIsOpen((prev) => !prev)
+  }
+
+  useEffect(() => {
+    const btn = buttonRef.current
+    if (!btn) return
+
+    const handleTransitionEnd = () => {
+      setIsAnimating(false) // unlock after animation
+    }
+
+    btn.addEventListener('transitionend', handleTransitionEnd)
+    return () => {
+      btn.removeEventListener('transitionend', handleTransitionEnd)
+    }
+  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -110,8 +132,8 @@ export const Toolbar = ({
                   <TypingWidgetSettings
                     initial={settings}
                     onSave={(next) => {
-                      onSaveSettings(next) // update parent
-                      setIsOpen(false) // close on save
+                      onSaveSettings(next)
+                      setIsOpen(false)
                     }}
                   />
                 </div>

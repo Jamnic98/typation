@@ -7,6 +7,7 @@ import {
   TypedStatus,
   type TypingWidgetSettings as InterfaceSettings,
 } from 'types'
+import { DEFAULT_SESSION_DURATION } from 'utils'
 
 export type TypingWidgetUIFlags = {
   showBigKeyboard: boolean
@@ -29,7 +30,7 @@ const DEFAULTS: ComponentSettings = {
   // Font-related
   cursorStyle: CursorStyles.BLOCK,
   spaceSymbol: SpaceSymbols.DOT,
-  testDuration: 60,
+  testDuration: DEFAULT_SESSION_DURATION,
   // fontSize: 'base',
   // fontFamily: 'Inter, ui-sans-serif, system-ui',
   // textColor: '#111827', // neutral-900
@@ -83,6 +84,7 @@ export const TypingWidgetSettings = ({
           value={settings.testDuration}
           onChange={(e) => setSettings((s) => ({ ...s, testDuration: Number(e.target.value) }))}
         >
+          <option value={1}>1 second</option>
           <option value={30}>30 seconds</option>
           <option value={60}>60 seconds</option>
           <option value={120}>2 minutes</option>

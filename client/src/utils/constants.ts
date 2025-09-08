@@ -1,6 +1,8 @@
 import { type ComponentSettings } from 'components'
 import { type State, CursorStyles, SpaceSymbols } from 'types'
 
+export const DEFAULT_SESSION_DURATION = 30
+
 export const defaultWidgetSettings: ComponentSettings = {
   spaceSymbol: SpaceSymbols.DOT,
   cursorStyle: CursorStyles.UNDERSCORE,
@@ -8,7 +10,7 @@ export const defaultWidgetSettings: ComponentSettings = {
   showBigKeyboard: true,
   showCurrentLetter: true,
   characterAnimationEnabled: true,
-  testDuration: 60,
+  testDuration: DEFAULT_SESSION_DURATION,
 
   // fontFamily: 'monospace',
   // fontWeight: 'bold',',
@@ -60,8 +62,6 @@ export const TYPING_WIDGET_INITIAL_STATE: State = {
 }
 
 export const DEFAULT_CAROUSEL_INTERVAL = 8000 // 8 seconds
-
-export const DEFAULT_SESSION_DURATION = 60
 
 // endpoints
 export const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
