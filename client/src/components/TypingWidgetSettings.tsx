@@ -84,7 +84,6 @@ export const TypingWidgetSettings = ({
           value={settings.testDuration}
           onChange={(e) => setSettings((s) => ({ ...s, testDuration: Number(e.target.value) }))}
         >
-          <option value={1}>1 second</option>
           <option value={30}>30 seconds</option>
           <option value={60}>60 seconds</option>
           <option value={120}>2 minutes</option>
