@@ -86,8 +86,8 @@ export const TypingWidgetSettings = ({
         >
           <option value={30}>30 seconds</option>
           <option value={60}>60 seconds</option>
-          <option value={120}>2 minutes</option>
-          <option value={300}>5 minutes</option>
+          {/* <option value={120}>2 minutes</option>
+          <option value={300}>5 minutes</option> */}
         </select>
       </section>
 
