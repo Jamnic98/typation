@@ -1,10 +1,14 @@
-import { trackEvent } from 'hooks'
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+
+import { trackEvent } from 'hooks'
 
 export const Header = () => {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const darkState = localStorage.getItem('theme') === 'dark'
+  console.log('darkState in Header:', darkState)
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -24,18 +28,22 @@ export const Header = () => {
         className="flex items-center gap-3 focus:outline-none cursor-pointer"
         tabIndex={-1}
       >
-        <img src="/typation_logo.svg" alt="Typation logo" className="h-10 w-10 object-contain" />
+        <img
+          src="/images/logos/typation_logo_dark.png"
+          alt="Typation logo"
+          className="h-10 w-10 object-contain"
+        />
 
         <div className="flex flex-col justify-center text-left leading-tight">
-          <span className="text-2xl font-bold text-black hover:text-gray-800 transition-colors">
-            Typation
-          </span>
+          <span className="text-2xl font-bold text-black transition-colors">Typation</span>
           <span className="text-xs text-gray-500">(Public Alpha)</span>
         </div>
       </Link>
 
       {/* Right section */}
+
       <div className="flex items-center gap-6">
+        {/* <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} /> */}
         <Link
           to="/waitlist"
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"

@@ -1,4 +1,4 @@
-import asyncio
+from fastapi import FastAPI
 import uuid
 from datetime import timedelta
 from uuid import UUID
@@ -7,8 +7,14 @@ from passlib.context import CryptContext
 
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport, Response
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    async_sessionmaker,
+    AsyncSession,
+    AsyncEngine,
+)
 from sqlalchemy.ext.asyncio.session import async_sessionmaker as AsyncSessionMaker
+from sqlalchemy.pool import NullPool
 
 from ..app.auth.jwt import create_access_token
 from ..app.factories.database import Base, get_db
@@ -20,11 +26,13 @@ from ..app.settings import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+# ---------- App & client ----------
+
 @pytest_asyncio.fixture(scope="function")
 async def app(
     async_engine: AsyncEngine,
-    async_session_maker_fixture: AsyncSessionMaker[AsyncSession]
-) -> AsyncGenerator:
+    async_session_maker_fixture: AsyncSessionMaker[AsyncSession],
+) -> AsyncGenerator[FastAPI, None]:
     app = create_app(engine=async_engine, async_sessionmaker=async_session_maker_fixture)
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -36,23 +44,36 @@ async def app(
 
 
 @pytest_asyncio.fixture
-async def async_client(app: Any) -> AsyncGenerator[AsyncClient, None]:
+async def async_client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
 
 
-@pytest_asyncio.fixture(scope="function")
-async def async_session(async_session_maker_fixture: AsyncSessionMaker[AsyncSession]) -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_maker_fixture() as session:
-        yield session
-    # session is closed automatically here
+# ---------- DB engine / session ----------
 
 @pytest_asyncio.fixture(scope="session")
 async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
-    engine = create_async_engine(settings.DATABASE_URL, future=True)  #, echo=True)
+    # ✅ NullPool avoids connection reuse across overlapping awaits in tests
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        future=True,
+        poolclass=NullPool,
+        # echo=True,  # uncomment if you want SQL debug output
+    )
     yield engine
-    await engine.dispose()  # Dispose explicitly when session ends
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def async_session_maker_fixture(
+    async_engine: AsyncEngine,
+) -> AsyncGenerator[AsyncSessionMaker[AsyncSession], None]:
+    yield async_sessionmaker(
+        bind=async_engine,
+        expire_on_commit=False,
+        class_=AsyncSession,
+    )
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -60,30 +81,21 @@ async def setup_database(async_engine: AsyncEngine):
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
-
-    yield  # tests run here
-
-    # teardown after yield, properly awaited
+    yield
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest_asyncio.fixture(scope="function")
-def async_session_maker_fixture(async_engine):
-    return async_sessionmaker(
-        bind=async_engine,
-        expire_on_commit=False,
-        class_=AsyncSession,
-    )
-
-
 @pytest_asyncio.fixture
 async def async_session(
-    async_session_maker_fixture: AsyncSessionMaker[AsyncSession]
+    async_session_maker_fixture: AsyncSessionMaker[AsyncSession],
 ) -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker_fixture() as session:
         yield session
+    # closed automatically
 
+
+# ---------- Helpers / data ----------
 
 @pytest_asyncio.fixture
 async def test_users(async_session: AsyncSession) -> AsyncGenerator[list[User], Any]:
@@ -92,40 +104,30 @@ async def test_users(async_session: AsyncSession) -> AsyncGenerator[list[User], 
 
 
 @pytest_asyncio.fixture
-async def test_user_stats_sessions(async_session: AsyncSession) -> AsyncGenerator[List[UserStatsSession], None]:
+async def test_user_stats_sessions(
+    async_session: AsyncSession,
+) -> AsyncGenerator[List[UserStatsSession], None]:
     test_users = await create_test_users(async_session)
     user_ids = [user.id for user in test_users]
     sessions = await create_test_user_stats_sessions(async_session, user_ids)
     yield sessions
 
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def final_database_cleanup(async_engine: AsyncEngine):
-    yield
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await async_engine.dispose()
-
-
 @pytest_asyncio.fixture
-def graphql_query_fixture(async_client: AsyncClient) -> Callable[
-    [str, Optional[dict], Optional[dict]], Coroutine[Any, Any, Response]]:
+def graphql_query_fixture(
+    async_client: AsyncClient,
+) -> Callable[[str, Optional[dict], Optional[dict]], Coroutine[Any, Any, Response]]:
     async def _graphql_query(
-            query: str,
-            variables: Optional[dict] = None,
-            headers: Optional[dict] = None
+        query: str,
+        variables: Optional[dict] = None,
+        headers: Optional[dict] = None,
     ) -> Response:
         payload = {"query": query}
         if variables:
             payload["variables"] = variables
-
-        response = await async_client.post(
-            settings.GRAPHQL_ENDPOINT,
-            json=payload,
-            headers=headers or {}
+        return await async_client.post(
+            settings.GRAPHQL_ENDPOINT, json=payload, headers=headers or {}
         )
-        return response
 
     return _graphql_query
 
@@ -136,7 +138,8 @@ async def auth_token(test_users: list[User]) -> str:
     return create_access_token({"sub": str(test_user.id)}, expires_delta=timedelta(hours=1))
 
 
-# TODO: move
+# ---------- Data creators ----------
+
 async def create_test_users(async_session: AsyncSession) -> list[User]:
     password = "testpassword123"
     hashed_password = pwd_context.hash(password)
@@ -163,7 +166,6 @@ async def create_test_users(async_session: AsyncSession) -> list[User]:
     return test_users
 
 
-# TODO: move
 async def create_test_user_stats_sessions(
     async_session: AsyncSession, user_ids: List[UUID]
 ) -> List[UserStatsSession]:

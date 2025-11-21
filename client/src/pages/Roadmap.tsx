@@ -40,11 +40,12 @@ export const Roadmap = () => (
       </p>
       <ul className="space-y-2 text-gray-700 list-disc pl-6">
         <li>🔐 User accounts and login</li>
-        <li>📊 Simple analytics dashboard (WPM, accuracy, history graphs).</li>
         <li>🧩 Weak-pattern practice for tricky keys and digraphs.</li>
         <li>👻 Ghost racing against your average or personal best.</li>
-        <li>⚙️ Basic user settings for the typing interface.</li>
+        <li>📊 Simple analytics dashboard (WPM, accuracy, history graphs).</li>
+        <li>🧠 Smarter text generation using per-user stats.</li>
         <li>🕶️ Dark mode and core accessibility improvements.</li>
+        {/* <li>⚙️ Basic user settings for the typing interface.</li> */}
       </ul>
     </section>
 
@@ -57,7 +58,6 @@ export const Roadmap = () => (
       <ul className="space-y-2 text-gray-700 list-disc pl-6">
         <li>🏆 Personal achievements.</li>
         <li>📊 Advanced analytics (comparisons, streaks, progress over time).</li>
-        <li>🧠 Smarter text generation using per-user stats.</li>
         <li>⌨️ Live session keyboard heatmap.</li>
         <li>📝 Custom text mode (paste your own text).</li>
         <li>⚙️ Rich user settings (themes, layouts, preferences).</li>
@@ -66,14 +66,14 @@ export const Roadmap = () => (
     </section>
 
     {/* FUTURE */}
-    <section className="mb-10">
+    {/* <section className="mb-10">
       <h2 className="text-lg font-semibold text-gray-900 mb-2">Future (2026 and beyond)</h2>
       <p className="text-sm text-gray-500 mb-4">Focus: personalisation at scale and social play.</p>
       <ul className="space-y-2 text-gray-700 list-disc pl-6">
         <li>🧪 Multiplayer and leaderboards (experimental).</li>
         <li>📱 Mobile support.</li>
       </ul>
-    </section>
+    </section> */}
 
     {/* Feedback */}
     <section className="mb-6">
@@ -89,9 +89,9 @@ export const Roadmap = () => (
     </section>
 
     {/* Perks note */}
-    <p className="mt-4 text-sm text-gray-500">
+    {/* <p className="mt-4 text-sm text-gray-500">
       Early supporters and waitlist members may receive “Founding Member” perks when premium
       features arrive.
-    </p>
+    </p> */}
   </LegalLayout>
 )

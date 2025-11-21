@@ -3,6 +3,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import {
   type ComponentSettings,
   Modal,
+  ProgressBar,
   SessionStatsSummary,
   Toolbar,
   TypingWidgetText,
@@ -75,7 +76,7 @@ export const TypingWidget = () => {
         type: AlertType.WARNING,
       })
     }
-  }, [showAlert])
+  }, [])
 
   const onComplete = useCallback(async (): Promise<void> => {
     if (!state.text) return
@@ -170,7 +171,7 @@ export const TypingWidget = () => {
     } else {
       fetchAndSetText()
     }
-  }, [fetchAndSetText])
+  }, [])
 
   const reset = (): void => {
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
@@ -230,14 +231,12 @@ export const TypingWidget = () => {
   }
 
   return (
-    <div id="typing-widget" data-testid="typing-widget" className="w-full h-full -m-8">
-      <div className="flex flex-row">
-        <Toolbar
-          settings={widgetSettings}
-          onSaveSettings={(next) => handleSaveSettings(next)}
-          containerMaxWidthClass="max-w-4xl"
-        />
-      </div>
+    <div id="typing-widget" data-testid="typing-widget" className="w-full h-full">
+      <Toolbar
+        settings={widgetSettings}
+        onSaveSettings={(next) => handleSaveSettings(next)}
+        containerMaxWidthClass="max-w-4xl"
+      />
 
       <TypingWidgetText
         onStart={onStart}
@@ -271,11 +270,11 @@ export const TypingWidget = () => {
       {state.isRunning && isFocused && (
         <div className="flex items-center gap-4 mt-4 w-full">
           {/* Time label */}
-          <div className="text-lg font-semibold text-left">{timeLeft}s</div>
+          <div className="text-lg text-left">{timeLeft}s</div>
 
           {/* Progress bar container */}
-          <div className="flex-1 h-2 bg-neutral-200 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500" style={{ width: `${100 - progress * 100}%` }} />
+          <div className="flex-1 h-1 bg-neutral-200 rounded-full overflow-hidden">
+            <ProgressBar progress={progress} />
           </div>
         </div>
       )}

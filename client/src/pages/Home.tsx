@@ -1,15 +1,9 @@
-import { lazy, Suspense } from 'react'
-
-import { Loader } from 'components'
-
-const TypingWidget = lazy(() => import('components').then((m) => ({ default: m.TypingWidget })))
+import { TypingWidget } from 'components'
 
 export const Home = () => {
   return (
-    <Suspense fallback={<Loader label="loading interface" />}>
-      <article className="justify-center items-center flex flex-col select-none">
-        <TypingWidget />
-      </article>
-    </Suspense>
+    <article className="justify-center items-center flex flex-col select-none pt-8">
+      <TypingWidget />
+    </article>
   )
 }

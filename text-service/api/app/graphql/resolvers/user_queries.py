@@ -81,7 +81,7 @@ class UsersQuery:
             self, info: Info, session_id: UUID
     ) -> Optional[UserStatsSessionType]:
         async_session_maker = info.context["db_factory"]
-        async with async_session_maker() as db:  # db is AsyncSession
+        async with async_session_maker() as db:
             session = await get_user_stats_session_by_id(session_id, db)
 
             # noinspection PyUnreachableCode

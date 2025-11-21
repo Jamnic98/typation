@@ -9,6 +9,7 @@ const loadCorpus = async (): Promise<string[]> => await (await fetch('/corpus.js
 type TextSource = 'server' | 'corpus-cache' | 'corpus-file' | 'hardcoded-fallback'
 
 export const fetchTypingString = async (): Promise<{ text: string; source: TextSource }> => {
+  console.log('fetchTypingString called')
   const getCorpusText = async (): Promise<{ text: string; source: TextSource }> => {
     try {
       const cached = localStorage.getItem(LOCAL_STORAGE_CORPUS_KEY)

@@ -1,8 +1,22 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { type ComponentSettings, type CharacterProps, Character } from 'components'
+import {
+  type ComponentSettings,
+  type CharacterProps,
+  Character,
+  PreviewCharacter,
+} from 'components'
 import { getGlobalIndex, resetTypedStatus } from 'utils/helpers'
-import { defaultWidgetSettings, TYPABLE_CHARS_ARRAY } from 'utils/constants'
+import {
+  CONTAINER_HEIGHT,
+  defaultWidgetSettings,
+  GAP,
+  INITIAL_OFFSET,
+  LINE_LENGTH,
+  LINE_SPACING,
+  ROW_HEIGHT,
+  TYPABLE_CHARS_ARRAY,
+} from 'utils/constants'
 import {
   type OnTypeParams,
   TypedStatus,
@@ -25,14 +39,6 @@ export interface TypingWidgetTextProps {
   onBlurReset?: () => void
 }
 
-const LINE_LENGTH = 80
-const ROW_HEIGHT = 1.5
-const GAP = 0.5
-const LINE_SPACING = ROW_HEIGHT + GAP
-const VISIBLE_LINES = 4
-const CONTAINER_HEIGHT = LINE_SPACING * VISIBLE_LINES
-const INITIAL_OFFSET = 1
-
 export const TypingWidgetText = ({
   textToType,
   typable,
@@ -44,19 +50,20 @@ export const TypingWidgetText = ({
   onBlurReset,
   typingWidgetSettings = defaultWidgetSettings,
 }: TypingWidgetTextProps) => {
+  const inputRef = useRef<HTMLDivElement>(null)
   const [sessionId, setSessionId] = useState(Date.now())
   const [lines, setLines] = useState<CharacterProps[][]>([])
   const [lineIndex, setLineIndex] = useState(0)
   const [colIndex, setColIndex] = useState(0)
-  const [isFocused, setIsFocused] = useState(false)
+  const [isFocused, setIsFocused] = useState(true)
 
   const resetTyping = useCallback(() => {
     if (typeof textToType === 'string') {
       const arr = resetTypedStatus(textToType)
 
-      const chunks: CharacterProps[][] = []
-      let currentLine: CharacterProps[] = []
       let currentLength = 0
+      let currentLine: CharacterProps[] = []
+      const chunks: CharacterProps[][] = []
 
       const words: CharacterProps[][] = []
       let currentWord: CharacterProps[] = []
@@ -69,7 +76,8 @@ export const TypingWidgetText = ({
             words.push(currentWord)
             currentWord = []
           }
-          words.push([char]) // keep space as a separate token
+          // keep space as a separate token
+          words.push([char])
         } else {
           currentWord.push(char)
         }
@@ -117,6 +125,10 @@ export const TypingWidgetText = ({
     }
   }, [textToType])
 
+  requestAnimationFrame(() => {
+    inputRef.current?.focus()
+  })
+
   useEffect(() => {
     resetTyping()
     setSessionId(Date.now())
@@ -136,6 +148,7 @@ export const TypingWidgetText = ({
       onBlurReset?.()
     }
   }
+
   const updateCharStatusAtCursor = (typedStatus: TypedStatus, key?: string): CharacterProps[][] => {
     const updated = [...lines]
     const line = [...updated[lineIndex]]
@@ -177,7 +190,7 @@ export const TypingWidgetText = ({
     onType({
       key,
       typedStatus: updated[lineIndex][colIndex].typedStatus,
-      cursorIndex: globalIndex, // now it's unique across lines
+      cursorIndex: globalIndex,
       timestamp: Date.now(),
       action: TypingAction.AddKey,
     })
@@ -199,7 +212,8 @@ export const TypingWidgetText = ({
   }
 
   const handleBackspace = (ctrl = false) => {
-    if (lineIndex === 0 && colIndex === 0) return // nothing to delete
+    // nothing to delete
+    if (lineIndex === 0 && colIndex === 0) return
 
     let newLineIndex = lineIndex
     let newColIndex = colIndex
@@ -331,23 +345,25 @@ export const TypingWidgetText = ({
   return (
     <div className="flex flex-col items-center select-none">
       {/* Big preview char */}
-      <div className="text-8xl h-18 mb-14">
-        {typingWidgetSettings.showCurrentLetter
-          ? lines[lineIndex]?.[colIndex]?.char
-            ? lines[lineIndex][colIndex].char === ' '
-              ? spaceSymbolMap[SpaceSymbols.DOT]
-              : lines[lineIndex][colIndex].char
-            : ''
-          : null}
+      <div className="min-h-28">
+        {typingWidgetSettings.showCurrentLetter && (
+          <div className="mb-12">
+            <PreviewCharacter
+              char={lines[lineIndex]?.[colIndex]?.char ?? null} // pass null instead of ''
+              spaceSymbol={spaceSymbolMap[SpaceSymbols.DOT]}
+            />
+          </div>
+        )}
       </div>
 
       {/* Typing text area */}
       <div className="relative overflow-hidden mb-6" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
-        {!isFocused && (
+        {/* TODO: remove? */}
+        {/* {!isFocused && (
           <span className="absolute inset-0 flex items-center justify-center text-lg text-neutral-500 pointer-events-none">
             Click here to start
           </span>
-        )}
+        )} */}
 
         <div
           id="typing-widget-text"
@@ -356,10 +372,11 @@ export const TypingWidgetText = ({
           aria-label="Typing area"
           tabIndex={0}
           onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
+          autoFocus={true}
           onBlur={handleBlur}
-          autoFocus
+          onFocus={handleFocus}
           className={`font-mono outline-none px-4 ${isFocused ? '' : 'blur-xs cursor-pointer'}`}
+          ref={inputRef}
         >
           <div
             className="transition-transform duration-300 ease-in-out"

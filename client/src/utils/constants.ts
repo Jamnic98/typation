@@ -81,3 +81,12 @@ export const LABEL_MAP: Record<string, string> = {
   accuracy: 'Accuracy',
   rawAccuracy: 'Raw Accuracy',
 }
+
+// typing widget text
+export const LINE_LENGTH = 80
+export const ROW_HEIGHT = 1.5
+export const GAP = 0.5
+export const LINE_SPACING = ROW_HEIGHT + GAP
+export const VISIBLE_LINES = 4
+export const CONTAINER_HEIGHT = LINE_SPACING * VISIBLE_LINES
+export const INITIAL_OFFSET = 1

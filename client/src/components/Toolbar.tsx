@@ -8,8 +8,8 @@ export const Toolbar = ({
   title = 'Settings',
   containerMaxWidthClass = 'max-w-5xl',
   initialOpen = false,
-  settings, // <- current settings from parent
-  onSaveSettings, // <- parent save handler
+  settings,
+  onSaveSettings,
 }: {
   title?: string
   containerMaxWidthClass?: string
@@ -53,17 +53,13 @@ export const Toolbar = ({
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  useEffect(() => {
-    if (isOpen) panelRef.current?.focus()
-    else buttonRef.current?.focus()
-  }, [isOpen])
-
   return (
-    <>
+    <div>
       {/* Transparent toolbar with only the icon visible */}
       <div className="relative z-30 h-8 w-full bg-transparent pointer-events-none">
         <div className="flex h-full items-center justify-end px-2 pointer-events-auto">
           <button
+            tabIndex={-1}
             ref={buttonRef}
             type="button"
             onClick={handleToggle}
@@ -79,7 +75,7 @@ export const Toolbar = ({
               ].join(' ')}
               aria-hidden
             >
-              <LuSettings className="text-[1.2rem] text-gray-200 hover:text-gray-500 transition-transform duration-300 hover:rotate-90" />
+              <LuSettings className="text-[1.2rem] text-gray-200 hover:text-gray-500 transition-transform duration-300" />
             </span>
           </button>
         </div>
@@ -127,7 +123,7 @@ export const Toolbar = ({
                 </button>
 
                 <div className="w-full p-4">
-                  <h1 className="text-xl font-semibold mb-2">Typing Interface Settings</h1>
+                  <h1 className="text-xl font-semibold mb-2">Typing Settings</h1>
 
                   <TypingWidgetSettings
                     initial={settings}
@@ -142,6 +138,6 @@ export const Toolbar = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   )
 }
