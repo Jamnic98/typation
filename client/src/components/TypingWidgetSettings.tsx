@@ -80,6 +80,7 @@ export const TypingWidgetSettings = ({
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-neutral-700">Test Duration</h3>
         <select
+          id="test-duration"
           className="rounded border px-2 py-1 text-sm"
           value={settings.testDuration}
           onChange={(e) => setSettings((s) => ({ ...s, testDuration: Number(e.target.value) }))}

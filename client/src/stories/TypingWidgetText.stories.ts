@@ -28,8 +28,6 @@ export const TypingWidgetTextStory: Story = {
       characterAnimationEnabled: true,
       testDuration: 60,
     },
-    onStart: () => {},
-    onComplete: async () => {},
     onType: () => {},
     reset: () => {},
     typable: true,

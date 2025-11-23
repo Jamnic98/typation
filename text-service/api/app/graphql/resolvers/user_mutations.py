@@ -1,7 +1,7 @@
 from typing import Optional
+from passlib.context import CryptContext
 import strawberry
 from graphql import GraphQLError
-from passlib.context import CryptContext
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError

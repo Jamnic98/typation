@@ -110,7 +110,7 @@ export const Toolbar = ({
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -12, opacity: 0 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 mt-28"
+                className="relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 mt-28 z-50"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button

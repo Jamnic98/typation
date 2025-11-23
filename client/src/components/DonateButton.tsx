@@ -23,10 +23,10 @@ export const DonateButton = () => {
 
       {/* Reuse your Modal */}
       <Modal isOpen={open} onClose={() => setOpen(false)}>
-        <div className="w-full h-[550px]">
+        <div className="w-full h-[680px]">
           <iframe
             src="https://ko-fi.com/typation/?hidefeed=true&widget=true&embed=true&preview=true"
-            className="w-full h-full mt-8"
+            className="w-full h-full"
             style={{ border: 'none', background: '#f9f9f9' }}
             title="Support Typation on Ko-fi"
           />

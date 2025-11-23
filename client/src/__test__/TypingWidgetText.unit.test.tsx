@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 
 import { TypingWidgetText, type TypingWidgetTextProps } from 'components'
@@ -8,14 +8,6 @@ import { STYLE_HIT, STYLE_MISS, STYLE_NONE } from 'utils'
 
 const textToType = 'hi me'
 
-const defaultOnStartFunc = vi.fn().mockResolvedValue(null)
-
-// Updated onComplete mock to simulate fetching new text by resetting textToType
-const defaultOnCompleteFunc = vi.fn().mockImplementation(async () => {
-  // simulate fetch / reset
-  renderTypingWidgetText({ textToType: textToType } as TypingWidgetTextProps)
-})
-
 const defaultOnTypeFunc = vi.fn().mockResolvedValue(null)
 
 let currentProps: TypingWidgetTextProps
@@ -23,8 +15,6 @@ let currentProps: TypingWidgetTextProps
 const renderTypingWidgetText = (props?: TypingWidgetTextProps) => {
   currentProps = {
     textToType: textToType,
-    onStart: defaultOnStartFunc,
-    onComplete: defaultOnCompleteFunc,
     onType: defaultOnTypeFunc,
     reset: props && typeof props.reset === 'function' ? props.reset : () => {},
     ...props,
@@ -59,8 +49,6 @@ describe('Test Rendering', () => {
         characterAnimationEnabled: false,
         testDuration: 60,
       },
-      onStart: async () => {},
-      onComplete: async () => {},
       onType: async () => {},
       reset: (): void => {},
       typable: true,
@@ -79,8 +67,6 @@ describe('Test Rendering', () => {
         characterAnimationEnabled: false,
         testDuration: 60,
       },
-      onStart: async () => {},
-      onComplete: async () => {},
       onType: async () => {},
       reset: (): void => {},
       typable: true,
@@ -119,8 +105,6 @@ describe('Test functionality', () => {
         characterAnimationEnabled: true,
         testDuration: 60,
       },
-      onStart: async () => {},
-      onComplete: async () => {},
       onType: async () => {},
       reset: (): void => {},
       typable: true,
@@ -170,8 +154,6 @@ describe('Test functionality', () => {
         characterAnimationEnabled: true,
         testDuration: 60,
       },
-      onStart: async () => {},
-      onComplete: async () => {},
       onType: async () => {},
       reset: () => {},
       typable: true,
@@ -218,44 +200,5 @@ describe('Test functionality', () => {
 
     await user.keyboard('{backspace}')
     expect(defaultOnTypeFunc).toHaveBeenCalledTimes(5)
-  })
-
-  test('Calls onComplete upon text completion on correct final char and refreshes text correctly', async () => {
-    const user = userEvent.setup()
-    renderTypingWidgetText()
-
-    const typingWidgetText = screen.getByTestId('typing-widget-text')
-    await user.click(typingWidgetText)
-
-    // type each character in the string (textToType)
-    for (const char of textToType) {
-      await user.keyboard(char)
-    }
-
-    // expect onComplete function to have been called once
-    expect(defaultOnCompleteFunc).toHaveBeenCalledTimes(1)
-
-    // type each character in the string (textToType)
-    for (const char of textToType) {
-      await user.keyboard(char)
-    }
-  })
-
-  test('Calls onComplete upon text completion on incorrect final char and refreshes text correctly', async () => {
-    const user = userEvent.setup()
-
-    renderTypingWidgetText()
-
-    const typingWidgetText = screen.getByTestId('typing-widget-text')
-    await user.click(typingWidgetText)
-
-    // type each character in the string correct except for last key
-    for (const char of textToType.slice(0, textToType.length - 1)) {
-      await user.keyboard(char)
-    }
-    await user.keyboard('z')
-
-    // Wait for onComplete to be called
-    await waitFor(() => expect(defaultOnCompleteFunc).toHaveBeenCalledTimes(1))
   })
 })

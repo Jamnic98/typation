@@ -4,7 +4,6 @@ from graphql import GraphQLError
 from strawberry.types import Info
 
 
-
 def require_auth(info: Info):
     user = info.context.get("user")
     if not user:
@@ -17,7 +16,6 @@ def auth_required(func):
         require_auth(info)
         return await func(*args, info=info, **kwargs)
     return wrapper
-
 
 
 def convert_stat_list_to_dict(stat_list, include_mean_interval=False):

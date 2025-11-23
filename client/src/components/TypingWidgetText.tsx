@@ -30,8 +30,6 @@ import UKKeyboardSvg from './UKKeyboardSvg'
 export interface TypingWidgetTextProps {
   textToType: string | null
   typingWidgetSettings?: ComponentSettings
-  onStart: () => void
-  onComplete: () => Promise<void>
   onType: (params: OnTypeParams) => void
   reset: () => void
   typable: boolean
@@ -42,8 +40,6 @@ export interface TypingWidgetTextProps {
 export const TypingWidgetText = ({
   textToType,
   typable,
-  onStart,
-  onComplete,
   onType,
   reset,
   onFocusChange,
@@ -55,7 +51,7 @@ export const TypingWidgetText = ({
   const [lines, setLines] = useState<CharacterProps[][]>([])
   const [lineIndex, setLineIndex] = useState(0)
   const [colIndex, setColIndex] = useState(0)
-  const [isFocused, setIsFocused] = useState(true)
+  const [isFocused, setIsFocused] = useState(false)
 
   const resetTyping = useCallback(() => {
     if (typeof textToType === 'string') {
@@ -124,10 +120,6 @@ export const TypingWidgetText = ({
       setColIndex(0)
     }
   }, [textToType])
-
-  requestAnimationFrame(() => {
-    inputRef.current?.focus()
-  })
 
   useEffect(() => {
     resetTyping()
@@ -198,7 +190,6 @@ export const TypingWidgetText = ({
     // End of whole text?
     if (lineIndex === lines.length - 1 && colIndex === line.length - 1) {
       setColIndex(-1)
-      await onComplete()
       return
     }
 
@@ -335,7 +326,7 @@ export const TypingWidgetText = ({
     }
 
     if (key.length === 1 && TYPABLE_CHARS_ARRAY.includes(key)) {
-      if (isFocused && lineIndex === 0 && colIndex === 0) onStart()
+      // if (isFocused && lineIndex === 0 && colIndex === 0) onStart()
       await handleCharInput(key)
     }
   }
@@ -349,7 +340,7 @@ export const TypingWidgetText = ({
         {typingWidgetSettings.showCurrentLetter && (
           <div className="mb-12">
             <PreviewCharacter
-              char={lines[lineIndex]?.[colIndex]?.char ?? null} // pass null instead of ''
+              char={lines[lineIndex]?.[colIndex]?.char ?? null}
               spaceSymbol={spaceSymbolMap[SpaceSymbols.DOT]}
             />
           </div>
@@ -359,12 +350,11 @@ export const TypingWidgetText = ({
       {/* Typing text area */}
       <div className="relative overflow-hidden mb-6" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
         {/* TODO: remove? */}
-        {/* {!isFocused && (
+        {!isFocused && (
           <span className="absolute inset-0 flex items-center justify-center text-lg text-neutral-500 pointer-events-none">
             Click here to start
           </span>
-        )} */}
-
+        )}
         <div
           id="typing-widget-text"
           data-testid="typing-widget-text"

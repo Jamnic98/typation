@@ -10,7 +10,7 @@ export const AppLayout = () => {
     <div className="min-h-screen flex flex-col bg-white transition-colors">
       <Header />
 
-      <main className="flex-grow mx-auto w-full max-w-4xl">
+      <main className="grow mx-auto w-full max-w-4xl px-4">
         <Outlet context={{ user }} />
       </main>
 

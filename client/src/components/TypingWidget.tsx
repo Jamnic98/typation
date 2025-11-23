@@ -32,23 +32,22 @@ import {
 } from 'types'
 
 export const TypingWidget = () => {
-  const [isFocused, setIsFocused] = useState(false)
-
   const { token } = useUser()
   const { showAlert } = useAlert()
 
   const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
+  const [widgetSettings, setWidgetSettings] = useState<ComponentSettings>(defaultWidgetSettings)
+  const [showStats, setShowStats] = useState<boolean>(false)
+  const [isFocused, setIsFocused] = useState(false)
   const [elapsed, setElapsed] = useState(0) // ms
 
+  const hasStartedRef = useRef(false)
   const startTimestamp = useRef<number>(0)
   const keyEventQueue = useRef<KeyEvent[]>([])
   const mistypedRef = useRef<Record<string, Record<string, number>>>({})
-  const [showStats, setShowStats] = useState<boolean>(false)
 
-  const [widgetSettings, setWidgetSettings] = useState<ComponentSettings>(defaultWidgetSettings)
-
-  const timeLeft = Math.max(widgetSettings.testDuration - Math.floor(elapsed / 1000), 0)
-  const progress = Math.min(elapsed / (widgetSettings.testDuration * 1000), 1) // 0 → 1
+  const timeLeft = Math.max(Number(widgetSettings.testDuration) - Math.floor(elapsed / 1000), 0)
+  const progress = Math.min(elapsed / (Number(widgetSettings.testDuration) * 1000), 1) // 0 → 1
 
   useEffect(() => {
     if (!isFocused) {
@@ -139,55 +138,27 @@ export const TypingWidget = () => {
     }
   }, [dispatch, fetchAndSetText, showAlert, state.text, token])
 
-  useEffect(() => {
-    if (!state.isRunning || !isFocused) return
-
-    let rafId: number
-
-    const tick = () => {
-      const diff = Date.now() - startTimestamp.current
-      setElapsed(diff) // forces re-render every frame
-
-      if (diff >= widgetSettings.testDuration * 1000) {
-        onComplete()
-      } else {
-        rafId = requestAnimationFrame(tick)
-      }
-    }
-
-    rafId = requestAnimationFrame(tick)
-
-    return () => {
-      cancelAnimationFrame(rafId)
-    }
-  }, [state.isRunning, widgetSettings.testDuration, isFocused, onComplete])
-
-  useEffect(() => {
-    const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
-    const completed = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY)
-
-    if (savedText && completed === 'false') {
-      dispatch({ type: 'SET_TEXT', payload: savedText })
-    } else {
-      fetchAndSetText()
-    }
-  }, [])
-
   const reset = (): void => {
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
+    hasStartedRef.current = false
     keyEventQueue.current = []
     setElapsed(0)
   }
 
-  const onStart = (): void => {
-    reset()
-    dispatch({ type: 'START' })
-    startTimestamp.current = Date.now()
-  }
-
   const onType = ({ key, typedStatus, cursorIndex, timestamp, action }: OnTypeParams) => {
-    const expected = cursorIndex < state.text.length ? state.text[cursorIndex] : undefined
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true
+      startTimestamp.current = Date.now()
+      dispatch({ type: 'START' })
+    }
 
+    // Completed the text
+    if (cursorIndex >= state.text.length - 1) {
+      onComplete()
+      return
+    }
+
+    const expected = cursorIndex < state.text.length ? state.text[cursorIndex] : undefined
     switch (action) {
       case TypingAction.BackspaceSingle:
       case TypingAction.ClearMissRange:
@@ -230,6 +201,40 @@ export const TypingWidget = () => {
     })
   }
 
+  useEffect(() => {
+    if (!state.isRunning || !isFocused) return
+
+    let rafId: number
+
+    const tick = () => {
+      const diff = Date.now() - startTimestamp.current
+      setElapsed(diff) // forces re-render every frame
+
+      if (diff >= Number(widgetSettings.testDuration) * 1000) {
+        onComplete()
+      } else {
+        rafId = requestAnimationFrame(tick)
+      }
+    }
+
+    rafId = requestAnimationFrame(tick)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+    }
+  }, [state.isRunning, widgetSettings.testDuration, isFocused, onComplete])
+
+  useEffect(() => {
+    const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
+    const completed = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY)
+
+    if (savedText && completed === 'false') {
+      dispatch({ type: 'SET_TEXT', payload: savedText })
+    } else {
+      fetchAndSetText()
+    }
+  }, [])
+
   return (
     <div id="typing-widget" data-testid="typing-widget" className="w-full h-full">
       <Toolbar
@@ -239,8 +244,6 @@ export const TypingWidget = () => {
       />
 
       <TypingWidgetText
-        onStart={onStart}
-        onComplete={onComplete}
         onType={onType}
         reset={reset}
         textToType={state.text ?? ''}
