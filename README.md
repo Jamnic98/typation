@@ -2,6 +2,9 @@
 
 An adaptive typing program designed to improve speed and accuracy through personalised practice and analytics.
 
+
+![Typing](https://github.com/user-attachments/assets/abd66c68-bf83-4ebe-bf83-2020a56a4706)
+
 ## Overview
 
 Typation analyses a user’s typing patterns and generates words and exercises targeting letters or digraphs they struggle with. The goal is to accelerate improvement over time by focusing practice on weak points while tracking measurable progress.
