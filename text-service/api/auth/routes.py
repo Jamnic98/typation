@@ -77,12 +77,22 @@ async def reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # user exists, proceed
+    # Check that email matches
+    email = payload.get("email")
+    if not email or email.lower() != user.email.lower():
+        raise HTTPException(status_code=400, detail="Email does not match token")
+
+    # user exists and email matches, proceed
     new_password = payload.get("password")
+    if not new_password:
+        raise HTTPException(status_code=400, detail="Password is required")
+
     user.hashed_password = bcrypt.hash(new_password)
     await save_user(user)
 
     return {"message": "Password successfully reset"}
+
+
 
 
 @auth_router.post("/forgot-password")

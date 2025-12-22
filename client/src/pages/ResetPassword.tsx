@@ -10,7 +10,6 @@ export const ResetPassword = () => {
   const { showAlert } = useAlert()
   const { token } = useParams()
 
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -18,7 +17,7 @@ export const ResetPassword = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!email || !password) {
+    if (!password) {
       showAlert({
         title: 'Please fill out all fields',
         type: AlertType.ERROR,
@@ -26,17 +25,26 @@ export const ResetPassword = () => {
       return
     }
 
-    const res = await fetch(`${baseUrl}/auth/reset-password/${token}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
+    try {
+      const res = await fetch(`${baseUrl}/auth/reset-password/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
 
-    if (res.ok) {
-      setSuccess(true)
-    } else {
+      const data = await res.json()
+
+      if (res.ok) {
+        setSuccess(true)
+      } else {
+        showAlert({
+          title: data.detail || 'Password reset failed, please try again',
+          type: AlertType.ERROR,
+        })
+      }
+    } catch (err) {
       showAlert({
-        title: 'Password reset failed, please try again',
+        title: 'Network error. Please try again.',
         type: AlertType.ERROR,
       })
     }
@@ -56,14 +64,6 @@ export const ResetPassword = () => {
         <>
           <h1 className="text-2xl font-bold mb-6 text-center">Reset Password</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="email"
-              className="w-full border p-2 rounded"
-              placeholder="Confirm your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
