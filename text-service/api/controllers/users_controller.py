@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Sequence, Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -25,7 +25,7 @@ async def create_user(user: UserCreate, db: AsyncSession) -> User:
         ) from e
 
 
-async def get_user_by_id(user_id: UUID, db: AsyncSession) -> User | None:
+async def get_user_by_id(user_id: UUID, db: AsyncSession) -> Optional[User]:
     result = await db.execute(select(User).where(User.id == user_id))
     return result.scalars().first()
 
@@ -35,9 +35,9 @@ async def get_all_users(db: AsyncSession) -> Sequence[User]:
     return result.scalars().all()
 
 
-async def update_user(user: UserUpdate, user_id: UUID, db: AsyncSession) -> User | None:
-    existing_user = await get_user_by_id(user_id, db)
-    if not existing_user:
+async def update_user(user: UserUpdate, user_id: UUID, db: AsyncSession) -> Optional[User]:
+    existing_user: User = await get_user_by_id(user_id, db)
+    if existing_user is None:
         return None
 
     for field, value in user.model_dump(exclude_unset=True).items():
@@ -57,7 +57,7 @@ async def update_user(user: UserUpdate, user_id: UUID, db: AsyncSession) -> User
 
 async def delete_user(user_id: UUID, db: AsyncSession) -> bool:
     user = await db.get(User, user_id)
-    if not user:
+    if user is None:
         return False
     await db.delete(user)
     await db.commit()

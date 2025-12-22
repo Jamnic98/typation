@@ -36,6 +36,7 @@ export const TypingWidget = () => {
   const { showAlert } = useAlert()
 
   const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [widgetSettings, setWidgetSettings] = useState<ComponentSettings>(defaultWidgetSettings)
   const [showStats, setShowStats] = useState<boolean>(false)
   const [isFocused, setIsFocused] = useState(false)
@@ -56,6 +57,20 @@ export const TypingWidget = () => {
       dispatch({ type: 'STOP' })
     }
   }, [isFocused])
+
+  useEffect(() => {
+    if (!showStats) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowStats(false)
+        reset()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showStats])
 
   const fetchAndSetText = useCallback(async () => {
     const { text, source } = await fetchTypingString()
@@ -241,6 +256,7 @@ export const TypingWidget = () => {
         settings={widgetSettings}
         onSaveSettings={(next) => handleSaveSettings(next)}
         containerMaxWidthClass="max-w-4xl"
+        onOpenChange={(open) => setIsSettingsOpen(open)}
       />
 
       <TypingWidgetText
@@ -251,6 +267,7 @@ export const TypingWidget = () => {
         typable={!showStats}
         onFocusChange={setIsFocused}
         onBlurReset={handleBlurReset}
+        isSettingsOpen={isSettingsOpen}
       />
 
       <Modal

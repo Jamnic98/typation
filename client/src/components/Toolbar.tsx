@@ -10,12 +10,14 @@ export const Toolbar = ({
   initialOpen = false,
   settings,
   onSaveSettings,
+  onOpenChange,
 }: {
   title?: string
   containerMaxWidthClass?: string
   initialOpen?: boolean
   settings: ComponentSettings
   onSaveSettings: (next: ComponentSettings) => void
+  onOpenChange: (isSettinsOpen: boolean) => void
 }) => {
   const [isOpen, setIsOpen] = useState(initialOpen)
 
@@ -30,6 +32,10 @@ export const Toolbar = ({
     setIsAnimating(true)
     setIsOpen((prev) => !prev)
   }
+
+  useEffect(() => {
+    onOpenChange?.(isOpen)
+  }, [isOpen])
 
   useEffect(() => {
     const btn = buttonRef.current
@@ -56,8 +62,8 @@ export const Toolbar = ({
   return (
     <div>
       {/* Transparent toolbar with only the icon visible */}
-      <div className="relative z-30 h-8 w-full bg-transparent pointer-events-none">
-        <div className="flex h-full items-center justify-end px-2 pointer-events-auto">
+      <div className="relative h-8 w-full bg-transparent pointer-events-none">
+        <div className="flex h-full items-center justify-start px-2 pointer-events-auto">
           <button
             tabIndex={-1}
             ref={buttonRef}
@@ -75,7 +81,7 @@ export const Toolbar = ({
               ].join(' ')}
               aria-hidden
             >
-              <LuSettings className="text-[1.2rem] text-gray-200 hover:text-gray-500 transition-transform duration-300" />
+              <LuSettings className="text-[1.2rem] text-gray-300 hover:text-gray-500 transition-transform duration-300" />
             </span>
           </button>
         </div>
@@ -96,7 +102,7 @@ export const Toolbar = ({
             <div className="absolute inset-0 bg-black/30" />
 
             <div
-              className={['relative mx-auto', containerMaxWidthClass].join(' ')}
+              className={['relative mx-auto flex justify-center', containerMaxWidthClass].join(' ')}
               aria-label={`${title} container`}
             >
               <motion.div
@@ -110,7 +116,7 @@ export const Toolbar = ({
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -12, opacity: 0 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 mt-28 z-50"
+                className="relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 mt-28 z-50 max-w-sm"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button

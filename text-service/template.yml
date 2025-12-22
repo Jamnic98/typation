@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: typation-server SAM stack
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+  SecretKey:
+    Type: String
+  SnsTopicArn:
+    Type: String
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 10
+    MemorySize: 1024
+    Environment:
+      Variables:
+        DATABASE_URL: !Ref DatabaseUrl
+        SECRET_KEY: !Ref SecretKey
+        SNS_TOPIC_ARN: !Ref SnsTopicArn
+
+Resources:
+  ApiGateway:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+
+  FastApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: typation-api
+      Handler: api.main.handler
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:GetParameters
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/jstimpson-server/*"
+      Events:
+        Proxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: "FastAPI API Gateway URL"
+    Value: !Sub "https://${ApiGateway.ApiId}.execute-api.${AWS::Region}.amazonaws.com"
+
+  HandlerFunction:
+    Description: Mangum Handler Function ARN
+    Value: !GetAtt FastApiFunction.Arn

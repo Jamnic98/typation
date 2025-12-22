@@ -32,7 +32,7 @@ export const ForgotPassword = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-20 px-4">
+    <div className="max-w-md mx-auto px-4">
       <h1 className="text-2xl font-semibold text-center mb-6">Forgot Password</h1>
 
       {submitted ? (

@@ -14,10 +14,10 @@ export const Login = () => {
     try {
       e.preventDefault()
       await login({ email, password })
-      if (!authError) {
-        navigate('/')
+      if (authError) {
+        throw new Error('Login failed')
       }
-      throw new Error('Login failed')
+      navigate('/')
     } catch (error) {
       console.error('Login failed:', error)
     }
@@ -25,7 +25,7 @@ export const Login = () => {
 
   return (
     <>
-      <div className="max-w-md mx-auto px-4 py-10">
+      <div className="max-w-md mx-auto px-4">
         <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
         <form onSubmit={handleLogin} className="space-y-4">
           <input

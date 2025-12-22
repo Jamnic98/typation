@@ -60,7 +60,7 @@ export const Register = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-10">
+    <div className="max-w-md mx-auto px-4">
       <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
       <form onSubmit={handleRegistration} className="space-y-4">
         <input

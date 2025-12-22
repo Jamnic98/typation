@@ -31,5 +31,6 @@ export const TypingWidgetTextStory: Story = {
     onType: () => {},
     reset: () => {},
     typable: true,
+    isSettingsOpen: false,
   },
 }

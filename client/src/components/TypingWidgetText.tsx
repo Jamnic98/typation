@@ -24,6 +24,7 @@ import {
   SpaceSymbols,
   spaceSymbolMap,
   SpecialEvent,
+  CursorStyles,
 } from 'types'
 import UKKeyboardSvg from './UKKeyboardSvg'
 
@@ -35,6 +36,7 @@ export interface TypingWidgetTextProps {
   typable: boolean
   onFocusChange?: (focused: boolean) => void
   onBlurReset?: () => void
+  isSettingsOpen: boolean
 }
 
 export const TypingWidgetText = ({
@@ -45,6 +47,7 @@ export const TypingWidgetText = ({
   onFocusChange,
   onBlurReset,
   typingWidgetSettings = defaultWidgetSettings,
+  isSettingsOpen = false,
 }: TypingWidgetTextProps) => {
   const inputRef = useRef<HTMLDivElement>(null)
   const [sessionId, setSessionId] = useState(Date.now())
@@ -52,6 +55,10 @@ export const TypingWidgetText = ({
   const [lineIndex, setLineIndex] = useState(0)
   const [colIndex, setColIndex] = useState(0)
   const [isFocused, setIsFocused] = useState(false)
+
+  if (!isSettingsOpen) {
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }
 
   const resetTyping = useCallback(() => {
     if (typeof textToType === 'string') {
@@ -134,8 +141,8 @@ export const TypingWidgetText = ({
   const handleBlur = (e: React.FocusEvent<HTMLElement>) => {
     if (!e.currentTarget.contains(e.relatedTarget)) {
       reset()
-      setIsFocused(false)
       resetTyping()
+      setIsFocused(false)
       onFocusChange?.(false)
       onBlurReset?.()
     }
@@ -350,11 +357,11 @@ export const TypingWidgetText = ({
       {/* Typing text area */}
       <div className="relative overflow-hidden mb-6" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
         {/* TODO: remove? */}
-        {!isFocused && (
+        {/* {!isFocused && (
           <span className="absolute inset-0 flex items-center justify-center text-lg text-neutral-500 pointer-events-none">
             Click here to start
           </span>
-        )}
+        )} */}
         <div
           id="typing-widget-text"
           data-testid="typing-widget-text"
@@ -362,10 +369,9 @@ export const TypingWidgetText = ({
           aria-label="Typing area"
           tabIndex={0}
           onKeyDown={handleKeyDown}
-          autoFocus={true}
           onBlur={handleBlur}
           onFocus={handleFocus}
-          className={`font-mono outline-none px-4 ${isFocused ? '' : 'blur-xs cursor-pointer'}`}
+          className={`font-mono outline-none px-4`}
           ref={inputRef}
         >
           <div
@@ -415,7 +421,11 @@ export const TypingWidgetText = ({
                     ? line.map((charObj, ci) => (
                         <Character
                           {...charObj}
-                          typingWidgetSettings={typingWidgetSettings}
+                          characterAnimationEnabled={typingWidgetSettings.characterAnimationEnabled}
+                          spaceSymbol={
+                            spaceSymbolMap[typingWidgetSettings?.spaceSymbol || SpaceSymbols.DOT]
+                          }
+                          cursorStyle={typingWidgetSettings.cursorStyle || CursorStyles.UNDERSCORE}
                           isActive={idx === lineIndex && ci === colIndex && isFocused}
                           key={`${idx}-${ci}-${sessionId}`}
                         />

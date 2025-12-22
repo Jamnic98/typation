@@ -4,6 +4,9 @@ import { FeaturesCarousel, ImageGallery } from 'components'
 import { useAlert } from 'api'
 import { AlertType } from 'types/global'
 
+const baseUrl = import.meta.env.VITE_SERVER_BASE_URL
+const waitlistUrl = `${baseUrl}/waitlist`
+
 export const Waitlist = () => {
   const { showAlert } = useAlert()
 
@@ -14,8 +17,7 @@ export const Waitlist = () => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const apiUrl = import.meta.env.VITE_WAITLIST_API_URL
-      const res = await fetch(apiUrl, {
+      const res = await fetch(waitlistUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

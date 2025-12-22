@@ -1,9 +1,7 @@
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { type ComponentSettings } from 'components'
 import {
-  defaultWidgetSettings,
   STYLE_FIXED,
   STYLE_HIT,
   STYLE_MISS,
@@ -12,14 +10,16 @@ import {
   STYLE_PENDING,
 } from 'utils/constants'
 import { getCursorStyle } from 'utils/helpers'
-import { SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
+import { CursorStyles, TypedStatus } from 'types'
 
 export interface CharacterProps {
   char: string
   typedChar?: string
   isActive: boolean
   typedStatus: TypedStatus
-  typingWidgetSettings?: ComponentSettings
+  characterAnimationEnabled: boolean
+  spaceSymbol: string
+  cursorStyle?: CursorStyles
 }
 
 export const typedStatusStyles: Record<TypedStatus, string> = {
@@ -36,7 +36,9 @@ export const CharacterComponent = ({
   typedChar,
   isActive = false,
   typedStatus = TypedStatus.NONE,
-  typingWidgetSettings = defaultWidgetSettings,
+  characterAnimationEnabled,
+  spaceSymbol,
+  cursorStyle,
 }: CharacterProps) => {
   const [wasTyped, setWasTyped] = useState(false)
 
@@ -49,16 +51,7 @@ export const CharacterComponent = ({
     }
   }, [typedStatus, wasTyped])
 
-  const fontSettingsClass = useMemo(() => {
-    return Object.entries(typingWidgetSettings)
-      .map(([key, value]) => {
-        if (key === 'fontSize') return `text-${value}`
-      })
-      .join(' ')
-  }, [typingWidgetSettings])
-
   const typedStatusClass = typedStatusStyles[typedStatus]
-  const spaceSymbol = spaceSymbolMap[typingWidgetSettings?.spaceSymbol || SpaceSymbols.UNDERSCORE]
 
   // Decide what to display
   let displayChar: string
@@ -74,15 +67,13 @@ export const CharacterComponent = ({
     displayChar = char === ' ' && spaceSymbol ? spaceSymbol : char
   }
 
-  const characterAnimationEnabled = typingWidgetSettings.characterAnimationEnabled
-
   return (
     <span className="inline-block relative w-[1ch] align-baseline">
       {/* Character background */}
       <span
         aria-hidden="true"
         data-testid="background-character"
-        className={`${typedStatusClass} ${fontSettingsClass} absolute inset-0 select-none`}
+        className={`${typedStatusClass} absolute inset-0 select-none`}
       >
         {displayChar}
       </span>
@@ -93,7 +84,7 @@ export const CharacterComponent = ({
           <motion.span
             data-testid="foreground-character"
             key={`${displayChar}-${typedStatus}`}
-            className={`${typedStatusClass} ${fontSettingsClass} relative z-10 inline-block ${
+            className={`${typedStatusClass} relative z-10 inline-block ${
               typedStatus === TypedStatus.MISS && typedChar === ' ' && char !== ' '
                 ? 'line-through'
                 : ''
@@ -123,7 +114,7 @@ export const CharacterComponent = ({
       {/* Blinking cursor overlay */}
       {isActive && (
         <span
-          className={`absolute inset-0 ${getCursorStyle(typingWidgetSettings?.cursorStyle)}`}
+          className={`absolute inset-0 ${getCursorStyle(cursorStyle)}`}
           data-testid="character-cursor"
         />
       )}

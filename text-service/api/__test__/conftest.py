@@ -16,12 +16,12 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.ext.asyncio.session import async_sessionmaker as AsyncSessionMaker
 from sqlalchemy.pool import NullPool
 
-from ..app.auth.jwt import create_access_token
-from ..app.factories.database import Base, get_db
-from ..app.factories.fastapi_app import create_app
-from ..app.models.user_model import User
-from ..app.models.user_stats_session_model import UserStatsSession
-from ..app.settings import settings
+from api.auth.jwt import create_access_token
+from api.factories.database import Base, get_db
+from api.factories.fastapi_app import create_app
+from api.models.user_model import User
+from api.models.user_stats_session_model import UserStatsSession
+from api.settings import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

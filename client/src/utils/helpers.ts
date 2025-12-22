@@ -10,13 +10,14 @@ import {
   type State,
   type TypingSessionStats,
   SpecialEvent,
+  SpaceSymbols,
 } from 'types'
 
 export const getCursorStyle = (cursorStyle: CursorStyles | undefined) => {
   switch (cursorStyle) {
     case CursorStyles.UNDERSCORE:
       return 'animate-flash-underscore'
-    case CursorStyles.BLOCK:
+    case CursorStyles.UNDERSCORE:
       return 'animate-flash-block'
     case CursorStyles.OUTLINE:
       return 'animate-flash-outline'
@@ -238,6 +239,8 @@ export const resetTypedStatus = (chars: CharacterProps[] | string): CharacterPro
       char,
       typedStatus: TypedStatus.NONE,
       isActive: index === 0,
+      characterAnimationEnabled: false,
+      spaceSymbol: SpaceSymbols.DOT,
     }))
   }
 

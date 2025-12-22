@@ -17,6 +17,7 @@ const renderTypingWidgetText = (props?: TypingWidgetTextProps) => {
     textToType: textToType,
     onType: defaultOnTypeFunc,
     reset: props && typeof props.reset === 'function' ? props.reset : () => {},
+    isSettingsOpen: false,
     ...props,
     typable: true,
   }
@@ -52,6 +53,7 @@ describe('Test Rendering', () => {
       onType: async () => {},
       reset: (): void => {},
       typable: true,
+      isSettingsOpen: false,
     })
     const typingWidget = screen.queryByTestId('typing-widget-text')
     expect(typingWidget).not.toBeInTheDocument()
@@ -70,6 +72,7 @@ describe('Test Rendering', () => {
       onType: async () => {},
       reset: (): void => {},
       typable: true,
+      isSettingsOpen: false,
     })
 
     // test background text
@@ -99,7 +102,7 @@ describe('Test functionality', () => {
       textToType: textToType,
       typingWidgetSettings: {
         textColor: 'black',
-        cursorStyle: CursorStyles.BLOCK,
+        cursorStyle: CursorStyles.UNDERSCORE,
         showBigKeyboard: false,
         showCurrentLetter: false,
         characterAnimationEnabled: true,
@@ -108,6 +111,7 @@ describe('Test functionality', () => {
       onType: async () => {},
       reset: (): void => {},
       typable: true,
+      isSettingsOpen: false,
     })
 
     const characters = screen.getAllByTestId('background-character')
@@ -143,12 +147,14 @@ describe('Test functionality', () => {
 
   test('Updates cursor position correctly', async () => {
     const user = userEvent.setup()
+    const spaceSymbol = SpaceSymbols.UNDERSCORE
 
     renderTypingWidgetText({
       textToType,
       typingWidgetSettings: {
         textColor: 'black',
-        cursorStyle: CursorStyles.BLOCK,
+        cursorStyle: CursorStyles.UNDERSCORE,
+        spaceSymbol, // make sure the component uses this
         showBigKeyboard: false,
         showCurrentLetter: false,
         characterAnimationEnabled: true,
@@ -157,6 +163,7 @@ describe('Test functionality', () => {
       onType: async () => {},
       reset: () => {},
       typable: true,
+      isSettingsOpen: false,
     })
 
     const typingWidgetText = screen.getByTestId('typing-widget-text')
@@ -165,22 +172,22 @@ describe('Test functionality', () => {
     // cursor starts at index 0
     let cursor = await screen.findByTestId('character-cursor')
     expect(cursor).toBeInTheDocument()
-    expect(cursor.parentElement).toHaveTextContent('h') // first char
+    expect(cursor.parentElement).toHaveTextContent(textToType[0]) // first char
 
     // type first char → cursor should move to 'i'
     await user.keyboard(textToType[0])
     cursor = await screen.findByTestId('character-cursor')
-    expect(cursor.parentElement).toHaveTextContent('i')
+    expect(cursor.parentElement).toHaveTextContent(textToType[1])
 
     // type wrong char → cursor should move to space
     await user.keyboard('z')
     cursor = await screen.findByTestId('character-cursor')
-    expect(cursor.parentElement).toHaveTextContent('_') // underscore symbol for space
+    expect(cursor.parentElement).toHaveTextContent(spaceSymbolMap[spaceSymbol])
 
     // backspace → cursor moves back to 'i'
     await user.keyboard('{backspace}')
     cursor = await screen.findByTestId('character-cursor')
-    expect(cursor.parentElement).toHaveTextContent('i')
+    expect(cursor.parentElement).toHaveTextContent(textToType[1])
   })
 
   test('Calls onType function for valid keystrokes ', async () => {

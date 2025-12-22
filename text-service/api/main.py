@@ -1,6 +1,13 @@
-from app.factories.fastapi_app import create_app
+from typing import Any
+from mangum import Mangum
+
+from .factories.fastapi_app import create_app
 
 app = create_app()
+
+def handler(event: dict, _context=None) -> Any:
+    asgi_handler = Mangum(app)
+    return asgi_handler(event, _context)
 
 
 if __name__ == '__main__':

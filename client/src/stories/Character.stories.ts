@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { Character } from 'components'
-import { CursorStyles, FontSizes, TypedStatus } from 'types'
+import { CursorStyles, spaceSymbolMap, SpaceSymbols, TypedStatus } from 'types'
 
 const meta = {
   title: 'Character',
@@ -26,14 +26,6 @@ const meta = {
       description: 'The status of the character (miss, hit, none)',
       defaultValue: TypedStatus.NONE,
     },
-    typingWidgetSettings: {
-      control: 'object',
-      description: 'Font settings for the character',
-      defaultValue: {
-        cursorStyle: CursorStyles.BLOCK,
-        fontSize: FontSizes.MD,
-      },
-    },
   },
 
   tags: ['autodocs'],
@@ -48,6 +40,9 @@ export const Miss: Story = {
     char: 'm',
     isActive: false,
     typedStatus: TypedStatus.MISS,
+    characterAnimationEnabled: false,
+    cursorStyle: CursorStyles.UNDERSCORE,
+    spaceSymbol: spaceSymbolMap[SpaceSymbols.UNDERSCORE],
   },
 }
 
@@ -56,6 +51,9 @@ export const Hit: Story = {
     char: 'h',
     isActive: false,
     typedStatus: TypedStatus.HIT,
+    characterAnimationEnabled: false,
+    cursorStyle: CursorStyles.UNDERSCORE,
+    spaceSymbol: spaceSymbolMap[SpaceSymbols.UNDERSCORE],
   },
 }
 
@@ -64,6 +62,9 @@ export const Space: Story = {
     char: ' ',
     isActive: false,
     typedStatus: TypedStatus.NONE,
+    characterAnimationEnabled: false,
+    cursorStyle: CursorStyles.UNDERSCORE,
+    spaceSymbol: spaceSymbolMap[SpaceSymbols.UNDERSCORE],
   },
 }
 
@@ -72,5 +73,8 @@ export const Highlighted: Story = {
     char: 'H',
     isActive: true,
     typedStatus: TypedStatus.NONE,
+    characterAnimationEnabled: false,
+    cursorStyle: CursorStyles.UNDERSCORE,
+    spaceSymbol: spaceSymbolMap[SpaceSymbols.UNDERSCORE],
   },
 }

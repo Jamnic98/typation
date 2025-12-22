@@ -5,7 +5,7 @@ export const Profile = () => {
 
   return (
     <>
-      <div>
+      <div className="my-16">
         <header className="mb-12 space-y-4">
           <h1 className="text-4xl font-semibold">Profile</h1>
           <hr className="w-full" />

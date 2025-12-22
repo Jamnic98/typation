@@ -4,8 +4,8 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from api.app.factories.database import Base
-from api.app.settings import settings
+from api.factories.database import Base
+from api.settings import settings
 
 # Required to populate Base.metadata
 

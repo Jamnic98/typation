@@ -1,0 +1,14 @@
+asyncpg
+boto3
+fastapi
+graphql-core
+mangum
+passlib
+pydantic[email]
+pydantic-settings
+PyJWT
+python-jose
+SQLAlchemy
+starlette
+strawberry-graphql
+uvicorn

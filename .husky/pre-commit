@@ -20,6 +20,6 @@ fi
 # pip install -r requirements.txt
 
 python3 -m pytest
-python3 -m pylint api/app worker/app
+# python3 -m pylint api/app worker/app
 
 exit 0

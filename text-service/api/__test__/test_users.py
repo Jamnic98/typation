@@ -7,7 +7,7 @@ from typing import Callable, Optional, Coroutine, Any
 
 from jose import jwt
 
-from api.app.settings import settings
+from api.settings import settings
 
 pytestmark = pytest.mark.asyncio
 

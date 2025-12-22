@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Character } from 'components'
 import {
   CursorStyles,
+  spaceSymbolMap,
   SpaceSymbols,
   TypedStatus,
   type TypingWidgetSettings as InterfaceSettings,
@@ -28,7 +29,7 @@ const DEFAULTS: ComponentSettings = {
   showCurrentLetter: true,
   characterAnimationEnabled: true,
   // Font-related
-  cursorStyle: CursorStyles.BLOCK,
+  cursorStyle: CursorStyles.UNDERSCORE,
   spaceSymbol: SpaceSymbols.DOT,
   testDuration: DEFAULT_SESSION_DURATION,
   // fontSize: 'base',
@@ -75,13 +76,13 @@ export const TypingWidgetSettings = ({
   }
 
   return (
-    <div className="space-y-6 p-4 mt-4">
+    <div className="space-y-6 p-4">
       {/* Duration Settings */}
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-neutral-700">Test Duration</h3>
         <select
           id="test-duration"
-          className="rounded border px-2 py-1 text-sm"
+          className="rounded border px-2 py-1 text-sm outline-0"
           value={settings.testDuration}
           onChange={(e) => setSettings((s) => ({ ...s, testDuration: Number(e.target.value) }))}
         >
@@ -92,35 +93,29 @@ export const TypingWidgetSettings = ({
         </select>
       </section>
 
-      {/* Keyboard Settings */}
-      <section className="space-y-2">
-        <h3 className="text-sm font-semibold text-neutral-700">Keyboard</h3>
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-neutral-700">Show Big Keyboard</span>
-            <button
-              type="button"
-              onClick={() => setSettings((s) => ({ ...s, showBigKeyboard: !s.showBigKeyboard }))}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                settings.showBigKeyboard ? 'bg-blue-500' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  settings.showBigKeyboard ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* Display Settings */}
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-neutral-700">Display</h3>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-neutral-700">Show Current Letter</span>
+          <span className="text-sm text-neutral-700">Keyboard</span>
+          <button
+            type="button"
+            onClick={() => setSettings((s) => ({ ...s, showBigKeyboard: !s.showBigKeyboard }))}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              settings.showBigKeyboard ? 'bg-blue-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                settings.showBigKeyboard ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-neutral-700">Current Letter</span>
           <button
             type="button"
             onClick={() => setSettings((s) => ({ ...s, showCurrentLetter: !s.showCurrentLetter }))}
@@ -137,7 +132,7 @@ export const TypingWidgetSettings = ({
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-neutral-700">Enable Character Animation</span>
+          <span className="text-sm text-neutral-700">Character Animation</span>
           <button
             type="button"
             onClick={() =>
@@ -168,14 +163,14 @@ export const TypingWidgetSettings = ({
             <label className="text-sm">Cursor Style</label>
             <div className="flex items-center gap-4">
               <select
-                className="rounded border px-2 py-1 text-sm"
+                className="rounded border px-2 py-1 text-sm outline-0"
                 value={settings.cursorStyle}
                 onChange={handleCursorStyle}
               >
                 <option value={CursorStyles.UNDERSCORE}>Underscore</option>
-                <option value={CursorStyles.BLOCK}>Block</option>
                 <option value={CursorStyles.OUTLINE}>Outline</option>
                 <option value={CursorStyles.PIPE}>Pipe</option>
+                <option value={CursorStyles.NONE}>None</option>
               </select>
 
               {/* Live preview */}
@@ -184,10 +179,9 @@ export const TypingWidgetSettings = ({
                   char="A"
                   isActive={true} // force show cursor
                   typedStatus={TypedStatus.NONE}
-                  typingWidgetSettings={{
-                    ...settings,
-                    cursorStyle: settings.cursorStyle,
-                  }}
+                  characterAnimationEnabled={false}
+                  cursorStyle={settings.cursorStyle}
+                  spaceSymbol={spaceSymbolMap[settings.spaceSymbol || SpaceSymbols.UNDERSCORE]}
                 />
                 <span className="text-xs text-neutral-500">Preview</span>
               </div>
@@ -199,12 +193,12 @@ export const TypingWidgetSettings = ({
             <label className="text-sm">Space Symbol</label>
             <div className="flex items-center gap-4">
               <select
-                className="rounded border px-2 py-1 text-sm"
+                className="rounded border px-2 py-1 text-sm outline-0"
                 value={settings.spaceSymbol}
                 onChange={handleSpaceSymbol}
               >
-                <option value={SpaceSymbols.UNDERSCORE}>Underscore</option>
                 <option value={SpaceSymbols.DOT}>Dot</option>
+                <option value={SpaceSymbols.UNDERSCORE}>Underscore</option>
                 <option value={SpaceSymbols.NONE}>None</option>
               </select>
 
@@ -214,11 +208,9 @@ export const TypingWidgetSettings = ({
                   char=" "
                   isActive={false}
                   typedStatus={TypedStatus.NONE}
-                  typingWidgetSettings={{
-                    ...settings,
-                    spaceSymbol: settings.spaceSymbol,
-                    characterAnimationEnabled: false,
-                  }}
+                  characterAnimationEnabled={false}
+                  cursorStyle={settings.cursorStyle}
+                  spaceSymbol={spaceSymbolMap[settings.spaceSymbol || SpaceSymbols.UNDERSCORE]}
                 />
                 <span className="text-xs text-neutral-500">Preview</span>
               </div>
@@ -229,7 +221,7 @@ export const TypingWidgetSettings = ({
 
       <button
         type="button"
-        className="bg-blue-600 rounded-sm text-white p-2 cursor-pointer mt-2"
+        className="bg-blue-600 rounded-sm text-white p-2 cursor-pointer mt-2 "
         onClick={handleSubmit}
       >
         Save Settings

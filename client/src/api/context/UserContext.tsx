@@ -70,6 +70,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         message,
       })
       throw err
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -77,10 +79,18 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
     localStorage.removeItem(LOCAL_STORAGE_USER_KEY)
     localStorage.removeItem(LOCAL_STORAGE_TEXT_KEY)
+
     setUser(null)
     setToken(null)
+
+    navigate('/')
+
     window.location.reload()
-    navigate('')
+
+    // showAlert({
+    //   type: AlertType.SUCCESS,
+    //   title: 'Logged Out',
+    // })
   }
 
   const statsSummary = async (): Promise<StatsSummary | undefined> => {

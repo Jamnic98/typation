@@ -55,7 +55,7 @@ export enum FontSizes {
 
 export enum CursorStyles {
   UNDERSCORE,
-  BLOCK,
+  NONE,
   OUTLINE,
   PIPE,
 }

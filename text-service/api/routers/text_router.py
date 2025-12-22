@@ -12,7 +12,7 @@ from fastapi import APIRouter # Depends
 # from ..models.user_model import User
 # from ..models.user_stats_summary_model import UserStatsSummary
 # from ..utils.helpers import get_unigraph_weights, get_digraph_weights, score_word
-from ..settings import settings
+from api.settings import settings
 
 
 text_router = APIRouter(prefix="/text")

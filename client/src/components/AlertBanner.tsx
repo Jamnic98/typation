@@ -8,13 +8,14 @@ type AlertBannerProps = {
 }
 
 const positionStyles: Record<string, string> = {
-  'top-center': 'top-4 left-1/2 transform -translate-x-1/2',
-  'bottom-right': 'bottom-4 right-4',
-  'top-right': 'top-4 right-4',
-  'bottom-left': 'bottom-4 left-4',
+  'top-center': 'top-24 left-1/2 transform -translate-x-1/2',
+  'bottom-right': 'bottom-24 right-4',
+  'top-right': 'top-24 right-4',
+  'top-left': 'top-24 left-4',
+  'bottom-left': 'bottom-24 left-4',
 }
 
-export const AlertBanner: React.FC<AlertBannerProps> = ({ position = 'top-center' }) => {
+export const AlertBanner: React.FC<AlertBannerProps> = ({ position = 'bottom-right' }) => {
   const { alerts, removeAlert } = useAlert()
 
   return (

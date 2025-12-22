@@ -1,16 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.user_model import User
+from ..schemas import ForgotPasswordRequest
 from ..schemas.auth_schema import LoginRequest, RegisterRequest, TokenResponse
 from ..schemas.user_schema import UserCreate, UserOut
 from ..factories.database import get_db
-from ..controllers.users_controller import create_user
+from ..controllers.users_controller import create_user, get_user_by_id
 
 from .dependencies import get_current_user
-from .jwt import create_access_token
+from .jwt import create_access_token, verify_reset_token, generate_reset_token
 from .security import verify_password, pwd_context
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
@@ -31,7 +34,7 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     except IntegrityError as exc:
         raise HTTPException(status_code=400, detail="Email or username already registered") from exc
 
-    token = create_access_token(data={"sub": user.email})
+    token = create_access_token(data={"sub": str(user.id)})
     return {
         "user": UserOut.model_validate(user),
         "access_token": token
@@ -53,3 +56,50 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
 @auth_router.get("/me", response_model=UserOut)
 async def read_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@auth_router.post("/reset-password/{token}")
+async def reset_password(
+    token: str = Path(...),
+    payload: dict = Body(...),
+    db: AsyncSession = Depends(get_db)
+):
+    user_id_str = verify_reset_token(token)  # returns string
+    try:
+        user_id = UUID(user_id_str)  # cast string to UUID
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user ID in token")
+
+    user = await get_user_by_id(user_id, db)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # user exists, proceed
+    new_password = payload.get("password")
+    user.hashed_password = bcrypt.hash(new_password)
+    await save_user(user)
+
+    return {"message": "Password successfully reset"}
+
+
+def send_reset_email(email, token):
+    pass
+
+
+async def get_user_by_email(email):
+    pass
+
+
+@auth_router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    # Look up user by email
+    user = await get_user_by_email(request.email)
+    if not user:
+        # You can return 200 anyway to avoid leaking info
+        return {"message": "If this email exists, a reset link has been sent."}
+
+    # Generate a token and send email
+    token = generate_reset_token(user.id)
+    send_reset_email(user.email, token)
+
+    return {"message": "If this email exists, a reset link has been sent."}

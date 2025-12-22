@@ -21,6 +21,11 @@ class Settings(BaseSettings):
 
     WORD_LIMIT: int = 200
 
+    REGION: str = "eu-west-2"
+    SNS_TOPIC_ARN: str = "arn:aws:sns:eu-west-2:343647980472:waitlist-signups"
+    SUPABASE_KEY: str = "/amplify/d17ibtdu5n9ryp/prod/AMPLIFY_waitlistApi_SUPABASE_KEY"
+    SUPABASE_URL: str = "https://zroqhtzwhrscgdtsukmf.supabase.co"
+
     @cached_property
     def database_url(self) -> str:
         return self.DATABASE_URL  # Optional: parse or fallback if needed

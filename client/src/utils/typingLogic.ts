@@ -1,12 +1,16 @@
 import { type CharacterProps } from 'components'
 
-import { TypedStatus } from 'types'
+import { CursorStyles, spaceSymbolMap, SpaceSymbols, TypedStatus } from 'types'
 
 export function resetTypedArray(text: string): CharacterProps[] {
+  // TODO: UPDATE TO USE SETTINGS
   return text.split('').map((char) => ({
     char,
     typedStatus: TypedStatus.NONE,
     isActive: false,
+    characterAnimationEnabled: true,
+    spaceSymbol: spaceSymbolMap[SpaceSymbols.DOT],
+    cursorStyle: CursorStyles.UNDERSCORE,
   }))
 }
 

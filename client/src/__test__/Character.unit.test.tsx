@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 import { Character, type CharacterProps } from 'components'
-import { CursorStyles, FontSizes, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
+import { CursorStyles, SpaceSymbols, spaceSymbolMap, TypedStatus } from 'types'
 import { STYLE_HIT, STYLE_MISS, STYLE_NONE } from 'utils'
 
 // const dataTestId = 'character'
@@ -10,16 +10,9 @@ const defaultProps: CharacterProps = {
   char: 'a',
   isActive: false,
   typedStatus: TypedStatus.NONE,
-  typingWidgetSettings: {
-    textColor: 'black',
-    fontSize: FontSizes.XL,
-    spaceSymbol: SpaceSymbols.DOT,
-    cursorStyle: CursorStyles.BLOCK,
-    showCurrentLetter: true,
-    characterAnimationEnabled: false,
-    showBigKeyboard: false,
-    testDuration: 60,
-  },
+  spaceSymbol: spaceSymbolMap[SpaceSymbols.DOT],
+  cursorStyle: CursorStyles.UNDERSCORE,
+  characterAnimationEnabled: false,
 }
 
 const getTestCharacter = (props: Partial<CharacterProps> = {}) => (
@@ -40,22 +33,15 @@ describe('Character render tests', () => {
   test('should display spaces correctly', () => {
     const { rerender } = renderCharacter({ char: ' ' })
     const character = screen.getByTestId('background-character')
-    expect(character.innerHTML).toBe(
-      spaceSymbolMap[defaultProps.typingWidgetSettings?.spaceSymbol || SpaceSymbols.DOT]
-    )
+    expect(character.innerHTML).toBe(defaultProps.spaceSymbol || SpaceSymbols.DOT)
 
     // Re-render with spaceSymbol
     rerender(
       getTestCharacter({
         char: ' ',
-        typingWidgetSettings: {
-          spaceSymbol: SpaceSymbols.DOT,
-          cursorStyle: CursorStyles.BLOCK,
-          showCurrentLetter: true,
-          characterAnimationEnabled: false,
-          showBigKeyboard: false,
-          testDuration: 60,
-        },
+        characterAnimationEnabled: false,
+        spaceSymbol: spaceSymbolMap[SpaceSymbols.DOT],
+        cursorStyle: CursorStyles.UNDERSCORE,
       })
     )
 
@@ -85,6 +71,6 @@ describe('Character displays correct styles', () => {
   test('should display highlighted style', () => {
     renderCharacter({ isActive: true })
     const characterCursor = screen.getByTestId('character-cursor')
-    expect(characterCursor).toHaveClass('animate-flash-block')
+    expect(characterCursor).toHaveClass('animate-flash-underscore')
   })
 })

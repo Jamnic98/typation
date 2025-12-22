@@ -8060,7 +8060,6 @@ ship
 shipment
 shipping
 shirt
-shit
 shiver
 shock
 shoe

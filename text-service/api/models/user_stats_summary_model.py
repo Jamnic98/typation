@@ -38,14 +38,14 @@ class UserStatsSummary(Base):
         "Unigraph",
         back_populates="summary",
         cascade="all, delete-orphan",
-        lazy="selectin",     # ✅ async-safe eager loading
+        lazy="selectin",
     )
 
     digraphs: Mapped[list["Digraph"]] = relationship(
         "Digraph",
         back_populates="summary",
         cascade="all, delete-orphan",
-        lazy="selectin",     # ✅ async-safe eager loading
+        lazy="selectin",
     )
 
     user: Mapped["User"] = relationship(

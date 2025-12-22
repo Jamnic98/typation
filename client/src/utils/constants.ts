@@ -26,13 +26,12 @@ export const AVERAGE_WORD_LENGTH = 5
 
 // typable characters used in the typing test
 const SPACE = ' '
-const NUMBERS = '0123456789'
+// const NUMBERS = '0123456789'
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
-const ALPHABET_UPPERCASE = ALPHABET.toUpperCase()
-const SPECIAL_CHARS = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+// const ALPHABET_UPPERCASE = ALPHABET.toUpperCase()
+// const SPECIAL_CHARS = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
 
-export const TYPABLE_CHARS_ARRAY =
-  `${SPACE}${NUMBERS}${ALPHABET}${ALPHABET_UPPERCASE}${SPECIAL_CHARS}`.split('')
+export const TYPABLE_CHARS_ARRAY = `${SPACE}${ALPHABET}`.split('')
 
 // create an array of all possible char pair combinations from CHAR_ARRAY
 export const CHAR_ARRAY_PAIRS = TYPABLE_CHARS_ARRAY.map((char1) =>

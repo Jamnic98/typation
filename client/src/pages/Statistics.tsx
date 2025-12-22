@@ -281,7 +281,7 @@ export const Statistics = () => {
   ]
 
   return (
-    <>
+    <div className="my-16">
       <header className="mb-8">
         <h1 className="text-3xl font-semibold">Statistics</h1>
       </header>
@@ -621,6 +621,6 @@ export const Statistics = () => {
           </section>
         </>
       )}
-    </>
+    </div>
   )
 }
