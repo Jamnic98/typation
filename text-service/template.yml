@@ -47,6 +47,16 @@ Resources:
                 - ssm:GetParametersByPath
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/jstimpson-server/*"
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "arn:aws:ses:eu-west-2:343647980472:identity/contact@typation.co.uk"
+            - Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: !Ref SnsTopicArn
+
       Events:
         Proxy:
           Type: HttpApi

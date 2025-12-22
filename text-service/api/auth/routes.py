@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
@@ -15,6 +16,8 @@ from ..controllers.users_controller import create_user, get_user_by_id
 from .dependencies import get_current_user
 from .jwt import create_access_token, verify_reset_token, generate_reset_token
 from .security import verify_password, pwd_context
+from ..services.reset_password_service import send_reset_email
+from ..services.users_service import get_user_by_email
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -82,24 +85,13 @@ async def reset_password(
     return {"message": "Password successfully reset"}
 
 
-def send_reset_email(email, token):
-    pass
-
-
-async def get_user_by_email(email):
-    pass
-
-
 @auth_router.post("/forgot-password")
-async def forgot_password(request: ForgotPasswordRequest):
+async def forgot_password(request: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
     # Look up user by email
-    user = await get_user_by_email(request.email)
-    if not user:
-        # You can return 200 anyway to avoid leaking info
-        return {"message": "If this email exists, a reset link has been sent."}
-
-    # Generate a token and send email
-    token = generate_reset_token(user.id)
-    send_reset_email(user.email, token)
+    user: Optional[User] = await get_user_by_email(str(request.email), db)
+    if user:
+        # Generate a token and send email
+        token = generate_reset_token(str(user.id))
+        await send_reset_email(str(user.email), token)
 
     return {"message": "If this email exists, a reset link has been sent."}

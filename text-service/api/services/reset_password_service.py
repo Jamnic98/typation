@@ -1,8 +1,7 @@
 import asyncio
 
-import boto3
+from api.services import ses
 
-# from api.services import ses
 
 RESET_EMAIL_TEXT = """
 Hello,
@@ -19,32 +18,17 @@ Best,
 The Typation Team
 """
 
-# async def send_reset_email(email: str, token: str):
-#     reset_link = f"https://typation.com/auth/reset-password/{token}"
-#
-#     await asyncio.to_thread(
-#         ses.send_email,
-#         Source="contact@typation.co.uk",
-#         Destination={"ToAddresses": [email]},
-#         Message={
-#             "Subject": {"Data": "Reset your password"},
-#             "Body": {
-#                 "Text": {"Data": RESET_EMAIL_TEXT.format(link=reset_link)}
-#             },
-#         },
-#     )
+async def send_reset_email(email: str, token: str):
+    reset_link = f"https://typation.co.uk/auth/reset-password/{token}"
 
-ses = boto3.client("ses", region_name="eu-west-2")
-
-try:
-    ses.send_email(
+    await asyncio.to_thread(
+        ses.send_email,
         Source="contact@typation.co.uk",
-        Destination={"ToAddresses": ["contact@typation.co.uk"]},  # verified recipient
+        Destination={"ToAddresses": [email]},
         Message={
-            "Subject": {"Data": "Test SES"},
-            "Body": {"Text": {"Data": "Hello world"}}
-        }
+            "Subject": {"Data": "Reset your password"},
+            "Body": {
+                "Text": {"Data": RESET_EMAIL_TEXT.format(link=reset_link)}
+            },
+        },
     )
-    print("Email sent")
-except Exception as e:
-    print("SES error:", e)
