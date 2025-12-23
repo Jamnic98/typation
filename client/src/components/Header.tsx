@@ -44,7 +44,7 @@ export const Header = () => {
 
         <div className="flex flex-col justify-center text-left leading-tight">
           <span className="text-2xl font-bold text-black transition-colors">Typation</span>
-          <span className="text-xs text-gray-500">(Public Alpha)</span>
+          <span className="text-xs text-gray-500 italic">(Beta)</span>
         </div>
       </Link>
 

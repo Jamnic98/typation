@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { FeaturesCarousel, ImageGallery } from 'components'
+import { FeaturesCarousel } from 'components'
 import { useAlert } from 'api'
 import { AlertType } from 'types/global'
 
@@ -61,7 +61,7 @@ export const Waitlist = () => {
         </div>
       </div>
 
-      <section className="mb-12">
+      {/* <section className="mb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Sneak Peek</h2>
         <p className="text-gray-600 mb-6">
           Typation is more than just a typing interface. Here’s a glimpse of the advanced features
@@ -88,7 +88,7 @@ export const Waitlist = () => {
             },
           ]}
         />
-      </section>
+      </section> */}
 
       {/* Waitlist Form */}
       <div className="max-w-lg mx-auto px-6">

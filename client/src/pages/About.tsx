@@ -11,8 +11,8 @@ export const About = () => (
       </p>
 
       <p className="mb-4 text-gray-700">
-        It is currently in public alpha and made by a solo indie developer. Features may change as
-        we learn from real-world use, but the core will always remain clean and distraction-free.
+        It is currently in development by a solo indie developer. Features may change as we learn
+        from real-world use, but the core will always remain clean and distraction-free.
       </p>
     </section>
 
@@ -21,16 +21,15 @@ export const About = () => (
       <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
         <li>
           <span className="font-medium">A clean interface: </span>designed to imitate typing on a
-          typewriter. <span className="text-gray-500">(available now)</span>
+          typewriter.
         </li>
         <li>
           <span className="font-medium">Adaptive practice:</span> sessions that target weaker keys
-          and patterns so you improve faster. <span className="text-gray-500">(beta)</span>
+          and patterns so you improve faster.
         </li>
         <li>
           <span className="font-medium">Useful analytics:</span> insights into accuracy, speed, and
           tricky key combinations you can actually act on.{' '}
-          <span className="text-gray-500">(beta)</span>
         </li>
       </ul>
     </section>
@@ -42,11 +41,11 @@ export const About = () => (
           <span className="font-medium">User-first design</span> and clear, honest communication.
         </li>
         <li>
-          <span className="font-medium">Privacy-minded by default</span>; we collect only what’s
+          <span className="font-medium">Privacy-minded by default</span> as we collect only what’s
           necessary.
         </li>
         <li>
-          <span className="font-medium">No gimmicks</span> — progress you can measure and feel.
+          <span className="font-medium">No gimmicks</span> and progress you can measure and feel.
         </li>
       </ul>
     </section>

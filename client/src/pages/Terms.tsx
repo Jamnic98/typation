@@ -9,9 +9,6 @@ export const Terms = () => (
 
     <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
       <li>
-        Typation is currently in alpha. Features may change, break, or be removed without notice.
-      </li>
-      <li>
         You agree not to misuse Typation (for example, attempting to hack, spam, overload, or
         disrupt the service).
       </li>

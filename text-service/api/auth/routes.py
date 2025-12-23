@@ -17,7 +17,7 @@ from .dependencies import get_current_user
 from .jwt import create_access_token, verify_reset_token, generate_reset_token
 from .security import verify_password, pwd_context
 from ..services.reset_password_service import send_reset_email
-from ..services.users_service import get_user_by_email
+from ..services.users_service import get_user_by_email, update_user_password
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -77,18 +77,11 @@ async def reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Check that email matches
-    email = payload.get("email")
-    if not email or email.lower() != user.email.lower():
-        raise HTTPException(status_code=400, detail="Email does not match token")
-
-    # user exists and email matches, proceed
     new_password = payload.get("password")
     if not new_password:
         raise HTTPException(status_code=400, detail="Password is required")
 
-    user.hashed_password = bcrypt.hash(new_password)
-    await save_user(user)
+    await update_user_password(user.id, new_password, db)
 
     return {"message": "Password successfully reset"}
 
