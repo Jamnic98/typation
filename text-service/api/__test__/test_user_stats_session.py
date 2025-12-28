@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_create_stats_session(graphql_query_fixture, test_users, auth_token):
+async def test_create_stats_session(graphql_query_fixture, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     mutation = """
         mutation CreateStatsSession($userStatsSessionInput: UserStatsSessionInput!) {
@@ -41,7 +41,7 @@ async def test_create_stats_session(graphql_query_fixture, test_users, auth_toke
 
 
 @pytest.mark.asyncio
-async def test_get_all_stats_sessions(graphql_query_fixture, test_users, auth_token):
+async def test_get_all_stats_sessions(graphql_query_fixture, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     # Assumes session(s) created in fixture or earlier test
     query = """query { userStatsSessions { id wpm accuracy } }"""
@@ -53,7 +53,7 @@ async def test_get_all_stats_sessions(graphql_query_fixture, test_users, auth_to
 
 
 @pytest.mark.asyncio
-async def test_get_stats_session_by_id(graphql_query_fixture, test_users, auth_token):
+async def test_get_stats_session_by_id(graphql_query_fixture, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     # First create one to retrieve
     mutation = """

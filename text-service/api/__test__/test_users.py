@@ -1,10 +1,9 @@
+from typing import Callable, Optional, Coroutine, Any
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
 from httpx import Response
-from typing import Callable, Optional, Coroutine, Any
-
 from jose import jwt
 
 from api.settings import settings
@@ -97,12 +96,12 @@ async def test_create_user_duplicate_email(graphql_query_fixture):
 
 
 @pytest.mark.asyncio
-async def test_get_all_users(graphql_query_fixture, test_users):
+async def test_get_all_users(graphql_query_fixture, test_users_fixture):
     query = """query { users { id } }"""
     response = await graphql_query_fixture(query, None, None)
     assert response.status_code == 200
     assert isinstance(response.json()["data"]["users"], list)
-    assert len(response.json()["data"]["users"]) >= len(test_users)
+    assert len(response.json()["data"]["users"]) >= len(test_users_fixture)
 
 
 @pytest.mark.asyncio
@@ -160,7 +159,7 @@ async def test_update_user_authenticated(graphql_query_fixture, auth_token):
 
 
 @pytest.mark.asyncio
-async def test_delete_user(graphql_query_fixture, auth_token, test_users):
+async def test_delete_user(graphql_query_fixture, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     mutation = """
         mutation {

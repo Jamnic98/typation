@@ -4,24 +4,19 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from ..auth.routes import auth_router
 from .database import Base, db_engine, async_sessionmaker_instance
 from ..routers.graphql_router import create_graphql_router
 from ..routers.text_router import text_router
-from ..auth.routes import auth_router
 from ..schemas import WaitlistRequestPayload
 from ..services.waitlist_service import add_to_waitlist
-from api.settings import settings
+from ..settings import settings
 from ..utils.logger import logger
 
 
 async def async_create_tables(engine: AsyncEngine):
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-    except Exception as e:
-        # log but don’t fail the lifespan
-        print("Table creation skipped:", e)
-
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 def get_lifespan(_engine: AsyncEngine):
@@ -60,8 +55,8 @@ def create_app(engine=None, async_sessionmaker=None):
         try:
             await add_to_waitlist(payload.email)  # make sure this is async
             return {"success": True}
-        except Exception as e:
+        except Exception as exc:
             logger.exception("Waitlist signup failed")
-            raise HTTPException(status_code=500, detail="Failed to join waitlist")
+            raise HTTPException(status_code=500, detail="Failed to join waitlist") from exc
 
     return app

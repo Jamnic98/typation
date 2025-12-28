@@ -1,7 +1,7 @@
-from passlib.hash import bcrypt
 from typing import Optional
 from uuid import UUID
 
+from passlib.hash import bcrypt
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select

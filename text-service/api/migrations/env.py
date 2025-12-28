@@ -11,6 +11,7 @@ from api.settings import settings
 
 
 # 🔧 Alembic Config
+# pylint: disable=no-member
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
@@ -24,21 +25,26 @@ target_metadata = Base.metadata
 
 # 🧾 Offline mode
 def run_migrations_offline():
+    # pylint: disable=no-member
     context.configure(
         url=config.get_main_option("sqlalchemy.url").replace("postgresql://", "postgresql+asyncpg://"),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-
+    # pylint: disable=no-member
     with context.begin_transaction():
+        # pylint: disable=no-member
         context.run_migrations()
 
 
 # 🔁 Online mode
 def do_run_migrations(connection):
+    # pylint: disable=no-member
     context.configure(connection=connection, target_metadata=target_metadata)
+    # pylint: disable=no-member
     with context.begin_transaction():
+        # pylint: disable=no-member
         context.run_migrations()
 
 

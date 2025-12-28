@@ -70,8 +70,8 @@ async def reset_password(
     user_id_str = verify_reset_token(token)  # returns string
     try:
         user_id = UUID(user_id_str)  # cast string to UUID
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid user ID in token")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid user ID in token") from exc
 
     user = await get_user_by_id(user_id, db)
     if not user:

@@ -30,7 +30,7 @@ def verify_reset_token(token: str) -> str:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload["sub"]
-    except ExpiredSignatureError:
-        raise HTTPException(status_code=400, detail="Token expired")
-    except JWTError:
-        raise HTTPException(status_code=400, detail="Invalid token")
+    except ExpiredSignatureError as exc:
+        raise HTTPException(status_code=400, detail="Token expired") from exc
+    except JWTError as exc:
+        raise HTTPException(status_code=400, detail="Invalid token") from exc

@@ -2,8 +2,8 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_create_user_stats_summary(graphql_query_fixture, test_users, auth_token):
-    user_id = str(test_users[0].id)
+async def test_create_user_stats_summary(graphql_query_fixture, test_users_fixture, auth_token):
+    user_id = str(test_users_fixture[0].id)
     fastest_wpm = 90
     headers = {"Authorization": f"Bearer {auth_token}"}
     mutation_create = """
@@ -40,7 +40,7 @@ async def test_create_user_stats_summary(graphql_query_fixture, test_users, auth
 
 
 @pytest.mark.asyncio
-async def test_get_user_stats_summary_by_user_id(graphql_query_fixture, test_users, auth_token):
+async def test_get_user_stats_summary_by_user_id(graphql_query_fixture, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     mutation = """
         mutation CreateUserStatsSummary($userStatsSummary: UserStatsSummaryCreateInput!) {

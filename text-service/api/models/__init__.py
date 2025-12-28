@@ -8,10 +8,5 @@ class WaitlistRequest(Base):
 
     id = Column(Integer, primary_key=True)
     email = Column(String(255), nullable=False, unique=True)
+    # pylint: disable=not-callable
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-# from pydantic import BaseModel, EmailStr
-#
-#
-# class WaitlistRequest(BaseModel):
-#     email: EmailStr
