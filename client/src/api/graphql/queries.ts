@@ -66,10 +66,3 @@ export const GET_UNIGRAPH_BY_ID = `
     }
   }
 `
-
-// TODO: remove
-// digraphs {
-//   key
-//   count
-//   accuracy
-// }

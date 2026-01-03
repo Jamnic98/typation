@@ -1,7 +1,7 @@
 import { type ComponentSettings } from 'components'
 import { type State, CursorStyles, SpaceSymbols } from 'types'
 
-export const DEFAULT_SESSION_DURATION = 30
+export const DEFAULT_SESSION_DURATION = 2
 
 export const defaultWidgetSettings: ComponentSettings = {
   spaceSymbol: SpaceSymbols.DOT,

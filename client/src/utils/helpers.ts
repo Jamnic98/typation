@@ -106,80 +106,81 @@ export const calculateTypingSessionStats = (
   let unfixed = 0
   let deletes = 0
 
-  // const unigraphStats: Record<string, { count: number; hit: number; miss: number }> = {}
-  // const digraphTimings: Record<string, number[]> = {}
+  const unigraphStats: Record<string, { count: number; hit: number; miss: number }> = {}
+  const digraphTimings: Record<string, { intervals: number[]; hits: number; total: number }> = {}
 
   for (let i = 0; i < events.length; i++) {
     const e = events[i]
 
     if (e.key === SpecialEvent.BACKSPACE) {
       deletes += e.deleteCount ?? 1
-      continue // don’t log in unigraph/digraph
+      continue
     }
 
-    // if (!unigraphStats[e.key]) {
-    //   unigraphStats[e.key] = { count: 0, hit: 0, miss: 0 }
-    // }
-    // unigraphStats[e.key].count++
+    if (!unigraphStats[e.key]) {
+      unigraphStats[e.key] = { count: 0, hit: 0, miss: 0 }
+    }
+    unigraphStats[e.key].count++
 
     switch (e.typedStatus) {
       case TypedStatus.HIT:
         hits++
-        // unigraphStats[e.key].hit++
+        unigraphStats[e.key].hit++
         break
       case TypedStatus.FIXED:
         fixed++
-        // unigraphStats[e.key].hit++
+        unigraphStats[e.key].hit++
         break
       case TypedStatus.MISS:
         misses++
-        // unigraphStats[e.key].miss++
+        unigraphStats[e.key].miss++
         break
       case TypedStatus.UNFIXED:
         unfixed++
-        // unigraphStats[e.key].miss++
+        unigraphStats[e.key].miss++
         break
+    }
+
+    // --- Digraph timings (only between non-backspace chars) ---
+    if (i > 0 && events[i - 1].key !== SpecialEvent.BACKSPACE) {
+      const prev = events[i - 1]
+      const digraphKey = (prev.expectedChar || '') + (e.expectedChar || '')
+      const interval = e.timestamp - prev.timestamp
+
+      if (!digraphTimings[digraphKey])
+        digraphTimings[digraphKey] = { intervals: [], hits: 0, total: 0 }
+      digraphTimings[digraphKey].intervals.push(interval)
+
+      // Optional: calculate hits for digraphs
+      if (prev.typedStatus === TypedStatus.HIT || prev.typedStatus === TypedStatus.FIXED) {
+        digraphTimings[digraphKey].hits++
+      }
+      digraphTimings[digraphKey].total++
     }
   }
 
-  //   // --- Digraph timings (only between non-backspace chars) ---
-  //   if (i > 0 && events[i - 1].key !== SpecialEvent.BACKSPACE) {
-  //     const prev = events[i - 1]
-  //     const expectedDigraph = (prev.expectedChar || '') + (e.expectedChar || '')
-  //     const interval = e.timestamp - prev.timestamp
-  //     if (!digraphTimings[expectedDigraph]) digraphTimings[expectedDigraph] = []
-  //     digraphTimings[expectedDigraph].push(interval)
-  //   }
-  // }
-
   const corrected = Math.min(fixed, deletes)
   const finalCorrect = hits + corrected
-
-  // attempts = all typed chars (hits + misses + unfixed + corrected)
   const attempts = hits + misses + unfixed + corrected
   const accuracy = toPercent(finalCorrect, attempts)
-
   const rawAccuracy = toPercent(finalCorrect, attempts + deletes)
-
   const elapsed = endTime - startTime
   const grossWpm = calculateGrossWpm(attempts, elapsed)
   const netWpm = calculateNetWpm(grossWpm, accuracy)
 
-  // const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
-  //   key,
-  //   count,
-  //   accuracy: count ? Math.floor((hit / count) * 100) : 0,
-  //   // rawAccuracy: hit / count, // Placeholder: set to actual raw accuracy if available
-  //   mistyped: [], // TODO: Populate with actual mistyped data if available
-  // }))
+  const unigraphs = Object.entries(unigraphStats).map(([key, { count, hit }]) => ({
+    key,
+    count,
+    accuracy: count ? Math.floor((hit / count) * 100) : 0,
+    mistyped: [],
+  }))
 
-  // const digraphs = Object.entries(digraphTimings).map(([key, arr]) => ({
-  //   key,
-  //   count: arr.length,
-  //   meanInterval: Math.floor(arr.reduce((a, b) => a + b, 0) / arr.length),
-  //   // TODO: calculate digraph accuracy
-  //   accuracy: 1, // Placeholder: set to 1 (100%) or compute actual accuracy if available
-  // }))
+  const digraphs = Object.entries(digraphTimings).map(([key, { intervals, hits, total }]) => ({
+    key,
+    count: intervals.length,
+    meanInterval: Math.floor(intervals.reduce((a, b) => a + b, 0) / intervals.length),
+    accuracy: total ? Math.floor((hits / total) * 100) : 0,
+  }))
 
   return {
     startTime,
@@ -194,6 +195,8 @@ export const calculateTypingSessionStats = (
     deletedCharCount: deletes,
     correctCharsTyped: finalCorrect,
     totalCharsTyped: hits + corrected + misses + unfixed + deletes,
+    unigraphs,
+    digraphs,
   }
 }
 

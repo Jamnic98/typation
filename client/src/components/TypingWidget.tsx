@@ -121,36 +121,31 @@ export const TypingWidget = () => {
       },
     })
 
-    try {
-      await fetchAndSetText()
-      setShowStats(true)
+    // show popup immediately
+    setShowStats(true)
+    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
 
-      if (token) {
-        try {
-          await saveStats(
-            { ...sessionStats, startTime: startTimestamp.current, endTime: now },
-            token
-          )
-        } catch (err) {
-          console.error('Failed to save stats', err)
-          showAlert({
-            title: 'Failed to save stats',
-            message: getReadableErrorMessage(err),
-            type: AlertType.ERROR,
-          })
-        }
+    // fire and forget side effects
+    void (async () => {
+      try {
+        await fetchAndSetText()
+      } catch (err) {
+        console.error('Failed to fetch text', err)
       }
 
-      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
-    } catch (err) {
-      const errorMsg = 'Failed to save stats'
-      console.error(errorMsg, err)
-      showAlert({
-        title: errorMsg,
-        message: getReadableErrorMessage(err),
-        type: AlertType.ERROR,
-      })
-    }
+      if (!token) return
+
+      try {
+        await saveStats({ ...sessionStats, startTime: startTimestamp.current, endTime: now }, token)
+      } catch (err) {
+        console.error('Failed to save stats', err)
+        showAlert({
+          title: 'Failed to save stats',
+          message: getReadableErrorMessage(err),
+          type: AlertType.ERROR,
+        })
+      }
+    })()
   }, [dispatch, fetchAndSetText, showAlert, state.text, token])
 
   const reset = (): void => {

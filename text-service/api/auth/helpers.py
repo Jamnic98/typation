@@ -55,6 +55,5 @@ def normalise_user_stats_input(data: dict) -> dict:
             item["key"]: {k: v for k, v in item.items() if k != "key"}
             for item in data["digraphs"]
         }
-        # No need to convert mistyped here because digraphs don't have mistyped
 
     return data
