@@ -12,9 +12,7 @@ const getCorpusText = async (): Promise<{ text: string; source: TextSource }> =>
     const cached = localStorage.getItem(LOCAL_STORAGE_CORPUS_KEY)
     if (cached) {
       const corpus: string[] = JSON.parse(cached)
-      // TODO: UNCOMMENT
-      return { text: corpus.join(''), source: 'corpus-cache' }
-      // return { text: shuffleArray([...corpus]).join(' '), source: 'corpus-cache' }
+      return { text: shuffleArray([...corpus]).join(' '), source: 'corpus-cache' }
     }
 
     const corpus = await loadCorpus()
