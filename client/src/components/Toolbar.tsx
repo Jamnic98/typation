@@ -1,149 +1,128 @@
-import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { LuSettings } from 'react-icons/lu'
+import { useState } from 'react'
+import { Keyboard, Type, Play, BarChart, Settings2 } from 'lucide-react'
 
-import { type ComponentSettings, TypingWidgetSettings } from 'components'
+import { ComponentSettings, TypingWidgetSettings, WordLengthSlider } from 'components'
 
-export const Toolbar = ({
-  title = 'Settings',
-  containerMaxWidthClass = 'max-w-5xl',
-  initialOpen = false,
-  settings,
-  onSaveSettings,
-  onOpenChange,
-}: {
-  title?: string
-  containerMaxWidthClass?: string
-  initialOpen?: boolean
+type QuickSettingsBarProps = {
   settings: ComponentSettings
-  onSaveSettings: (next: ComponentSettings) => void
-  onOpenChange: (isSettinsOpen: boolean) => void
-}) => {
-  const [isOpen, setIsOpen] = useState(initialOpen)
+  onChange: (next: ComponentSettings) => void
+}
 
-  const [isAnimating, setIsAnimating] = useState(false)
+export const Toolbar = ({ settings, onChange }: QuickSettingsBarProps) => {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [localSlider, setLocalSlider] = useState<[number, number]>([
+    settings.minWordLength,
+    settings.maxWordLength,
+  ])
 
-  const panelRef = useRef<HTMLDivElement | null>(null)
-  const buttonRef = useRef<HTMLButtonElement | null>(null)
-
-  const handleToggle = () => {
-    // prevent flicker during animation
-    if (isAnimating) return
-    setIsAnimating(true)
-    setIsOpen((prev) => !prev)
+  const toggle = (key: keyof ComponentSettings) => {
+    onChange({ ...settings, [key]: !settings[key] })
   }
 
-  useEffect(() => {
-    onOpenChange?.(isOpen)
-  }, [isOpen])
+  const handleSliderChange = (min: number, max: number) => {
+    // update local slider immediately for smooth dragging
+    setLocalSlider([min, max])
+  }
 
-  useEffect(() => {
-    const btn = buttonRef.current
-    if (!btn) return
-
-    const handleTransitionEnd = () => {
-      setIsAnimating(false) // unlock after animation
-    }
-
-    btn.addEventListener('transitionend', handleTransitionEnd)
-    return () => {
-      btn.removeEventListener('transitionend', handleTransitionEnd)
-    }
-  }, [])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  const handleSliderCommit = () => {
+    // commit final values to the main settings when dragging ends
+    onChange({ ...settings, minWordLength: localSlider[0], maxWordLength: localSlider[1] })
+  }
 
   return (
-    <div>
-      {/* Transparent toolbar with only the icon visible */}
-      <div className="relative h-8 w-full bg-transparent pointer-events-none">
-        <div className="flex h-full items-center justify-start px-2 pointer-events-auto">
+    <>
+      <div className="flex items-center gap-4 bg-white rounded-md shadow-sm py-1 px-2">
+        {/* Min/Max slider */}
+        <div className="flex-1 px-2 min-w-42">
+          <WordLengthSlider
+            min={localSlider[0]}
+            max={localSlider[1]}
+            size="small"
+            onChange={handleSliderChange}
+            onCommit={handleSliderCommit}
+          />
+        </div>
+
+        {/* Quick toggles */}
+        <div className="space-x-2">
+          {/* Big Letter */}
           <button
-            tabIndex={-1}
-            ref={buttonRef}
-            type="button"
-            onClick={handleToggle}
-            aria-expanded={isOpen}
-            aria-controls="toolbar-dropdown"
-            className="select-none bg-transparent p-1 outline-none"
-            title={isOpen ? 'Close interface settings' : 'Open interface settings'}
+            onClick={() => toggle('showCurrentLetter')}
+            title="Show Current Letter"
+            className={`p-2 rounded-md transition-colors cursor-pointer ${
+              settings.showCurrentLetter ? 'bg-blue-500 text-white' : 'bg-white text-gray-500'
+            }`}
           >
-            <span
-              className={[
-                'cursor-pointer text-3xl font-extrabold leading-none transition-transform duration-300 will-change-transform select-none',
-                isOpen ? 'rotate-0' : '-rotate-180',
-              ].join(' ')}
-              aria-hidden
-            >
-              <LuSettings className="text-[1.2rem] text-gray-300 hover:text-gray-500 transition-transform duration-300" />
-            </span>
+            <Type size={14} />
+          </button>
+
+          <button
+            onClick={() => toggle('characterAnimationEnabled')}
+            title="Character Animation"
+            className={`p-2 rounded-md transition-colors cursor-pointer ${
+              settings.characterAnimationEnabled
+                ? 'bg-blue-500 text-white'
+                : 'bg-white text-gray-500'
+            }`}
+          >
+            <Play size={14} />
+          </button>
+
+          {/* Show Keyboard */}
+          <button
+            onClick={() => toggle('showBigKeyboard')}
+            title="Show Big Keyboard"
+            className={`p-2 rounded-md transition-colors cursor-pointer ${
+              settings.showBigKeyboard ? 'bg-blue-500 text-white' : 'bg-white text-gray-500'
+            }`}
+          >
+            <Keyboard size={14} />
+          </button>
+
+          {/* Progress bar */}
+          <button
+            onClick={() => toggle('showProgressBar')}
+            title="Show Progress Bar"
+            className={`p-2 rounded-md transition-colors cursor-pointer  ${
+              settings.showProgressBar ? 'bg-blue-500 text-white' : 'bg-white text-gray-500'
+            }`}
+          >
+            <BarChart size={14} />
           </button>
         </div>
+
+        {/* Full settings button */}
+        <button
+          onClick={() => setIsModalOpen(true)}
+          title="Full Settings"
+          className="p-2 rounded-md bg-white text-gray-700 hover:bg-gray-200 cursor-pointer"
+        >
+          <Settings2 size={16} />
+        </button>
       </div>
 
-      {/* Scrim + dropdown */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            key="scrim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          >
-            <div className="absolute inset-0 bg-black/30" />
-
-            <div
-              className={['relative mx-auto flex justify-center', containerMaxWidthClass].join(' ')}
-              aria-label={`${title} container`}
+      {/* Full settings modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-150 flex items-center justify-center bg-black/30 mb-0">
+          <div className="bg-white rounded-2xl p-4 max-w-sm w-full relative shadow-2xl">
+            <button
+              className="absolute top-3 right-3 text-gray-600 hover:bg-gray-100 rounded-md w-8 h-8"
+              onClick={() => setIsModalOpen(false)}
             >
-              <motion.div
-                id="toolbar-dropdown"
-                role="dialog"
-                aria-modal="true"
-                aria-label={`${title} panel`}
-                ref={panelRef}
-                tabIndex={-1}
-                initial={{ y: -12, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -12, opacity: 0 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 mt-28 z-50 max-w-sm"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  aria-label="Close settings"
-                  onClick={() => setIsOpen(false)}
-                  className="text-lg cursor-pointer absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100"
-                >
-                  ×
-                </button>
+              ×
+            </button>
 
-                <div className="w-full p-4">
-                  <h1 className="text-xl font-semibold mb-2">Typing Settings</h1>
-
-                  <TypingWidgetSettings
-                    initial={settings}
-                    onSave={(next) => {
-                      onSaveSettings(next)
-                      setIsOpen(false)
-                    }}
-                  />
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            <h2 className="text-xl font-semibold mb-2">Typing Settings</h2>
+            <TypingWidgetSettings
+              initial={settings}
+              onSave={(next) => {
+                onChange(next)
+                setIsModalOpen(false)
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </>
   )
 }

@@ -1,367 +1,105 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-
+import { Character, type CharacterProps, ComponentSettings } from 'components'
 import {
-  type ComponentSettings,
-  type CharacterProps,
-  Character,
-  PreviewCharacter,
-} from 'components'
-import { getGlobalIndex, resetTypedStatus } from 'utils/helpers'
-import {
-  CONTAINER_HEIGHT,
   defaultWidgetSettings,
   GAP,
   INITIAL_OFFSET,
-  LINE_LENGTH,
   LINE_SPACING,
   ROW_HEIGHT,
-  TYPABLE_CHARS_ARRAY,
 } from 'utils/constants'
-import {
-  type OnTypeParams,
-  TypedStatus,
-  TypingAction,
-  SpaceSymbols,
-  spaceSymbolMap,
-  SpecialEvent,
-  CursorStyles,
-} from 'types'
-import UKKeyboardSvg from './UKKeyboardSvg'
+import { SpaceSymbols, spaceSymbolMap, CursorStyles } from 'types'
+
+interface TypingWidgetSkeletonProps {
+  rows?: number
+  rowHeightRem?: number
+  gapRem?: number
+}
+
+export const TypingWidgetSkeleton: React.FC<TypingWidgetSkeletonProps> = ({
+  rows = 4,
+  rowHeightRem = 2,
+  gapRem = 0.5,
+}) => {
+  const charsPerRow = 40 // approximate number of characters per line
+
+  return (
+    <div className="font-mono outline-none px-4 select-none" aria-hidden>
+      {Array.from({ length: rows }).map((_, rowIdx) => {
+        let opacity = 0.15
+        if (rowIdx === 1) opacity = 1
+        if (rowIdx === 0 || rowIdx === 2) opacity = 0.3
+        if (rowIdx === 3) opacity = 0.1
+
+        return (
+          <div
+            key={rowIdx}
+            className="flex justify-center mb-2 overflow-hidden"
+            style={{
+              height: `${rowHeightRem}rem`,
+              marginBottom: `${gapRem}rem`,
+              opacity,
+            }}
+          >
+            {Array.from({ length: charsPerRow }).map((_, ci) => (
+              <div
+                key={ci}
+                className="rounded-sm bg-neutral-700/30 mr-1 last:mr-0"
+                style={{
+                  width: `${rowHeightRem / 2}rem`,
+                  height: '100%',
+                  display: 'inline-block',
+                  animation: 'skeleton-shimmer 1.5s infinite linear',
+                  background:
+                    'linear-gradient(to right, rgba(100,100,100,0.1) 0%, rgba(150,150,150,0.2) 50%, rgba(100,100,100,0.1) 100%)',
+                }}
+              />
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 export interface TypingWidgetTextProps {
+  inputRef: any
+  lines: CharacterProps[][]
+  lineIndex: number
+  colIndex: number
   textToType: string | null
-  typingWidgetSettings?: ComponentSettings
-  onType: (params: OnTypeParams) => void
-  reset: () => void
-  typable: boolean
-  onFocusChange?: (focused: boolean) => void
-  onBlurReset?: () => void
-  isSettingsOpen: boolean
+  loadingText: boolean
+  widgetSettings?: ComponentSettings
+  handleKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void
+  useAlwaysFocus: (inputRef: any) => void
 }
 
 export const TypingWidgetText = ({
+  handleKeyDown,
+  inputRef,
+  lines,
+  lineIndex,
+  colIndex,
+  loadingText,
   textToType,
-  typable,
-  onType,
-  reset,
-  onFocusChange,
-  onBlurReset,
-  typingWidgetSettings = defaultWidgetSettings,
-  isSettingsOpen = false,
+  widgetSettings = defaultWidgetSettings,
+  useAlwaysFocus,
 }: TypingWidgetTextProps) => {
-  const inputRef = useRef<HTMLDivElement>(null)
-  const [sessionId, setSessionId] = useState(Date.now())
-  const [lines, setLines] = useState<CharacterProps[][]>([])
-  const [lineIndex, setLineIndex] = useState(0)
-  const [colIndex, setColIndex] = useState(0)
-  const [isFocused, setIsFocused] = useState(false)
+  if (!textToType || !lines?.length) return null
 
-  if (!isSettingsOpen) {
+  useAlwaysFocus(inputRef)
+
+  const handleOnBlur = (e: React.FocusEvent<HTMLElement>) => {
+    const next = e.relatedTarget as HTMLElement | null
+    if (next && next.tabIndex >= 0) return
+
+    // refocus immediately
     requestAnimationFrame(() => inputRef.current?.focus())
   }
 
-  const resetTyping = useCallback(() => {
-    if (typeof textToType === 'string') {
-      const arr = resetTypedStatus(textToType)
-
-      let currentLength = 0
-      let currentLine: CharacterProps[] = []
-      const chunks: CharacterProps[][] = []
-
-      const words: CharacterProps[][] = []
-      let currentWord: CharacterProps[] = []
-
-      // Split characters into words (preserve spaces as their own "word")
-      for (let i = 0; i < arr.length; i++) {
-        const char = arr[i]
-        if (char.char === ' ') {
-          if (currentWord.length > 0) {
-            words.push(currentWord)
-            currentWord = []
-          }
-          // keep space as a separate token
-          words.push([char])
-        } else {
-          currentWord.push(char)
-        }
-      }
-      if (currentWord.length > 0) {
-        words.push(currentWord)
-      }
-
-      // Build lines from words
-      for (const word of words) {
-        // If the word is just a space, try to attach it to the current line
-        if (word.length === 1 && word[0].char === ' ') {
-          if (currentLength + 1 > LINE_LENGTH) {
-            // If the space would overflow, still add it to this line,
-            // then break the line immediately.
-            currentLine.push(word[0])
-            chunks.push(currentLine)
-            currentLine = []
-            currentLength = 0
-          } else {
-            currentLine.push(word[0])
-            currentLength += 1
-          }
-          continue
-        }
-
-        // For normal words
-        if (currentLength + word.length > LINE_LENGTH && currentLine.length > 0) {
-          // push current line and start new one
-          chunks.push(currentLine)
-          currentLine = []
-          currentLength = 0
-        }
-        currentLine = currentLine.concat(word)
-        currentLength += word.length
-      }
-
-      if (currentLine.length > 0) {
-        chunks.push(currentLine)
-      }
-
-      setLines(chunks)
-      setLineIndex(0)
-      setColIndex(0)
-    }
-  }, [textToType])
-
-  useEffect(() => {
-    resetTyping()
-    setSessionId(Date.now())
-  }, [textToType, resetTyping])
-
-  const handleFocus = () => {
-    setIsFocused(true)
-    onFocusChange?.(true)
-  }
-
-  const handleBlur = (e: React.FocusEvent<HTMLElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget)) {
-      reset()
-      resetTyping()
-      setIsFocused(false)
-      onFocusChange?.(false)
-      onBlurReset?.()
-    }
-  }
-
-  const updateCharStatusAtCursor = (typedStatus: TypedStatus, key?: string): CharacterProps[][] => {
-    const updated = [...lines]
-    const line = [...updated[lineIndex]]
-    const obj = line[colIndex]
-
-    let newStatus = typedStatus
-    if (obj.typedStatus === TypedStatus.PENDING) {
-      if (typedStatus === TypedStatus.HIT) newStatus = TypedStatus.FIXED
-      else if (typedStatus === TypedStatus.MISS) newStatus = TypedStatus.UNFIXED
-    }
-
-    line[colIndex] = {
-      ...obj,
-      typedStatus: newStatus,
-      ...(newStatus === TypedStatus.MISS || newStatus === TypedStatus.UNFIXED
-        ? key && obj.char !== ' '
-          ? { typedChar: key }
-          : {}
-        : {}),
-    }
-    updated[lineIndex] = line
-    return updated
-  }
-
-  const handleCharInput = async (key: string) => {
-    if (!isFocused || !lines[lineIndex]) return
-
-    const line = lines[lineIndex]
-    const obj = line[colIndex]
-
-    if (!obj) return
-
-    const typedStatusRaw = obj.char === key ? TypedStatus.HIT : TypedStatus.MISS
-    const updated = updateCharStatusAtCursor(typedStatusRaw, key)
-    setLines(updated)
-
-    const globalIndex = getGlobalIndex(lineIndex, colIndex, lines)
-
-    onType({
-      key,
-      typedStatus: updated[lineIndex][colIndex].typedStatus,
-      cursorIndex: globalIndex,
-      timestamp: Date.now(),
-      action: TypingAction.AddKey,
-    })
-
-    // End of whole text?
-    if (lineIndex === lines.length - 1 && colIndex === line.length - 1) {
-      setColIndex(-1)
-      return
-    }
-
-    // End of line → move to next line
-    if (colIndex === line.length - 1) {
-      setLineIndex((idx) => idx + 1)
-      setColIndex(0)
-    } else {
-      setColIndex((c) => c + 1)
-    }
-  }
-
-  const handleBackspace = (ctrl = false) => {
-    // nothing to delete
-    if (lineIndex === 0 && colIndex === 0) return
-
-    let newLineIndex = lineIndex
-    let newColIndex = colIndex
-
-    // Step cursor back 1
-    if (colIndex === 0) {
-      newLineIndex -= 1
-      newColIndex = lines[newLineIndex].length - 1
-    } else {
-      newColIndex -= 1
-    }
-
-    const targetChar = lines[newLineIndex][newColIndex]
-    if (!targetChar) return
-
-    // --- CTRL+Backspace: bulk delete ---
-    if (ctrl) {
-      let li = newLineIndex
-      let ci = newColIndex
-
-      // Step 1: walk backwards through consecutive MISS
-      while (li >= 0) {
-        const char = lines[li][ci]
-
-        if (!char || char.typedStatus !== TypedStatus.MISS) {
-          // stop at the first non-MISS
-          break
-        }
-
-        if (ci === 0) {
-          if (li === 0) {
-            // reached very beginning (0,0) and it's a MISS
-            ci = -1
-            break
-          }
-          li--
-          ci = lines[li].length - 1
-        } else {
-          ci--
-        }
-      }
-
-      // Step 2: compute start index = one after the stopping point
-      let startLine = li
-      let startCol = ci + 1
-      if (startCol >= (lines[startLine]?.length ?? 0)) {
-        startLine++
-        startCol = 0
-      }
-
-      const globalStart = getGlobalIndex(startLine, startCol, lines)
-      const globalEnd = getGlobalIndex(newLineIndex, newColIndex, lines)
-
-      if (globalEnd < globalStart) return
-
-      const updated = lines.map((line, li) =>
-        line.map((char, ci) => {
-          const gIdx = getGlobalIndex(li, ci, lines)
-          if (gIdx >= globalStart && gIdx <= globalEnd && char.typedStatus === TypedStatus.MISS) {
-            return { ...char, typedStatus: TypedStatus.PENDING, typedChar: undefined }
-          }
-          return char
-        })
-      )
-
-      setLines(updated)
-      setLineIndex(startLine)
-      setColIndex(startCol)
-
-      onType({
-        key: SpecialEvent.BACKSPACE,
-        cursorIndex: globalEnd,
-        timestamp: Date.now(),
-        action: TypingAction.ClearMissRange,
-        deleteCount: globalEnd - globalStart + 1,
-      })
-
-      return
-    }
-
-    // --- Single Backspace ---
-    if (targetChar.typedStatus === TypedStatus.MISS) {
-      const updated = [...lines]
-      const lineCopy = [...updated[newLineIndex]]
-
-      lineCopy[newColIndex] = {
-        ...lineCopy[newColIndex],
-        typedStatus: TypedStatus.PENDING,
-        typedChar: undefined,
-      }
-
-      updated[newLineIndex] = lineCopy
-      setLines(updated)
-
-      setLineIndex(newLineIndex)
-      setColIndex(newColIndex)
-
-      const globalIndex = getGlobalIndex(newLineIndex, newColIndex, lines)
-
-      onType({
-        key: SpecialEvent.BACKSPACE,
-        cursorIndex: globalIndex,
-        timestamp: Date.now(),
-        action: TypingAction.BackspaceSingle,
-        deleteCount: 1,
-      })
-    }
-  }
-
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
-    if (!typable) return
-    const { key, ctrlKey } = e
-    if (!ctrlKey) e.preventDefault()
-    if (ctrlKey && key === 'r') return
-
-    if (key === 'Backspace') {
-      handleBackspace(ctrlKey)
-      return
-    }
-
-    if (key.length === 1 && TYPABLE_CHARS_ARRAY.includes(key)) {
-      // if (isFocused && lineIndex === 0 && colIndex === 0) onStart()
-      await handleCharInput(key)
-    }
-  }
-
-  if (!textToType || !lines.length) return null
-
   return (
-    <div className="flex flex-col items-center select-none">
-      {/* Big preview char */}
-      <div className="min-h-28">
-        {typingWidgetSettings.showCurrentLetter && (
-          <div className="mb-12">
-            <PreviewCharacter
-              char={lines[lineIndex]?.[colIndex]?.char ?? null}
-              spaceSymbol={spaceSymbolMap[SpaceSymbols.DOT]}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Typing text area */}
-      <div className="relative overflow-hidden mb-6" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
-        {/* TODO: remove? */}
-        {/* {!isFocused && (
-          <span className="absolute inset-0 flex items-center justify-center text-lg text-neutral-500 pointer-events-none">
-            Click here to start
-          </span>
-        )} */}
+    <div>
+      {loadingText ? (
+        <TypingWidgetSkeleton />
+      ) : (
         <div
           id="typing-widget-text"
           data-testid="typing-widget-text"
@@ -369,8 +107,7 @@ export const TypingWidgetText = ({
           aria-label="Typing area"
           tabIndex={0}
           onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
+          onBlur={handleOnBlur}
           className={`font-mono outline-none px-4`}
           ref={inputRef}
         >
@@ -418,16 +155,18 @@ export const TypingWidgetText = ({
                   }}
                 >
                   {lineIndex > 0 || relative >= 0
-                    ? line.map((charObj, ci) => (
+                    ? line.map((charObj: CharacterProps, ci) => (
                         <Character
                           {...charObj}
-                          characterAnimationEnabled={typingWidgetSettings.characterAnimationEnabled}
+                          characterAnimationEnabled={widgetSettings.characterAnimationEnabled}
                           spaceSymbol={
-                            spaceSymbolMap[typingWidgetSettings?.spaceSymbol || SpaceSymbols.DOT]
+                            spaceSymbolMap[widgetSettings?.spaceSymbol || SpaceSymbols.DOT]
                           }
-                          cursorStyle={typingWidgetSettings.cursorStyle || CursorStyles.UNDERSCORE}
-                          isActive={idx === lineIndex && ci === colIndex && isFocused}
-                          key={`${idx}-${ci}-${sessionId}`}
+                          cursorStyle={widgetSettings.cursorStyle || CursorStyles.UNDERSCORE}
+                          // TODO: REMOVE HARDCODED TRUE
+                          isActive={idx === lineIndex && ci === colIndex && true}
+                          key={`${idx}-${ci}`}
+                          // key={`${idx}-${ci}-${sessionId}`}
                         />
                       ))
                     : null}
@@ -436,16 +175,7 @@ export const TypingWidgetText = ({
             })}
           </div>
         </div>
-      </div>
-
-      {/* Keyboard */}
-      {typingWidgetSettings.showBigKeyboard ? (
-        <UKKeyboardSvg
-          highlightKey={lines[lineIndex]?.[colIndex]?.char}
-          showNumberRow
-          className="w-full h-auto"
-        />
-      ) : null}
+      )}
     </div>
   )
 }

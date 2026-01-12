@@ -1,7 +1,7 @@
 import { type ComponentSettings } from 'components'
 import { type State, CursorStyles, SpaceSymbols } from 'types'
 
-export const DEFAULT_SESSION_DURATION = 30
+export const DEFAULT_SESSION_DURATION = 60
 
 export const defaultWidgetSettings: ComponentSettings = {
   spaceSymbol: SpaceSymbols.DOT,
@@ -10,7 +10,12 @@ export const defaultWidgetSettings: ComponentSettings = {
   showBigKeyboard: true,
   showCurrentLetter: true,
   characterAnimationEnabled: true,
+  showProgressBar: true,
+
   testDuration: DEFAULT_SESSION_DURATION,
+
+  minWordLength: 3,
+  maxWordLength: 8,
 
   // fontFamily: 'monospace',
   // fontWeight: 'bold',',
@@ -42,7 +47,6 @@ export const CHAR_ARRAY_PAIRS = TYPABLE_CHARS_ARRAY.map((char1) =>
 export const LOCAL_STORAGE_TOKEN_KEY = 'token'
 export const LOCAL_STORAGE_USER_KEY = 'user'
 export const LOCAL_STORAGE_TEXT_KEY = 'typingText'
-export const LOCAL_STORAGE_COMPLETED_KEY = 'typingCompleted'
 export const LOCAL_STORAGE_CORPUS_KEY = 'corpus'
 export const LOCAL_STORAGE_FIRST_VISIT_FLAG_KEY = 'firstVisitFlag'
 
@@ -56,7 +60,7 @@ export const TYPING_WIDGET_INITIAL_STATE: State = {
   errorCharCount: 0,
   deletedCharCount: 0,
   stopWatchTime: 0,
-  isRunning: false,
+  phase: 'idle',
   text: '',
 }
 

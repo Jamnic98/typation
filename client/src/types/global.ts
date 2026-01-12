@@ -77,7 +77,7 @@ export type State = {
   deletedCharCount: number
 
   stopWatchTime: number
-  isRunning: boolean
+  phase: SessionPhase
   text: string
 }
 
@@ -102,12 +102,12 @@ type UpdateStatsPayload = {
 }
 
 export type Action =
-  | { type: 'START' }
-  | { type: 'STOP' }
+  | { type: 'SESSION_START' }
+  | { type: 'SESSION_COMPLETE' }
   | { type: 'UPDATE_STATS'; payload: UpdateStatsPayload }
   | { type: 'SET_STOPWATCH_TIME'; payload: number }
   | { type: 'SET_TEXT'; payload: string }
-  | { type: 'RESET_SESSION' }
+  | { type: 'RESET_SESSION'; payload: string | null }
   | { type: 'RESET_ALL' }
 
 export type UnigraphStatistic = {
@@ -282,3 +282,5 @@ export interface MetricConfig {
 }
 
 export type GtagParams = Record<string, string | number | boolean | undefined>
+
+export type SessionPhase = 'idle' | 'running' | 'complete'

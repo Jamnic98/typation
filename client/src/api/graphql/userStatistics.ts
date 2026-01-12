@@ -4,7 +4,6 @@ import { baseUrl, GRAPHQL_ENDPOINT } from 'utils/constants'
 import { type StatsSummary, type TypingSessionStats } from 'types'
 
 export const saveStats = async (stats: TypingSessionStats, token: string): Promise<void> => {
-  console.log(stats)
   const response = await fetch(`${baseUrl}${GRAPHQL_ENDPOINT}`, {
     method: 'POST',
     headers: {

@@ -405,7 +405,7 @@ const renderIsoEnter = (
   return <path d={d} fill={fill} stroke={stroke} strokeWidth={2} strokeLinejoin="round" />
 }
 
-const UKKeyboardSvg: FC<UKKeyboardSvgProps> = ({
+export const UKKeyboardSvg: FC<UKKeyboardSvgProps> = ({
   highlightKey,
   listenToKeyboard = false,
   showNumberRow = true,

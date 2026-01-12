@@ -36,19 +36,23 @@ export const typingWidgetStateReducer = (state: State, action: Action): State =>
     case 'RESET_SESSION':
       return {
         ...TYPING_WIDGET_INITIAL_STATE,
-        text: state.text,
+        text: action.payload ?? state.text,
+        phase: 'idle',
       }
 
     case 'RESET_ALL':
       return TYPING_WIDGET_INITIAL_STATE
 
-    case 'START':
-      return { ...state, isRunning: true, stopWatchTime: 0 }
+    case 'SESSION_START':
+      if (state.phase !== 'idle') return state
+      return { ...state, phase: 'running', stopWatchTime: 0 }
 
-    case 'STOP':
-      return { ...state, isRunning: false }
+    case 'SESSION_COMPLETE':
+      if (state.phase !== 'running') return state
+      return { ...state, phase: 'complete' }
 
     case 'UPDATE_STATS':
+      // if (state.phase !== 'complete') return state
       return {
         ...state,
         wpm: action.payload.wpm !== undefined ? action.payload.wpm : state.wpm,

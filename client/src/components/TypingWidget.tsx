@@ -1,289 +1,362 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import {
-  type ComponentSettings,
-  Modal,
+  CharacterProps,
+  ComponentSettings,
+  PreviewCharacter,
   ProgressBar,
-  SessionStatsSummary,
-  Toolbar,
   TypingWidgetText,
+  UKKeyboardSvg,
 } from 'components'
-import { fetchTypingString, saveStats, useAlert, useUser } from 'api'
+import { getGlobalIndex, resetTypedStatus } from 'utils/helpers'
 import {
-  calculateTypingSessionStats,
-  typingWidgetStateReducer,
-  getReadableErrorMessage,
-  trackMistypedKey,
-  formatDateTime,
-} from 'utils/helpers'
-import {
-  LOCAL_STORAGE_COMPLETED_KEY,
-  LOCAL_STORAGE_TEXT_KEY,
-  TYPING_WIDGET_INITIAL_STATE,
-  defaultWidgetSettings,
-} from 'utils/constants'
-import {
-  TypingAction,
-  AlertType,
-  type KeyEvent,
-  type OnTypeParams,
-  TypedStatus,
+  OnTypeParams,
+  spaceSymbolMap,
+  SpaceSymbols,
   SpecialEvent,
-} from 'types'
+  TypedStatus,
+  TypingAction,
+} from 'types/global'
+import { CONTAINER_HEIGHT, LINE_LENGTH, TYPABLE_CHARS_ARRAY } from 'utils'
 
-export const TypingWidget = () => {
-  const { token } = useUser()
-  const { showAlert } = useAlert()
+interface TypingWidgetProps {
+  onType: (onTypeParams: OnTypeParams) => void
+  handleBlurReset: () => void
+  loadingText: boolean
+  inputRef: any
+  textToType: string
+  elapsed: number
+  widgetSettings: ComponentSettings
+  isRunning: boolean
+  disabled: boolean
+  useAlwaysFocus: (inputRef: any) => void
+}
 
-  const [state, dispatch] = useReducer(typingWidgetStateReducer, TYPING_WIDGET_INITIAL_STATE)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [widgetSettings, setWidgetSettings] = useState<ComponentSettings>(defaultWidgetSettings)
-  const [showStats, setShowStats] = useState<boolean>(false)
-  const [isFocused, setIsFocused] = useState(false)
-  const [elapsed, setElapsed] = useState(0) // ms
-
-  const hasStartedRef = useRef(false)
-  const startTimestamp = useRef<number>(0)
-  const keyEventQueue = useRef<KeyEvent[]>([])
-  const mistypedRef = useRef<Record<string, Record<string, number>>>({})
+export const TypingWidget = ({
+  onType,
+  inputRef,
+  loadingText,
+  textToType,
+  elapsed,
+  widgetSettings,
+  isRunning,
+  disabled,
+  useAlwaysFocus,
+}: TypingWidgetProps) => {
+  const [lines, setLines] = useState<CharacterProps[][]>([])
+  const [lineIndex, setLineIndex] = useState(0)
+  const [colIndex, setColIndex] = useState(0)
 
   const timeLeft = Math.max(Number(widgetSettings.testDuration) - Math.floor(elapsed / 1000), 0)
   const progress = Math.min(elapsed / (Number(widgetSettings.testDuration) * 1000), 1) // 0 → 1
 
-  useEffect(() => {
-    if (!isFocused) {
-      // stop session + reset timer
-      setElapsed(0)
-      dispatch({ type: 'STOP' })
-    }
-  }, [isFocused])
+  const handleCharInput = async (key: string) => {
+    const line = lines[lineIndex]
+    const obj = line[colIndex]
 
-  useEffect(() => {
-    if (!showStats) return
+    if (!obj) return
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowStats(false)
-        reset()
-      }
-    }
+    const typedStatusRaw = obj.char === key ? TypedStatus.HIT : TypedStatus.MISS
+    const updated = updateCharStatusAtCursor(typedStatusRaw, key)
+    setLines(updated)
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showStats])
+    const globalIndex = getGlobalIndex(lineIndex, colIndex, lines)
 
-  const fetchAndSetText = useCallback(async () => {
-    const { text, source } = await fetchTypingString()
-
-    dispatch({ type: 'SET_TEXT', payload: text })
-    localStorage.setItem(LOCAL_STORAGE_TEXT_KEY, text)
-    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
-
-    if (source !== 'server') {
-      // Optional: gentle heads-up only when we didn’t get server text
-      showAlert({
-        title: 'Using local practice text',
-        message:
-          source === 'hardcoded-fallback'
-            ? 'Couldn’t reach the server or load the corpus. Using a tiny fallback.'
-            : 'Server is unavailable, loading text from your local corpus.',
-        type: AlertType.WARNING,
-      })
-    }
-  }, [])
-
-  const onComplete = useCallback(async (): Promise<void> => {
-    if (!state.text) return
-
-    const now = Date.now()
-    const elapsedTime = now - startTimestamp.current
-
-    dispatch({ type: 'STOP' })
-    dispatch({ type: 'SET_STOPWATCH_TIME', payload: elapsedTime })
-
-    const sessionStats = calculateTypingSessionStats(
-      keyEventQueue.current,
-      startTimestamp.current,
-      now
-    )
-
-    dispatch({
-      type: 'UPDATE_STATS',
-      payload: {
-        wpm: sessionStats.wpm,
-        netWpm: sessionStats.netWpm,
-        accuracy: sessionStats.accuracy,
-        rawAccuracy: sessionStats.rawAccuracy,
-        totalCharsTyped: sessionStats.totalCharsTyped,
-        correctedCharCount: sessionStats.correctedCharCount,
-        errorCharCount: sessionStats.errorCharCount,
-        deletedCharCount: sessionStats.deletedCharCount,
-      },
+    onType({
+      key,
+      typedStatus: updated[lineIndex][colIndex].typedStatus,
+      cursorIndex: globalIndex,
+      timestamp: Date.now(),
+      action: TypingAction.AddKey,
     })
 
-    // show popup immediately
-    setShowStats(true)
-    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true')
-
-    // fire and forget side effects
-    void (async () => {
-      try {
-        await fetchAndSetText()
-      } catch (err) {
-        console.error('Failed to fetch text', err)
-      }
-
-      if (!token) return
-
-      try {
-        await saveStats({ ...sessionStats, startTime: startTimestamp.current, endTime: now }, token)
-      } catch (err) {
-        console.error('Failed to save stats', err)
-        showAlert({
-          title: 'Failed to save stats',
-          message: getReadableErrorMessage(err),
-          type: AlertType.ERROR,
-        })
-      }
-    })()
-  }, [dispatch, fetchAndSetText, showAlert, state.text, token])
-
-  const reset = (): void => {
-    localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'false')
-    hasStartedRef.current = false
-    keyEventQueue.current = []
-    setElapsed(0)
-  }
-
-  const onType = ({ key, typedStatus, cursorIndex, timestamp, action }: OnTypeParams) => {
-    if (!hasStartedRef.current) {
-      hasStartedRef.current = true
-      startTimestamp.current = Date.now()
-      dispatch({ type: 'START' })
-    }
-
-    // Completed the text
-    if (cursorIndex >= state.text.length - 1) {
-      onComplete()
+    // End of whole text?
+    if (lineIndex === lines.length - 1 && colIndex === line.length - 1) {
+      setColIndex(-1)
       return
     }
 
-    const expected = cursorIndex < state.text.length ? state.text[cursorIndex] : undefined
-    switch (action) {
-      case TypingAction.BackspaceSingle:
-      case TypingAction.ClearMissRange:
-        keyEventQueue.current.push({
-          key: SpecialEvent.BACKSPACE,
-          expectedChar: expected,
-          cursorIndex,
-          timestamp,
-        })
-        break
-
-      case TypingAction.AddKey:
-      default:
-        keyEventQueue.current.push({
-          key,
-          expectedChar: expected,
-          cursorIndex,
-          typedStatus,
-          timestamp,
-        })
-    }
-
-    if (typedStatus === TypedStatus.MISS && cursorIndex < state.text.length) {
-      trackMistypedKey(mistypedRef, key, state.text[cursorIndex])
-    }
-  }
-
-  const handleBlurReset = () => {
-    dispatch({ type: 'STOP' })
-    setElapsed(0)
-  }
-
-  const handleSaveSettings = (next: ComponentSettings) => {
-    setWidgetSettings(next)
-
-    showAlert({
-      type: AlertType.SUCCESS,
-      title: 'Settings Updated',
-      message: 'Your preferences have been saved successfully.',
-    })
-  }
-
-  useEffect(() => {
-    if (!state.isRunning || !isFocused) return
-
-    let rafId: number
-
-    const tick = () => {
-      const diff = Date.now() - startTimestamp.current
-      setElapsed(diff) // forces re-render every frame
-
-      if (diff >= Number(widgetSettings.testDuration) * 1000) {
-        onComplete()
-      } else {
-        rafId = requestAnimationFrame(tick)
-      }
-    }
-
-    rafId = requestAnimationFrame(tick)
-
-    return () => {
-      cancelAnimationFrame(rafId)
-    }
-  }, [state.isRunning, widgetSettings.testDuration, isFocused, onComplete])
-
-  useEffect(() => {
-    const savedText = localStorage.getItem(LOCAL_STORAGE_TEXT_KEY)
-    const completed = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY)
-
-    if (savedText && completed === 'false') {
-      dispatch({ type: 'SET_TEXT', payload: savedText })
+    // End of line → move to next line
+    if (colIndex === line.length - 1) {
+      setLineIndex((idx) => idx + 1)
+      setColIndex(0)
     } else {
-      fetchAndSetText()
+      setColIndex((c) => c + 1)
     }
-  }, [])
+  }
+
+  const resetTyping = useCallback(() => {
+    if (typeof textToType === 'string') {
+      const arr = resetTypedStatus(textToType)
+
+      let currentLength = 0
+      let currentLine: CharacterProps[] = []
+      const chunks: CharacterProps[][] = []
+
+      const words: CharacterProps[][] = []
+      let currentWord: CharacterProps[] = []
+
+      // Split characters into words (preserve spaces as their own "word")
+      for (let i = 0; i < arr.length; i++) {
+        const char = arr[i]
+        if (char.char === ' ') {
+          if (currentWord.length > 0) {
+            words.push(currentWord)
+            currentWord = []
+          }
+          // keep space as a separate token
+          words.push([char])
+        } else {
+          currentWord.push(char)
+        }
+      }
+      if (currentWord.length > 0) {
+        words.push(currentWord)
+      }
+
+      // Build lines from words
+      for (const word of words) {
+        // If the word is just a space, try to attach it to the current line
+        if (word.length === 1 && word[0].char === ' ') {
+          if (currentLength + 1 > LINE_LENGTH) {
+            // If the space would overflow, still add it to this line,
+            // then break the line immediately.
+            currentLine.push(word[0])
+            chunks.push(currentLine)
+            currentLine = []
+            currentLength = 0
+          } else {
+            currentLine.push(word[0])
+            currentLength += 1
+          }
+          continue
+        }
+
+        // For normal words
+        if (currentLength + word.length > LINE_LENGTH && currentLine.length > 0) {
+          // push current line and start new one
+          chunks.push(currentLine)
+          currentLine = []
+          currentLength = 0
+        }
+        currentLine = currentLine.concat(word)
+        currentLength += word.length
+      }
+
+      if (currentLine.length > 0) {
+        chunks.push(currentLine)
+      }
+
+      setLines(chunks)
+      setLineIndex(0)
+      setColIndex(0)
+    }
+  }, [textToType])
+
+  const updateCharStatusAtCursor = (typedStatus: TypedStatus, key?: string): CharacterProps[][] => {
+    const updated = [...lines]
+    const line = [...updated[lineIndex]]
+    const obj = line[colIndex]
+
+    let newStatus = typedStatus
+    if (obj.typedStatus === TypedStatus.PENDING) {
+      if (typedStatus === TypedStatus.HIT) newStatus = TypedStatus.FIXED
+      else if (typedStatus === TypedStatus.MISS) newStatus = TypedStatus.UNFIXED
+    }
+
+    line[colIndex] = {
+      ...obj,
+      typedStatus: newStatus,
+      ...(newStatus === TypedStatus.MISS || newStatus === TypedStatus.UNFIXED
+        ? key && obj.char !== ' '
+          ? { typedChar: key }
+          : {}
+        : {}),
+    }
+    updated[lineIndex] = line
+    return updated
+  }
+
+  const handleBackspace = (ctrl = false) => {
+    // nothing to delete
+    if (lineIndex === 0 && colIndex === 0) return
+
+    let newLineIndex = lineIndex
+    let newColIndex = colIndex
+
+    // Step cursor back 1
+    if (colIndex === 0) {
+      newLineIndex -= 1
+      newColIndex = lines[newLineIndex].length - 1
+    } else {
+      newColIndex -= 1
+    }
+
+    const targetChar = lines[newLineIndex][newColIndex]
+    if (!targetChar) return
+
+    // --- CTRL+Backspace: bulk delete ---
+    if (ctrl) {
+      let li = newLineIndex
+      let ci = newColIndex
+
+      // Step 1: walk backwards through consecutive MISS
+      while (li >= 0) {
+        const char = lines[li][ci]
+
+        if (!char || char.typedStatus !== TypedStatus.MISS) {
+          // stop at the first non-MISS
+          break
+        }
+
+        if (ci === 0) {
+          if (li === 0) {
+            // reached very beginning (0,0) and it's a MISS
+            ci = -1
+            break
+          }
+          li--
+          ci = lines[li].length - 1
+        } else {
+          ci--
+        }
+      }
+
+      // Step 2: compute start index = one after the stopping point
+      let startLine = li
+      let startCol = ci + 1
+      if (startCol >= (lines[startLine]?.length ?? 0)) {
+        startLine++
+        startCol = 0
+      }
+
+      const globalStart = getGlobalIndex(startLine, startCol, lines)
+      const globalEnd = getGlobalIndex(newLineIndex, newColIndex, lines)
+
+      if (globalEnd < globalStart) return
+
+      const updated = lines.map((line, li) =>
+        line.map((char, ci) => {
+          const gIdx = getGlobalIndex(li, ci, lines)
+          if (gIdx >= globalStart && gIdx <= globalEnd && char.typedStatus === TypedStatus.MISS) {
+            return { ...char, typedStatus: TypedStatus.PENDING, typedChar: undefined }
+          }
+          return char
+        })
+      )
+
+      setLines(updated)
+      setLineIndex(startLine)
+      setColIndex(startCol)
+
+      onType({
+        key: SpecialEvent.BACKSPACE,
+        cursorIndex: globalEnd,
+        timestamp: Date.now(),
+        action: TypingAction.ClearMissRange,
+        deleteCount: globalEnd - globalStart + 1,
+      })
+
+      return
+    }
+
+    // --- Single Backspace ---
+    if (targetChar.typedStatus === TypedStatus.MISS) {
+      const updated = [...lines]
+      const lineCopy = [...updated[newLineIndex]]
+
+      lineCopy[newColIndex] = {
+        ...lineCopy[newColIndex],
+        typedStatus: TypedStatus.PENDING,
+        typedChar: undefined,
+      }
+
+      updated[newLineIndex] = lineCopy
+      setLines(updated)
+
+      setLineIndex(newLineIndex)
+      setColIndex(newColIndex)
+
+      const globalIndex = getGlobalIndex(newLineIndex, newColIndex, lines)
+
+      onType({
+        key: SpecialEvent.BACKSPACE,
+        cursorIndex: globalIndex,
+        timestamp: Date.now(),
+        action: TypingAction.BackspaceSingle,
+        deleteCount: 1,
+      })
+    }
+  }
+
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLElement>) => {
+    if (disabled) return
+
+    inputRef.current?.focus()
+
+    const { key, ctrlKey } = e
+    if (!ctrlKey) e.preventDefault()
+    if (ctrlKey && key === 'r') return
+
+    if (!isRunning && key === ' ') {
+      return
+    }
+
+    if (key === 'Backspace') {
+      handleBackspace(ctrlKey)
+      return
+    }
+
+    if (key.length === 1 && TYPABLE_CHARS_ARRAY.includes(key)) {
+      await handleCharInput(key)
+    }
+  }
+
+  useEffect(() => {
+    resetTyping()
+  }, [textToType, resetTyping])
 
   return (
-    <div id="typing-widget" data-testid="typing-widget" className="w-full h-full">
-      <Toolbar
-        settings={widgetSettings}
-        onSaveSettings={(next) => handleSaveSettings(next)}
-        containerMaxWidthClass="max-w-4xl"
-        onOpenChange={(open) => setIsSettingsOpen(open)}
-      />
+    <div id="typing-widget" data-testid="typing-widget" className="w-full h-full mt-6">
+      <div className="flex flex-col items-center select-none">
+        {/* Big preview char */}
+        <div className="min-h-28">
+          {widgetSettings.showCurrentLetter && (
+            <PreviewCharacter
+              char={lines[lineIndex]?.[colIndex]?.char ?? null}
+              spaceSymbol={spaceSymbolMap[SpaceSymbols.DOT]}
+            />
+          )}
+        </div>
 
-      <TypingWidgetText
-        onType={onType}
-        reset={reset}
-        textToType={state.text ?? ''}
-        typingWidgetSettings={widgetSettings}
-        typable={!showStats}
-        onFocusChange={setIsFocused}
-        onBlurReset={handleBlurReset}
-        isSettingsOpen={isSettingsOpen}
-      />
+        <div className="relative overflow-hidden mb-2" style={{ height: `${CONTAINER_HEIGHT}rem` }}>
+          <TypingWidgetText
+            inputRef={inputRef}
+            textToType={textToType ?? ''}
+            widgetSettings={widgetSettings}
+            // onFocusChange={handleFocus}
+            // handleBlur={handleBlur}
+            lines={lines}
+            lineIndex={lineIndex}
+            colIndex={colIndex}
+            handleKeyDown={handleKeyDown}
+            loadingText={loadingText}
+            useAlwaysFocus={useAlwaysFocus}
+          />
+        </div>
 
-      <Modal
-        title={formatDateTime(startTimestamp.current)}
-        isOpen={showStats}
-        onClose={() => setShowStats(false)}
-      >
-        <SessionStatsSummary
-          wpm={state.wpm}
-          netWpm={state.netWpm}
-          accuracy={state.accuracy}
-          rawAccuracy={state.rawAccuracy}
-          keystrokes={state.totalCharsTyped}
-          corrected={state.correctedCharCount}
-          missed={state.errorCharCount}
-          deleted={state.deletedCharCount}
-        />
-      </Modal>
+        {/* Keyboard */}
+        {widgetSettings.showBigKeyboard ? (
+          <UKKeyboardSvg
+            highlightKey={lines[lineIndex]?.[colIndex]?.char}
+            showNumberRow
+            className="w-full h-auto"
+          />
+        ) : null}
+      </div>
 
-      {state.isRunning && isFocused && (
-        <div className="flex items-center gap-4 mt-4 w-full">
+      {isRunning && widgetSettings.showProgressBar && (
+        <div className="flex items-center gap-4 mt-3 w-full">
           {/* Time label */}
           <div className="text-lg text-left">{timeLeft}s</div>
 

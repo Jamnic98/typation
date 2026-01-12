@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { Character } from 'components'
+import { Character, WordLengthSlider } from 'components'
 import {
   CursorStyles,
   spaceSymbolMap,
@@ -20,6 +20,9 @@ export type TypingWidgetUIFlags = {
 export type ComponentSettings = InterfaceSettings &
   TypingWidgetUIFlags & {
     testDuration: number
+    minWordLength: number
+    maxWordLength: number
+    showProgressBar: boolean
   }
 
 const DEFAULTS: ComponentSettings = {
@@ -28,10 +31,16 @@ const DEFAULTS: ComponentSettings = {
   // keystrokeEffectEnabled: true,
   showCurrentLetter: true,
   characterAnimationEnabled: true,
+  showProgressBar: true,
+
   // Font-related
   cursorStyle: CursorStyles.UNDERSCORE,
   spaceSymbol: SpaceSymbols.DOT,
   testDuration: DEFAULT_SESSION_DURATION,
+
+  minWordLength: 2,
+  maxWordLength: 8,
+
   // fontSize: 'base',
   // fontFamily: 'Inter, ui-sans-serif, system-ui',
   // textColor: '#111827', // neutral-900
@@ -152,6 +161,23 @@ export const TypingWidgetSettings = ({
             />
           </button>
         </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-neutral-700">Progress Bar</span>
+          <button
+            type="button"
+            onClick={() => setSettings((s) => ({ ...s, showProgressBar: !s.showProgressBar }))}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              settings.showProgressBar ? 'bg-blue-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                settings.showProgressBar ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
       </section>
 
       {/* Font Settings */}
@@ -219,6 +245,17 @@ export const TypingWidgetSettings = ({
         </div>
       </section>
 
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold text-neutral-700">Word Length</h3>
+
+        <WordLengthSlider
+          min={settings.minWordLength}
+          max={settings.maxWordLength}
+          onChange={(min, max) =>
+            setSettings((s) => ({ ...s, minWordLength: min, maxWordLength: max }))
+          }
+        />
+      </section>
       <button
         type="button"
         className="bg-blue-600 rounded-sm text-white p-2 cursor-pointer mt-2 "

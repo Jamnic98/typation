@@ -19,18 +19,24 @@ type Story = StoryObj<typeof meta>
 
 export const TypingWidgetTextStory: Story = {
   args: {
+    inputRef: null,
+    lines: [],
+    lineIndex: 0,
+    colIndex: 0,
     textToType: 'Testing! 123',
-    typingWidgetSettings: {
+    loadingText: false,
+    widgetSettings: {
       spaceSymbol: SpaceSymbols.DOT,
       cursorStyle: CursorStyles.UNDERSCORE,
       showBigKeyboard: false,
       showCurrentLetter: false,
       characterAnimationEnabled: true,
       testDuration: 60,
+      minWordLength: 1,
+      maxWordLength: 10,
+      showProgressBar: true,
     },
-    onType: () => {},
-    reset: () => {},
-    typable: true,
-    isSettingsOpen: false,
+    handleKeyDown: () => {},
+    useAlwaysFocus: () => {},
   },
 }
