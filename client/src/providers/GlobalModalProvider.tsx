@@ -9,7 +9,7 @@ export const GlobalModalProvider = ({ children }: { children: React.ReactNode })
   useEffect(() => {
     const isFirstVisit = localStorage.getItem(LOCAL_STORAGE_FIRST_VISIT_FLAG_KEY)
     if (!isFirstVisit) {
-      setIsOpen(true)
+      setIsOpen(false)
       localStorage.setItem(LOCAL_STORAGE_FIRST_VISIT_FLAG_KEY, 'true')
     }
   }, [])
