@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Keyboard, Type, Play, BarChart, Settings2 } from 'lucide-react'
 
-import { ComponentSettings, TypingWidgetSettings, WordLengthSlider } from 'components'
+import { ComponentSettings, TypingWidgetSettings /* , WordLengthSlider */ } from 'components'
 
 type QuickSettingsBarProps = {
   settings: ComponentSettings
@@ -10,30 +10,30 @@ type QuickSettingsBarProps = {
 
 export const Toolbar = ({ settings, onChange }: QuickSettingsBarProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [localSlider, setLocalSlider] = useState<[number, number]>([
-    settings.minWordLength,
-    settings.maxWordLength,
-  ])
+  // const [localSlider, setLocalSlider] = useState<[number, number]>([
+  //   settings.minWordLength,
+  //   settings.maxWordLength,
+  // ])
 
   const toggle = (key: keyof ComponentSettings) => {
     onChange({ ...settings, [key]: !settings[key] })
   }
 
-  const handleSliderChange = (min: number, max: number) => {
-    // update local slider immediately for smooth dragging
-    setLocalSlider([min, max])
-  }
+  // const handleSliderChange = (min: number, max: number) => {
+  //   // update local slider immediately for smooth dragging
+  //   setLocalSlider([min, max])
+  // }
 
-  const handleSliderCommit = () => {
-    // commit final values to the main settings when dragging ends
-    onChange({ ...settings, minWordLength: localSlider[0], maxWordLength: localSlider[1] })
-  }
+  // const handleSliderCommit = () => {
+  //   // commit final values to the main settings when dragging ends
+  //   onChange({ ...settings, minWordLength: localSlider[0], maxWordLength: localSlider[1] })
+  // }
 
   return (
     <>
       <div className="flex items-center gap-4 bg-white rounded-md shadow-sm py-1 px-2">
         {/* Min/Max slider */}
-        <div className="flex-1 px-2 min-w-42">
+        {/* <div className="flex-1 px-2 min-w-42">
           <WordLengthSlider
             min={localSlider[0]}
             max={localSlider[1]}
@@ -41,7 +41,7 @@ export const Toolbar = ({ settings, onChange }: QuickSettingsBarProps) => {
             onChange={handleSliderChange}
             onCommit={handleSliderCommit}
           />
-        </div>
+        </div> */}
 
         {/* Quick toggles */}
         <div className="space-x-2">

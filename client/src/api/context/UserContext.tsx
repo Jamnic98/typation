@@ -86,11 +86,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     navigate('/')
 
     window.location.reload()
-
-    // showAlert({
-    //   type: AlertType.SUCCESS,
-    //   title: 'Logged Out',
-    // })
   }
 
   const statsSummary = async (): Promise<StatsSummary | undefined> => {

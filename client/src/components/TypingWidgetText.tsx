@@ -163,10 +163,8 @@ export const TypingWidgetText = ({
                             spaceSymbolMap[widgetSettings?.spaceSymbol || SpaceSymbols.DOT]
                           }
                           cursorStyle={widgetSettings.cursorStyle || CursorStyles.UNDERSCORE}
-                          // TODO: REMOVE HARDCODED TRUE
                           isActive={idx === lineIndex && ci === colIndex && true}
                           key={`${idx}-${ci}`}
-                          // key={`${idx}-${ci}-${sessionId}`}
                         />
                       ))
                     : null}
